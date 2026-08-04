@@ -28,14 +28,27 @@ void main() {
         .where((Directory directory) => directory.existsSync())
         .expand((Directory directory) => directory.listSync(recursive: true))
         .whereType<File>()
+        .where((File file) {
+          return file.path.endsWith('.dart') || file.path.endsWith('.kt');
+        })
         .toList();
+
+    final List<RegExp> forbiddenLogCalls = <RegExp>[
+      RegExp(r'\bprint\s*\('),
+      RegExp(r'\bdebugPrint\s*\('),
+      RegExp(r'\bLog\.d\s*\('),
+      RegExp(r'\bLog\.i\s*\('),
+    ];
 
     for (final File file in sourceFiles) {
       final String source = file.readAsStringSync();
-      expect(source, isNot(contains('print(')));
-      expect(source, isNot(contains('debugPrint(')));
-      expect(source, isNot(contains('Log.d(')));
-      expect(source, isNot(contains('Log.i(')));
+      for (final RegExp pattern in forbiddenLogCalls) {
+        expect(
+          pattern.hasMatch(source),
+          isFalse,
+          reason: 'Raw console logging found in ${file.path}: $pattern',
+        );
+      }
     }
   });
 
