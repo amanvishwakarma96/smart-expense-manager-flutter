@@ -9,14 +9,12 @@ class AppDatabase {
 
   static Future<Isar> open() async {
     final directory = await getApplicationSupportDirectory();
-    final List<CollectionSchema<dynamic>> schemas =
-        <CollectionSchema<dynamic>>[
-      TransactionModelSchema,
-      CategoryModelSchema,
-      MerchantRuleModelSchema,
-    ];
     return Isar.open(
-      schemas,
+      <CollectionSchema<dynamic>>[
+        TransactionModelSchema,
+        CategoryModelSchema,
+        MerchantRuleModelSchema,
+      ],
       directory: directory.path,
       name: 'piggyai',
       inspector: false,
