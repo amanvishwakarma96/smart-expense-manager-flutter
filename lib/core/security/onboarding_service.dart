@@ -3,7 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class OnboardingService {
   OnboardingService({
     FlutterSecureStorage storage = const FlutterSecureStorage(),
-  }) : _storage = storage;
+  }) : this._(storage);
+
+  OnboardingService._(this._storage);
 
   static const String _completedKey = 'piggyai.onboarding.completed';
 
