@@ -10,16 +10,14 @@ class TransactionModel {
     this.amount = 0,
     this.type = TransactionType.debit,
     this.encryptedMerchant = '',
-    DateTime? timestamp,
+    required this.timestamp,
     this.categoryId,
     this.status = TransactionStatus.pending,
     this.encryptedOriginalSmsText = '',
     this.encryptedAccountTail = '',
     this.smsFingerprint,
     this.isManual = false,
-    DateTime? createdAt,
-  })  : timestamp = timestamp ?? DateTime.now(),
-        createdAt = createdAt ?? DateTime.now();
+  }) : createdAt = DateTime.now();
 
   Id id;
   double amount;
