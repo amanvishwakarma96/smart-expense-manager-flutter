@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
+import 'package:smart_expense_manager/core/security/app_lock_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
@@ -21,6 +22,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _lockEnabled = false;
   bool _loadingLock = true;
   bool _scanning = false;
+  int _lockTimeoutMinutes = AppLockService.defaultTimeoutMinutes;
 
   @override
   void initState() {
@@ -29,10 +31,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _loadLockPreference() async {
-    final bool enabled = await ref.read(appLockServiceProvider).isEnabled();
+    final service = ref.read(appLockServiceProvider);
+    final bool enabled = await service.isEnabled();
+    final int timeout = await service.getTimeoutMinutes();
     if (mounted) {
       setState(() {
         _lockEnabled = enabled;
+        _lockTimeoutMinutes = timeout;
         _loadingLock = false;
       });
     }
@@ -50,8 +55,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await ref.read(appLockServiceProvider).setEnabled(enabled);
     if (mounted) {
       setState(() => _lockEnabled = enabled);
-      _message('The lock preference will fully apply after reopening PiggyAI.');
+      _message(
+        enabled
+            ? 'App lock is enabled and will apply when PiggyAI leaves the foreground.'
+            : 'App lock is disabled.',
+      );
     }
+  }
+
+  Future<void> _setLockTimeout(int? minutes) async {
+    if (minutes == null) {
+      return;
+    }
+    await ref.read(appLockServiceProvider).setTimeoutMinutes(minutes);
+    if (mounted) {
+      setState(() => _lockTimeoutMinutes = minutes);
+      _message('Lock timing updated on this device.');
+    }
+  }
+
+  String _lockTimeoutLabel(int minutes) {
+    if (minutes == 0) {
+      return 'Immediately';
+    }
+    return '$minutes minute${minutes == 1 ? '' : 's'}';
   }
 
   Future<void> _scanSms() async {
@@ -84,9 +111,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _editBudget(CategoryModel category) async {
@@ -110,9 +137,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(
-                context,
-              ).pop(double.tryParse(controller.text.trim())),
+              onPressed: () => Navigator.of(context).pop(
+                double.tryParse(controller.text.trim()),
+              ),
               child: const Text('Save'),
             ),
           ],
@@ -244,9 +271,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: <Widget>[
           Text(
             'Settings',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
           ),
           const SizedBox(height: 18),
           _SettingsCard(
@@ -263,14 +290,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               if (_loadingLock)
                 const LinearProgressIndicator()
-              else
+              else ...<Widget>[
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Biometric or device lock'),
-                  subtitle: const Text('Locks after one minute in background.'),
+                  subtitle: const Text(
+                    'Rechecks the preference whenever the app resumes.',
+                  ),
                   value: _lockEnabled,
                   onChanged: _toggleLock,
                 ),
+                if (_lockEnabled) ...<Widget>[
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<int>(
+                    initialValue: _lockTimeoutMinutes,
+                    decoration: const InputDecoration(
+                      labelText: 'Lock after backgrounding',
+                    ),
+                    items: AppLockService.supportedTimeoutMinutes
+                        .map((int minutes) {
+                          return DropdownMenuItem<int>(
+                            value: minutes,
+                            child: Text(_lockTimeoutLabel(minutes)),
+                          );
+                        })
+                        .toList(growable: false),
+                    onChanged: _setLockTimeout,
+                  ),
+                ],
+              ],
             ],
           ),
           const SizedBox(height: 14),
@@ -408,9 +456,9 @@ class _SettingsCard extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
             ),
             const SizedBox(height: 10),
             ...children,
