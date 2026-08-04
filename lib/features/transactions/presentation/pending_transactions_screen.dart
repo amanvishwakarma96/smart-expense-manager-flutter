@@ -50,7 +50,7 @@ class PendingTransactionsScreen extends ConsumerWidget {
                   return ListView.separated(
                     padding: const EdgeInsets.only(bottom: 120),
                     itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (BuildContext context, int index) {
                       final ExpenseTransaction transaction = items[index];
                       return Dismissible(
