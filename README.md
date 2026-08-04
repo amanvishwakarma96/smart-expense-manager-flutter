@@ -1,17 +1,45 @@
 # PiggyAI — Smart Expense Manager
 
-PiggyAI is an offline-first expense manager built with Flutter. It detects transaction alerts from bank SMS messages on Android, parses them entirely on-device, places matches into a pending-review queue, and updates budgets only after user confirmation.
+PiggyAI is a playful, offline-first expense manager built with Flutter. It can
+read transaction alerts on Android, parse them entirely on-device, place
+detected expenses into a pending-review inbox, and update local budgets only
+after confirmation.
 
-## Privacy promise
+## Privacy architecture
 
-- No backend or cloud database
-- No analytics, advertising, or telemetry SDKs
-- No raw SMS or financial data leaves the device
-- No Android `INTERNET` permission
-- Manual transaction entry remains available without SMS permission
+- No backend, account, cloud sync, advertising, analytics, or telemetry.
+- No Android `INTERNET` permission.
+- SMS and financial data never leave the device.
+- Sensitive text is encrypted before persistence.
+- Android backup and device-transfer backup are disabled.
+- SMS access is optional; manual entry always remains available.
+- iOS uses manual entry and user-initiated text parsing because iOS does not
+  expose the SMS inbox to third-party apps.
 
-## Planned stack
+## Stack
 
-Flutter, Riverpod, Isar, `flutter_sms_inbox`, `permission_handler`, `flutter_animate`, and `fl_chart`.
+- Flutter and Dart
+- Riverpod
+- Isar Community 3.x, the maintained Isar-compatible local database fork
+- `flutter_sms_inbox` and a native encrypted incoming-SMS queue
+- `flutter_animate` and `fl_chart`
+- Android Keystore / iOS Keychain through `flutter_secure_storage`
+- AES-256-GCM field encryption with `cryptography`
 
-> Development is in progress on a milestone-based feature branch.
+## Local setup
+
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter run
+```
+
+## Verification
+
+```bash
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze
+flutter test
+```
+
+The app must remain usable in airplane mode after installation.
