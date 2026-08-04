@@ -10,7 +10,8 @@ void main() {
       final result = parser.parse(
         sender: 'HDFCBK',
         receivedAt: DateTime(2026, 8, 4, 10, 30),
-        body: 'Rs.1,250.50 debited from A/c XX7788 at SWIGGY on 04-Aug. '
+        body:
+            'Rs.1,250.50 debited from A/c XX7788 at SWIGGY on 04-Aug. '
             'Ref 123456.',
       );
 

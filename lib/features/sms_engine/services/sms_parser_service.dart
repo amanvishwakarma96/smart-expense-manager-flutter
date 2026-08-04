@@ -194,8 +194,10 @@ class SmsParserService {
     if (accountTail.isNotEmpty) {
       score += 0.1;
     }
-    if (RegExp(r'\b(?:UPI|IMPS|NEFT|card|a/c)\b', caseSensitive: false)
-        .hasMatch(text)) {
+    if (RegExp(
+      r'\b(?:UPI|IMPS|NEFT|card|a/c)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
       score += 0.1;
     }
     return score.clamp(0, 0.95).toDouble();

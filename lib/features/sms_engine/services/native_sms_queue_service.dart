@@ -15,16 +15,18 @@ class QueuedSms {
 }
 
 class NativeSmsQueueService {
-  static const MethodChannel _channel =
-      MethodChannel('com.smartspend.app/sms_queue');
+  static const MethodChannel _channel = MethodChannel(
+    'com.smartspend.app/sms_queue',
+  );
 
   Future<List<QueuedSms>> drain() async {
     if (!Platform.isAndroid) {
       return const <QueuedSms>[];
     }
 
-    final List<dynamic>? payload =
-        await _channel.invokeListMethod<dynamic>('drainPendingSms');
+    final List<dynamic>? payload = await _channel.invokeListMethod<dynamic>(
+      'drainPendingSms',
+    );
     if (payload == null) {
       return const <QueuedSms>[];
     }
@@ -32,13 +34,15 @@ class NativeSmsQueueService {
     return payload
         .whereType<Map<dynamic, dynamic>>()
         .map((Map<dynamic, dynamic> item) {
-      final int milliseconds = (item['timestamp'] as num?)?.toInt() ??
-          DateTime.now().millisecondsSinceEpoch;
-      return QueuedSms(
-        sender: item['sender'] as String? ?? '',
-        body: item['body'] as String? ?? '',
-        timestamp: DateTime.fromMillisecondsSinceEpoch(milliseconds),
-      );
-    }).toList(growable: false);
+          final int milliseconds =
+              (item['timestamp'] as num?)?.toInt() ??
+              DateTime.now().millisecondsSinceEpoch;
+          return QueuedSms(
+            sender: item['sender'] as String? ?? '',
+            body: item['body'] as String? ?? '',
+            timestamp: DateTime.fromMillisecondsSinceEpoch(milliseconds),
+          );
+        })
+        .toList(growable: false);
   }
 }

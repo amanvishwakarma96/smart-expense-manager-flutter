@@ -15,10 +15,12 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<List<ExpenseTransaction>> transactions =
-        ref.watch(confirmedTransactionsProvider);
-    final AsyncValue<List<CategoryModel>> categories =
-        ref.watch(categoriesProvider);
+    final AsyncValue<List<ExpenseTransaction>> transactions = ref.watch(
+      confirmedTransactionsProvider,
+    );
+    final AsyncValue<List<CategoryModel>> categories = ref.watch(
+      categoriesProvider,
+    );
     final int pendingCount =
         ref.watch(pendingTransactionsProvider).value?.length ?? 0;
     final bool privacyMode = ref.watch(privacyModeProvider);
@@ -75,12 +77,12 @@ class _DashboardBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
-    final List<ExpenseTransaction> thisMonth = transactions.where(
-      (ExpenseTransaction item) {
-        return item.timestamp.year == now.year &&
-            item.timestamp.month == now.month;
-      },
-    ).toList(growable: false);
+    final List<ExpenseTransaction> thisMonth = transactions
+        .where((ExpenseTransaction item) {
+          return item.timestamp.year == now.year &&
+              item.timestamp.month == now.month;
+        })
+        .toList(growable: false);
 
     final double spent = thisMonth
         .where((ExpenseTransaction item) => item.isDebit)
@@ -105,7 +107,8 @@ class _DashboardBody extends StatelessWidget {
       }
     }
 
-    String amount(double value) => privacyMode ? '₹ •••••' : inrCurrency.format(value);
+    String amount(double value) =>
+        privacyMode ? '₹ •••••' : inrCurrency.format(value);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 120),
@@ -118,10 +121,9 @@ class _DashboardBody extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     'Hello, smart spender 👋',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w900),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   const Text('Everything here is processed on your phone.'),
@@ -156,10 +158,9 @@ class _DashboardBody extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 amount(spent),
-                style: Theme.of(context)
-                    .textTheme
-                    .displaySmall
-                    ?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(
+                  context,
+                ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 14),
               LinearProgressIndicator(
@@ -250,10 +251,9 @@ class _MetricCard extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             value,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.w900),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -277,10 +277,9 @@ class _ChartCard extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 16),
             SizedBox(height: 190, child: child),
@@ -317,14 +316,16 @@ class _CategoryDonut extends StatelessWidget {
             PieChartData(
               centerSpaceRadius: 46,
               sectionsSpace: 3,
-              sections: visible.map((CategoryModel category) {
-                return PieChartSectionData(
-                  value: spending[category.id],
-                  color: colorFromHex(category.hexColor),
-                  radius: 34,
-                  showTitle: false,
-                );
-              }).toList(growable: false),
+              sections: visible
+                  .map((CategoryModel category) {
+                    return PieChartSectionData(
+                      value: spending[category.id],
+                      color: colorFromHex(category.hexColor),
+                      radius: 34,
+                      showTitle: false,
+                    );
+                  })
+                  .toList(growable: false),
             ),
           ),
         ),
@@ -332,27 +333,29 @@ class _CategoryDonut extends StatelessWidget {
         Expanded(
           child: ListView(
             physics: const NeverScrollableScrollPhysics(),
-            children: visible.map((CategoryModel category) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: <Widget>[
-                    CircleAvatar(
-                      radius: 6,
-                      backgroundColor: colorFromHex(category.hexColor),
+            children: visible
+                .map((CategoryModel category) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: <Widget>[
+                        CircleAvatar(
+                          radius: 6,
+                          backgroundColor: colorFromHex(category.hexColor),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(category.name)),
+                        Text(
+                          privacyMode
+                              ? '•••'
+                              : inrCurrency.format(spending[category.id] ?? 0),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(category.name)),
-                    Text(
-                      privacyMode
-                          ? '•••'
-                          : inrCurrency.format(spending[category.id] ?? 0),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(growable: false),
+                  );
+                })
+                .toList(growable: false),
           ),
         ),
       ],
@@ -361,10 +364,7 @@ class _CategoryDonut extends StatelessWidget {
 }
 
 class _CashFlowChart extends StatelessWidget {
-  const _CashFlowChart({
-    required this.transactions,
-    required this.privacyMode,
-  });
+  const _CashFlowChart({required this.transactions, required this.privacyMode});
 
   final List<ExpenseTransaction> transactions;
   final bool privacyMode;
@@ -378,12 +378,14 @@ class _CashFlowChart extends StatelessWidget {
         today.month,
         today.day,
       ).subtract(Duration(days: 6 - index));
-      final double spent = transactions.where((ExpenseTransaction item) {
-        return item.isDebit &&
-            item.timestamp.year == date.year &&
-            item.timestamp.month == date.month &&
-            item.timestamp.day == date.day;
-      }).fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
+      final double spent = transactions
+          .where((ExpenseTransaction item) {
+            return item.isDebit &&
+                item.timestamp.year == date.year &&
+                item.timestamp.month == date.month &&
+                item.timestamp.day == date.day;
+          })
+          .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
       return FlSpot(index.toDouble(), privacyMode ? 0 : spent);
     });
 

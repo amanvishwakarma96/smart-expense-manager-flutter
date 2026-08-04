@@ -15,52 +15,52 @@ final Provider<Isar> isarProvider = Provider<Isar>((Ref ref) {
 
 final Provider<SecureCipherService> cipherProvider =
     Provider<SecureCipherService>((Ref ref) {
-  throw StateError('cipherProvider must be overridden at startup');
-});
+      throw StateError('cipherProvider must be overridden at startup');
+    });
 
 final Provider<TransactionRepository> transactionRepositoryProvider =
     Provider<TransactionRepository>((Ref ref) {
-  return TransactionRepository(
-    ref.watch(isarProvider),
-    ref.watch(cipherProvider),
-  );
-});
+      return TransactionRepository(
+        ref.watch(isarProvider),
+        ref.watch(cipherProvider),
+      );
+    });
 
 final Provider<CategoryRepository> categoryRepositoryProvider =
     Provider<CategoryRepository>((Ref ref) {
-  return CategoryRepository(ref.watch(isarProvider));
-});
+      return CategoryRepository(ref.watch(isarProvider));
+    });
 
 final Provider<MerchantRuleRepository> merchantRuleRepositoryProvider =
     Provider<MerchantRuleRepository>((Ref ref) {
-  return MerchantRuleRepository(ref.watch(isarProvider));
-});
+      return MerchantRuleRepository(ref.watch(isarProvider));
+    });
 
 final Provider<SmsEngineCoordinator> smsEngineCoordinatorProvider =
     Provider<SmsEngineCoordinator>((Ref ref) {
-  return SmsEngineCoordinator(
-    transactionRepository: ref.watch(transactionRepositoryProvider),
-    merchantRuleRepository: ref.watch(merchantRuleRepositoryProvider),
-  );
-});
+      return SmsEngineCoordinator(
+        transactionRepository: ref.watch(transactionRepositoryProvider),
+        merchantRuleRepository: ref.watch(merchantRuleRepositoryProvider),
+      );
+    });
 
 final Provider<AppLockService> appLockServiceProvider =
     Provider<AppLockService>((Ref ref) => AppLockService());
 
 final StreamProvider<List<ExpenseTransaction>> pendingTransactionsProvider =
     StreamProvider<List<ExpenseTransaction>>((Ref ref) {
-  return ref.watch(transactionRepositoryProvider).watchPending();
-});
+      return ref.watch(transactionRepositoryProvider).watchPending();
+    });
 
 final StreamProvider<List<ExpenseTransaction>> confirmedTransactionsProvider =
     StreamProvider<List<ExpenseTransaction>>((Ref ref) {
-  return ref.watch(transactionRepositoryProvider).watchConfirmed();
-});
+      return ref.watch(transactionRepositoryProvider).watchConfirmed();
+    });
 
 final StreamProvider<List<CategoryModel>> categoriesProvider =
     StreamProvider<List<CategoryModel>>((Ref ref) {
-  return ref.watch(categoryRepositoryProvider).watchAll();
-});
+      return ref.watch(categoryRepositoryProvider).watchAll();
+    });
 
 class PrivacyModeController extends Notifier<bool> {
   @override
@@ -83,5 +83,5 @@ class ResetRequiredController extends Notifier<bool> {
 
 final NotifierProvider<ResetRequiredController, bool> resetRequiredProvider =
     NotifierProvider<ResetRequiredController, bool>(
-  ResetRequiredController.new,
-);
+      ResetRequiredController.new,
+    );

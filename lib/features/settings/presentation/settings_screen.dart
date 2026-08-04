@@ -40,8 +40,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _toggleLock(bool enabled) async {
     if (enabled) {
-      final bool authenticated =
-          await ref.read(appLockServiceProvider).authenticate();
+      final bool authenticated = await ref
+          .read(appLockServiceProvider)
+          .authenticate();
       if (!authenticated) {
         return;
       }
@@ -83,9 +84,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _editBudget(CategoryModel category) async {
@@ -109,9 +110,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(
-                double.tryParse(controller.text.trim()),
-              ),
+              onPressed: () => Navigator.of(
+                context,
+              ).pop(double.tryParse(controller.text.trim())),
               child: const Text('Save'),
             ),
           ],
@@ -120,13 +121,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     controller.dispose();
     if (value != null && value >= 0) {
-      await ref.read(categoryRepositoryProvider).updateBudget(category.id, value);
+      await ref
+          .read(categoryRepositoryProvider)
+          .updateBudget(category.id, value);
     }
   }
 
   Future<void> _addMerchantRule() async {
-    final List<CategoryModel> categories =
-        await ref.read(categoryRepositoryProvider).getAll();
+    final List<CategoryModel> categories = await ref
+        .read(categoryRepositoryProvider)
+        .getAll();
     if (!mounted || categories.isEmpty) {
       return;
     }
@@ -153,12 +157,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   DropdownButtonFormField<int>(
                     initialValue: categoryId,
                     decoration: const InputDecoration(labelText: 'Category'),
-                    items: categories.map((CategoryModel item) {
-                      return DropdownMenuItem<int>(
-                        value: item.id,
-                        child: Text(item.name),
-                      );
-                    }).toList(growable: false),
+                    items: categories
+                        .map((CategoryModel item) {
+                          return DropdownMenuItem<int>(
+                            value: item.id,
+                            child: Text(item.name),
+                          );
+                        })
+                        .toList(growable: false),
                     onChanged: (int? value) {
                       if (value != null) {
                         setDialogState(() => categoryId = value);
@@ -185,10 +191,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final String pattern = patternController.text.trim();
     patternController.dispose();
     if (save == true && pattern.isNotEmpty) {
-      await ref.read(merchantRuleRepositoryProvider).saveRule(
-            merchantPattern: pattern,
-            categoryId: categoryId,
-          );
+      await ref
+          .read(merchantRuleRepositoryProvider)
+          .saveRule(merchantPattern: pattern, categoryId: categoryId);
       if (mounted) {
         _message('Merchant rule saved only on this device.');
       }
@@ -228,8 +233,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<List<CategoryModel>> categories =
-        ref.watch(categoriesProvider);
+    final AsyncValue<List<CategoryModel>> categories = ref.watch(
+      categoriesProvider,
+    );
     final bool private = ref.watch(privacyModeProvider);
 
     return SafeArea(
@@ -238,10 +244,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: <Widget>[
           Text(
             'Settings',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 18),
           _SettingsCard(
@@ -287,7 +292,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.sms_rounded),
-                  label: Text(_scanning ? 'Scanning locally…' : 'Scan bank SMS'),
+                  label: Text(
+                    _scanning ? 'Scanning locally…' : 'Scan bank SMS',
+                  ),
                 ),
               ),
             ],
@@ -302,23 +309,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const Text('Could not load categories.'),
                 data: (List<CategoryModel> items) {
                   return Column(
-                    children: items.map((CategoryModel category) {
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          backgroundColor: colorFromHex(category.hexColor),
-                          child: const Icon(Icons.category_rounded),
-                        ),
-                        title: Text(category.name),
-                        subtitle: Text(
-                          '${inrCurrency.format(category.monthlyBudgetLimit)} / month',
-                        ),
-                        trailing: IconButton(
-                          onPressed: () => _editBudget(category),
-                          icon: const Icon(Icons.edit_rounded),
-                        ),
-                      );
-                    }).toList(growable: false),
+                    children: items
+                        .map((CategoryModel category) {
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: CircleAvatar(
+                              backgroundColor: colorFromHex(category.hexColor),
+                              child: const Icon(Icons.category_rounded),
+                            ),
+                            title: Text(category.name),
+                            subtitle: Text(
+                              '${inrCurrency.format(category.monthlyBudgetLimit)} / month',
+                            ),
+                            trailing: IconButton(
+                              onPressed: () => _editBudget(category),
+                              icon: const Icon(Icons.edit_rounded),
+                            ),
+                          );
+                        })
+                        .toList(growable: false),
                   );
                 },
               ),
@@ -399,10 +408,9 @@ class _SettingsCard extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
             ...children,

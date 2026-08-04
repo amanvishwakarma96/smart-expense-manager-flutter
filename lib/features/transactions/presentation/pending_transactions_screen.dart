@@ -14,10 +14,12 @@ class PendingTransactionsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<List<ExpenseTransaction>> pending =
-        ref.watch(pendingTransactionsProvider);
-    final AsyncValue<List<CategoryModel>> categories =
-        ref.watch(categoriesProvider);
+    final AsyncValue<List<ExpenseTransaction>> pending = ref.watch(
+      pendingTransactionsProvider,
+    );
+    final AsyncValue<List<CategoryModel>> categories = ref.watch(
+      categoriesProvider,
+    );
     final bool private = ref.watch(privacyModeProvider);
 
     return SafeArea(
@@ -28,10 +30,9 @@ class PendingTransactionsScreen extends ConsumerWidget {
           children: <Widget>[
             Text(
               'Pending review',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 4),
             const Text('Swipe right to confirm or left to remove.'),
@@ -39,8 +40,9 @@ class PendingTransactionsScreen extends ConsumerWidget {
             Expanded(
               child: pending.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (Object error, StackTrace stackTrace) =>
-                    const Center(child: Text('Could not load the review inbox.')),
+                error: (Object error, StackTrace stackTrace) => const Center(
+                  child: Text('Could not load the review inbox.'),
+                ),
                 data: (List<ExpenseTransaction> items) {
                   if (items.isEmpty) {
                     return const _ReviewEmptyState();
@@ -54,59 +56,62 @@ class PendingTransactionsScreen extends ConsumerWidget {
                     itemBuilder: (BuildContext context, int index) {
                       final ExpenseTransaction transaction = items[index];
                       return Dismissible(
-                        key: ValueKey<int>(transaction.id),
-                        confirmDismiss: (DismissDirection direction) async {
-                          if (direction == DismissDirection.endToStart) {
-                            return _confirmDelete(context);
-                          }
-                          return true;
-                        },
-                        onDismissed: (DismissDirection direction) {
-                          if (direction == DismissDirection.startToEnd) {
-                            unawaited(
-                              ref.read(transactionRepositoryProvider).confirm(
-                                    transaction.id,
-                                  ),
-                            );
-                          } else {
-                            unawaited(
-                              ref
-                                  .read(transactionRepositoryProvider)
-                                  .delete(transaction.id),
-                            );
-                          }
-                        },
-                        background: const _SwipeBackground(
-                          alignment: Alignment.centerLeft,
-                          color: AppPalette.mint,
-                          icon: Icons.check_rounded,
-                          label: 'Confirm',
-                        ),
-                        secondaryBackground: const _SwipeBackground(
-                          alignment: Alignment.centerRight,
-                          color: AppPalette.rose,
-                          icon: Icons.delete_rounded,
-                          label: 'Remove',
-                        ),
-                        child: _PendingCard(
-                          transaction: transaction,
-                          categories: categoryItems,
-                          privacyMode: private,
-                          onConfirm: () {
-                            unawaited(
-                              ref.read(transactionRepositoryProvider).confirm(
-                                    transaction.id,
-                                  ),
-                            );
-                          },
-                          onEdit: () => _showEditDialog(
-                            context: context,
-                            ref: ref,
-                            transaction: transaction,
-                            categories: categoryItems,
-                          ),
-                        ),
-                      ).animate(delay: (55 * index).ms).fadeIn().slideX(begin: 0.08);
+                            key: ValueKey<int>(transaction.id),
+                            confirmDismiss: (DismissDirection direction) async {
+                              if (direction == DismissDirection.endToStart) {
+                                return _confirmDelete(context);
+                              }
+                              return true;
+                            },
+                            onDismissed: (DismissDirection direction) {
+                              if (direction == DismissDirection.startToEnd) {
+                                unawaited(
+                                  ref
+                                      .read(transactionRepositoryProvider)
+                                      .confirm(transaction.id),
+                                );
+                              } else {
+                                unawaited(
+                                  ref
+                                      .read(transactionRepositoryProvider)
+                                      .delete(transaction.id),
+                                );
+                              }
+                            },
+                            background: const _SwipeBackground(
+                              alignment: Alignment.centerLeft,
+                              color: AppPalette.mint,
+                              icon: Icons.check_rounded,
+                              label: 'Confirm',
+                            ),
+                            secondaryBackground: const _SwipeBackground(
+                              alignment: Alignment.centerRight,
+                              color: AppPalette.rose,
+                              icon: Icons.delete_rounded,
+                              label: 'Remove',
+                            ),
+                            child: _PendingCard(
+                              transaction: transaction,
+                              categories: categoryItems,
+                              privacyMode: private,
+                              onConfirm: () {
+                                unawaited(
+                                  ref
+                                      .read(transactionRepositoryProvider)
+                                      .confirm(transaction.id),
+                                );
+                              },
+                              onEdit: () => _showEditDialog(
+                                context: context,
+                                ref: ref,
+                                transaction: transaction,
+                                categories: categoryItems,
+                              ),
+                            ),
+                          )
+                          .animate(delay: (55 * index).ms)
+                          .fadeIn()
+                          .slideX(begin: 0.08);
                     },
                   );
                 },
@@ -149,15 +154,15 @@ class PendingTransactionsScreen extends ConsumerWidget {
   }) async {
     final _PendingEdit? edit = await showDialog<_PendingEdit>(
       context: context,
-      builder: (BuildContext context) => _PendingEditDialog(
-        transaction: transaction,
-        categories: categories,
-      ),
+      builder: (BuildContext context) =>
+          _PendingEditDialog(transaction: transaction, categories: categories),
     );
     if (edit == null) {
       return;
     }
-    await ref.read(transactionRepositoryProvider).updatePending(
+    await ref
+        .read(transactionRepositoryProvider)
+        .updatePending(
           id: transaction.id,
           amount: edit.amount,
           merchant: edit.merchant,
@@ -239,7 +244,9 @@ class _PendingCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   Text(
-                    privacyMode ? '₹ •••' : inrCurrency.format(transaction.amount),
+                    privacyMode
+                        ? '₹ •••'
+                        : inrCurrency.format(transaction.amount),
                     style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                   IconButton(
@@ -353,7 +360,9 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
     _amountController = TextEditingController(
       text: widget.transaction.amount.toStringAsFixed(2),
     );
-    _merchantController = TextEditingController(text: widget.transaction.merchant);
+    _merchantController = TextEditingController(
+      text: widget.transaction.merchant,
+    );
     _type = widget.transaction.type;
     _categoryId = widget.transaction.categoryId;
   }
@@ -375,8 +384,13 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
           children: <Widget>[
             TextField(
               controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Amount', prefixText: '₹ '),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Amount',
+                prefixText: '₹ ',
+              ),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -387,12 +401,14 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
             DropdownButtonFormField<TransactionType>(
               initialValue: _type,
               decoration: const InputDecoration(labelText: 'Type'),
-              items: TransactionType.values.map((TransactionType type) {
-                return DropdownMenuItem<TransactionType>(
-                  value: type,
-                  child: Text(type.name),
-                );
-              }).toList(growable: false),
+              items: TransactionType.values
+                  .map((TransactionType type) {
+                    return DropdownMenuItem<TransactionType>(
+                      value: type,
+                      child: Text(type.name),
+                    );
+                  })
+                  .toList(growable: false),
               onChanged: (TransactionType? value) {
                 if (value != null) {
                   setState(() => _type = value);
@@ -403,12 +419,14 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
             DropdownButtonFormField<int>(
               initialValue: _categoryId,
               decoration: const InputDecoration(labelText: 'Category'),
-              items: widget.categories.map((CategoryModel category) {
-                return DropdownMenuItem<int>(
-                  value: category.id,
-                  child: Text(category.name),
-                );
-              }).toList(growable: false),
+              items: widget.categories
+                  .map((CategoryModel category) {
+                    return DropdownMenuItem<int>(
+                      value: category.id,
+                      child: Text(category.name),
+                    );
+                  })
+                  .toList(growable: false),
               onChanged: (int? value) => setState(() => _categoryId = value),
             ),
           ],
@@ -421,7 +439,9 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
         ),
         FilledButton(
           onPressed: () {
-            final double? amount = double.tryParse(_amountController.text.trim());
+            final double? amount = double.tryParse(
+              _amountController.text.trim(),
+            );
             final String merchant = _merchantController.text.trim();
             if (amount == null || amount <= 0 || merchant.isEmpty) {
               return;

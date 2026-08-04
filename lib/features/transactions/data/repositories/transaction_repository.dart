@@ -19,16 +19,14 @@ class TransactionRepository {
         .where()
         .watch(fireImmediately: true)
         .asyncMap((List<TransactionModel> models) async {
-      final List<TransactionModel> pending = models
-          .where((TransactionModel item) {
-            return item.status == TransactionStatus.pending;
-          })
-          .toList()
-        ..sort((TransactionModel a, TransactionModel b) {
-          return b.timestamp.compareTo(a.timestamp);
+          final List<TransactionModel> pending =
+              models.where((TransactionModel item) {
+                return item.status == TransactionStatus.pending;
+              }).toList()..sort((TransactionModel a, TransactionModel b) {
+                return b.timestamp.compareTo(a.timestamp);
+              });
+          return Future.wait(pending.map(_toDomain));
         });
-      return Future.wait(pending.map(_toDomain));
-    });
   }
 
   Stream<List<ExpenseTransaction>> watchConfirmed() {
@@ -36,21 +34,20 @@ class TransactionRepository {
         .where()
         .watch(fireImmediately: true)
         .asyncMap((List<TransactionModel> models) async {
-      final List<TransactionModel> confirmed = models
-          .where((TransactionModel item) {
-            return item.status == TransactionStatus.confirmed;
-          })
-          .toList()
-        ..sort((TransactionModel a, TransactionModel b) {
-          return b.timestamp.compareTo(a.timestamp);
+          final List<TransactionModel> confirmed =
+              models.where((TransactionModel item) {
+                return item.status == TransactionStatus.confirmed;
+              }).toList()..sort((TransactionModel a, TransactionModel b) {
+                return b.timestamp.compareTo(a.timestamp);
+              });
+          return Future.wait(confirmed.map(_toDomain));
         });
-      return Future.wait(confirmed.map(_toDomain));
-    });
   }
 
   Future<bool> containsFingerprint(String fingerprint) async {
-    final List<TransactionModel> models =
-        await _isar.transactionModels.where().findAll();
+    final List<TransactionModel> models = await _isar.transactionModels
+        .where()
+        .findAll();
     return models.any((TransactionModel item) {
       return item.smsFingerprint == fingerprint;
     });

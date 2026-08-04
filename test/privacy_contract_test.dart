@@ -21,17 +21,17 @@ void main() {
   });
 
   test('application source has no raw console logging', () {
-    final List<File> sourceFiles = <Directory>[
-      Directory('lib'),
-      Directory('android/app/src/main/kotlin'),
-    ]
-        .where((Directory directory) => directory.existsSync())
-        .expand((Directory directory) => directory.listSync(recursive: true))
-        .whereType<File>()
-        .where((File file) {
-          return file.path.endsWith('.dart') || file.path.endsWith('.kt');
-        })
-        .toList();
+    final List<File> sourceFiles =
+        <Directory>[Directory('lib'), Directory('android/app/src/main/kotlin')]
+            .where((Directory directory) => directory.existsSync())
+            .expand(
+              (Directory directory) => directory.listSync(recursive: true),
+            )
+            .whereType<File>()
+            .where((File file) {
+              return file.path.endsWith('.dart') || file.path.endsWith('.kt');
+            })
+            .toList();
 
     final List<RegExp> forbiddenLogCalls = <RegExp>[
       RegExp(r'\bprint\s*\('),

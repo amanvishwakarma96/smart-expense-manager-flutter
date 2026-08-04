@@ -42,7 +42,9 @@ class _ManualTransactionSheetState
       return;
     }
     setState(() => _saving = true);
-    await ref.read(transactionRepositoryProvider).addManualTransaction(
+    await ref
+        .read(transactionRepositoryProvider)
+        .addManualTransaction(
           amount: double.parse(_amountController.text.trim()),
           type: _type,
           merchant: _merchantController.text.trim(),
@@ -56,8 +58,9 @@ class _ManualTransactionSheetState
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<List<CategoryModel>> categories =
-        ref.watch(categoriesProvider);
+    final AsyncValue<List<CategoryModel>> categories = ref.watch(
+      categoriesProvider,
+    );
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -73,10 +76,9 @@ class _ManualTransactionSheetState
             children: <Widget>[
               Text(
                 'Add transaction',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 18),
               SegmentedButton<TransactionType>(
@@ -117,7 +119,9 @@ class _ManualTransactionSheetState
               const SizedBox(height: 12),
               TextFormField(
                 controller: _merchantController,
-                decoration: const InputDecoration(labelText: 'Merchant or note'),
+                decoration: const InputDecoration(
+                  labelText: 'Merchant or note',
+                ),
                 validator: (String? value) => (value?.trim().isEmpty ?? true)
                     ? 'Enter a merchant or note'
                     : null,
@@ -131,13 +135,16 @@ class _ManualTransactionSheetState
                   return DropdownButtonFormField<int>(
                     initialValue: _categoryId,
                     decoration: const InputDecoration(labelText: 'Category'),
-                    items: items.map((CategoryModel item) {
-                      return DropdownMenuItem<int>(
-                        value: item.id,
-                        child: Text(item.name),
-                      );
-                    }).toList(growable: false),
-                    onChanged: (int? value) => setState(() => _categoryId = value),
+                    items: items
+                        .map((CategoryModel item) {
+                          return DropdownMenuItem<int>(
+                            value: item.id,
+                            child: Text(item.name),
+                          );
+                        })
+                        .toList(growable: false),
+                    onChanged: (int? value) =>
+                        setState(() => _categoryId = value),
                   );
                 },
               ),

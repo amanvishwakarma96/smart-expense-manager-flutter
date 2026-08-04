@@ -7,10 +7,7 @@ import 'package:smart_expense_manager/features/sms_engine/services/native_sms_qu
 enum SmsPermissionResult { granted, denied, permanentlyDenied, unsupported }
 
 class SmsImportResult {
-  const SmsImportResult({
-    required this.permission,
-    required this.messages,
-  });
+  const SmsImportResult({required this.permission, required this.messages});
 
   final SmsPermissionResult permission;
   final List<QueuedSms> messages;
@@ -50,13 +47,15 @@ class SmsInboxImportService {
 
     return SmsImportResult(
       permission: SmsPermissionResult.granted,
-      messages: messages.map((SmsMessage message) {
-        return QueuedSms(
-          sender: message.address ?? '',
-          body: message.body ?? '',
-          timestamp: message.date ?? DateTime.now(),
-        );
-      }).toList(growable: false),
+      messages: messages
+          .map((SmsMessage message) {
+            return QueuedSms(
+              sender: message.address ?? '',
+              body: message.body ?? '',
+              timestamp: message.date ?? DateTime.now(),
+            );
+          })
+          .toList(growable: false),
     );
   }
 }

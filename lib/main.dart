@@ -23,7 +23,10 @@ Future<void> main() async {
   final CategoryRepository categories = CategoryRepository(isar);
   await categories.seedDefaults();
 
-  final TransactionRepository transactions = TransactionRepository(isar, cipher);
+  final TransactionRepository transactions = TransactionRepository(
+    isar,
+    cipher,
+  );
   final SmsEngineCoordinator smsEngine = SmsEngineCoordinator(
     transactionRepository: transactions,
     merchantRuleRepository: MerchantRuleRepository(isar),

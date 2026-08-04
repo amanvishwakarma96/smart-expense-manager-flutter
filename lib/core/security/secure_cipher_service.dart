@@ -19,9 +19,7 @@ class SecureCipherService {
   }) async {
     final String? existing = await storage.read(key: _storageKey);
     if (existing != null && existing.isNotEmpty) {
-      return SecureCipherService._(
-        SecretKey(base64Decode(existing)),
-      );
+      return SecureCipherService._(SecretKey(base64Decode(existing)));
     }
 
     final AesGcm algorithm = AesGcm.with256bits();
@@ -33,7 +31,11 @@ class SecureCipherService {
 
   factory SecureCipherService.forTesting(Uint8List keyBytes) {
     if (keyBytes.length != 32) {
-      throw ArgumentError.value(keyBytes.length, 'keyBytes.length', 'Must be 32');
+      throw ArgumentError.value(
+        keyBytes.length,
+        'keyBytes.length',
+        'Must be 32',
+      );
     }
     return SecureCipherService._(SecretKey(keyBytes));
   }
@@ -48,11 +50,7 @@ class SecureCipherService {
       secretKey: _secretKey,
       nonce: nonce,
     );
-    return base64Encode(<int>[
-      ...nonce,
-      ...box.cipherText,
-      ...box.mac.bytes,
-    ]);
+    return base64Encode(<int>[...nonce, ...box.cipherText, ...box.mac.bytes]);
   }
 
   Future<String> decrypt(String cipherText) async {
@@ -70,11 +68,7 @@ class SecureCipherService {
       payload.length - _macLength,
     );
     final List<int> clearBytes = await _algorithm.decrypt(
-      SecretBox(
-        encrypted,
-        nonce: nonce,
-        mac: Mac(mac),
-      ),
+      SecretBox(encrypted, nonce: nonce, mac: Mac(mac)),
       secretKey: _secretKey,
     );
     return utf8.decode(clearBytes);

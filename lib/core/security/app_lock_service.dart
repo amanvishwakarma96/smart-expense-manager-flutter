@@ -5,10 +5,7 @@ class AppLockService {
   AppLockService({
     FlutterSecureStorage storage = const FlutterSecureStorage(),
     LocalAuthentication? localAuthentication,
-  }) : this._(
-          storage,
-          localAuthentication ?? LocalAuthentication(),
-        );
+  }) : this._(storage, localAuthentication ?? LocalAuthentication());
 
   AppLockService._(this._storage, this._localAuthentication);
 

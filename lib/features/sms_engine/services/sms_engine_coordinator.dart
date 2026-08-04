@@ -25,11 +25,11 @@ class SmsEngineCoordinator {
     SmsParserService? parser,
     SmsInboxImportService? inbox,
     NativeSmsQueueService? nativeQueue,
-  })  : _transactions = transactionRepository,
-        _rules = merchantRuleRepository,
-        _parser = parser ?? SmsParserService(),
-        _inbox = inbox ?? SmsInboxImportService(),
-        _nativeQueue = nativeQueue ?? NativeSmsQueueService();
+  }) : _transactions = transactionRepository,
+       _rules = merchantRuleRepository,
+       _parser = parser ?? SmsParserService(),
+       _inbox = inbox ?? SmsInboxImportService(),
+       _nativeQueue = nativeQueue ?? NativeSmsQueueService();
 
   final TransactionRepository _transactions;
   final MerchantRuleRepository _rules;

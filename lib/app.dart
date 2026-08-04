@@ -21,10 +21,7 @@ class PiggyAiApp extends ConsumerWidget {
       theme: AppTheme.light(),
       home: resetRequired
           ? const _ResetCompleteScreen()
-          : _AppLockGate(
-              lockEnabled: lockEnabled,
-              child: const HomeShell(),
-            ),
+          : _AppLockGate(lockEnabled: lockEnabled, child: const HomeShell()),
     );
   }
 }
@@ -77,8 +74,9 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
   }
 
   Future<void> _authenticate() async {
-    final bool authenticated =
-        await ref.read(appLockServiceProvider).authenticate();
+    final bool authenticated = await ref
+        .read(appLockServiceProvider)
+        .authenticate();
     if (mounted) {
       setState(() => _unlocked = authenticated);
     }
@@ -100,10 +98,9 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
               const SizedBox(height: 18),
               Text(
                 'PiggyAI is locked',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 10),
               const Text('Authenticate locally to view your expenses.'),
