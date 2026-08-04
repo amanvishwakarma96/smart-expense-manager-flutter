@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 
