@@ -45,7 +45,7 @@ To run the individual commands manually:
 
 ```bash
 flutter pub get
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 dart format lib test
 flutter analyze --fatal-infos
 flutter test
