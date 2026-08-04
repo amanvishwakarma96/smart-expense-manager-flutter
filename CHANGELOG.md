@@ -2,6 +2,21 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.2.0] - Unreleased
+
+### Added
+
+- Privacy-first first-run onboarding with optional Android SMS activation.
+- Searchable confirmed-transaction history with type and date filters.
+- Configurable app-lock timeout options: immediately, 1, 5, or 15 minutes.
+- Lifecycle-aware lock preference refresh when the app returns to foreground.
+- Phase 3 privacy and security contract tests.
+
+### Changed
+
+- App-lock settings now apply after backgrounding without requiring an app restart.
+- Flutter CI now validates every pull request instead of one hard-coded branch.
+
 ## [0.1.0] - 2026-08-04
 
 ### Added
