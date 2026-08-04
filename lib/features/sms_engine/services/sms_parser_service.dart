@@ -145,6 +145,11 @@ class SmsParserService {
   String _extractMerchant(String text, {String? sender}) {
     final List<RegExp> patterns = <RegExp>[
       RegExp(
+        r"\bfrom\s+([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
+        r"\s+via\s+(?:UPI|IMPS|NEFT)\b",
+        caseSensitive: false,
+      ),
+      RegExp(
         r"(?:at|to|from)\s+([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
         r"(?=\s+(?:on|via|using|ref|txn|avl|available|upi|imps|neft)|[.,]|$)",
         caseSensitive: false,
