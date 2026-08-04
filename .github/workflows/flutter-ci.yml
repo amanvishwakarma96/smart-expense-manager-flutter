@@ -1,9 +1,6 @@
 name: Flutter CI
 
 on:
-  push:
-    branches:
-      - agent/offline-expense-manager
   pull_request:
     branches:
       - main
@@ -13,18 +10,23 @@ permissions:
   contents: write
 
 concurrency:
-  group: flutter-ci-${{ github.ref }}
+  group: flutter-ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'agent/offline-expense-manager')
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
-      - name: Check out repository
+      - name: Check out feature branch
         uses: actions/checkout@v4
         with:
+          ref: agent/offline-expense-manager
           fetch-depth: 0
 
       - name: Set up Java 17
@@ -85,7 +87,7 @@ jobs:
         run: flutter build apk --debug
 
       - name: Commit generated scaffold and schemas
-        if: github.event_name == 'push' && github.ref == 'refs/heads/agent/offline-expense-manager'
+        if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -94,5 +96,5 @@ jobs:
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "chore: generate Flutter platform scaffolding and schemas"
-            git push
+            git push origin HEAD:agent/offline-expense-manager
           fi
