@@ -3,10 +3,9 @@ import 'package:local_auth/local_auth.dart';
 
 class AppLockService {
   AppLockService({
-    FlutterSecureStorage storage = const FlutterSecureStorage(),
+    this._storage = const FlutterSecureStorage(),
     LocalAuthentication? localAuthentication,
-  })  : _storage = storage,
-        _localAuthentication = localAuthentication ?? LocalAuthentication();
+  }) : _localAuthentication = localAuthentication ?? LocalAuthentication();
 
   static const String _enabledKey = 'piggyai.biometric_lock.enabled';
 
