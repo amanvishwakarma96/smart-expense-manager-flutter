@@ -109,7 +109,8 @@ class TransactionRepository {
     }
     model
       ..status = TransactionStatus.confirmed
-      ..categoryId = categoryId ?? model.categoryId;
+      ..categoryId = categoryId ?? model.categoryId
+      ..encryptedOriginalSmsText = '';
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
   }
 
