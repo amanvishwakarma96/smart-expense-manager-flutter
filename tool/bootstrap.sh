@@ -36,7 +36,7 @@ if [[ ! -f android/settings.gradle.kts || ! -f ios/Runner.xcodeproj/project.pbxp
 fi
 
 flutter pub get
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 dart format lib test
 flutter analyze --fatal-infos
 flutter test
