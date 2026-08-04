@@ -1,16 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:smart_expense_manager/features/settings/presentation/onboarding_screen.dart';
 import 'package:smart_expense_manager/features/settings/presentation/settings_screen.dart';
 import 'package:smart_expense_manager/features/transactions/presentation/manual_transaction_dialog.dart';
 import 'package:smart_expense_manager/features/transactions/presentation/pending_transactions_screen.dart';
+import 'package:smart_expense_manager/features/transactions/presentation/transaction_history_screen.dart';
 
 class PiggyAiApp extends ConsumerWidget {
-  const PiggyAiApp({required this.lockEnabled, super.key});
-
-  final bool lockEnabled;
+  const PiggyAiApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,15 +23,57 @@ class PiggyAiApp extends ConsumerWidget {
       theme: AppTheme.light(),
       home: resetRequired
           ? const _ResetCompleteScreen()
-          : _AppLockGate(lockEnabled: lockEnabled, child: const HomeShell()),
+          : const _OnboardingGate(
+              child: _AppLockGate(child: HomeShell()),
+            ),
     );
   }
 }
 
-class _AppLockGate extends ConsumerStatefulWidget {
-  const _AppLockGate({required this.lockEnabled, required this.child});
+class _OnboardingGate extends ConsumerStatefulWidget {
+  const _OnboardingGate({required this.child});
 
-  final bool lockEnabled;
+  final Widget child;
+
+  @override
+  ConsumerState<_OnboardingGate> createState() => _OnboardingGateState();
+}
+
+class _OnboardingGateState extends ConsumerState<_OnboardingGate> {
+  bool? _completed;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final bool completed = await ref.read(onboardingServiceProvider).isCompleted();
+    if (mounted) {
+      setState(() => _completed = completed);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_completed == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (!_completed!) {
+      return OnboardingScreen(
+        onComplete: () => setState(() => _completed = true),
+      );
+    }
+    return widget.child;
+  }
+}
+
+class _AppLockGate extends ConsumerStatefulWidget {
+  const _AppLockGate({required this.child});
+
   final Widget child;
 
   @override
@@ -38,17 +82,17 @@ class _AppLockGate extends ConsumerStatefulWidget {
 
 class _AppLockGateState extends ConsumerState<_AppLockGate>
     with WidgetsBindingObserver {
+  bool _loading = true;
+  bool _lockEnabled = false;
   bool _unlocked = false;
+  int _timeoutMinutes = 1;
   DateTime? _pausedAt;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _unlocked = !widget.lockEnabled;
-    if (widget.lockEnabled) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _authenticate());
-    }
+    unawaited(_loadInitialPreferences());
   }
 
   @override
@@ -59,24 +103,71 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!widget.lockEnabled) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _pausedAt ??= DateTime.now();
       return;
     }
-    if (state == AppLifecycleState.paused) {
-      _pausedAt = DateTime.now();
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_handleResume());
     }
-    if (state == AppLifecycleState.resumed &&
-        _pausedAt != null &&
-        DateTime.now().difference(_pausedAt!) > const Duration(minutes: 1)) {
-      setState(() => _unlocked = false);
-      _authenticate();
+  }
+
+  Future<void> _loadInitialPreferences() async {
+    final service = ref.read(appLockServiceProvider);
+    final bool enabled = await service.isEnabled();
+    final int timeout = await service.getTimeoutMinutes();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _loading = false;
+      _lockEnabled = enabled;
+      _timeoutMinutes = timeout;
+      _unlocked = !enabled;
+    });
+    if (enabled) {
+      await _authenticate();
+    }
+  }
+
+  Future<void> _handleResume() async {
+    final service = ref.read(appLockServiceProvider);
+    final bool enabled = await service.isEnabled();
+    final int timeout = await service.getTimeoutMinutes();
+    if (!mounted) {
+      return;
+    }
+
+    if (!enabled) {
+      setState(() {
+        _lockEnabled = false;
+        _timeoutMinutes = timeout;
+        _unlocked = true;
+        _pausedAt = null;
+      });
+      return;
+    }
+
+    final DateTime? pausedAt = _pausedAt;
+    final bool timeoutReached = pausedAt != null &&
+        DateTime.now().difference(pausedAt) >= Duration(minutes: timeout);
+    setState(() {
+      _lockEnabled = true;
+      _timeoutMinutes = timeout;
+      _pausedAt = null;
+      if (timeoutReached) {
+        _unlocked = false;
+      }
+    });
+    if (timeoutReached) {
+      await _authenticate();
     }
   }
 
   Future<void> _authenticate() async {
-    final bool authenticated = await ref
-        .read(appLockServiceProvider)
-        .authenticate();
+    final bool authenticated = await ref.read(appLockServiceProvider).authenticate();
     if (mounted) {
       setState(() => _unlocked = authenticated);
     }
@@ -84,7 +175,12 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
 
   @override
   Widget build(BuildContext context) {
-    if (_unlocked) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (!_lockEnabled || _unlocked) {
       return widget.child;
     }
     return Scaffold(
@@ -99,11 +195,17 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
               Text(
                 'PiggyAI is locked',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
               const SizedBox(height: 10),
-              const Text('Authenticate locally to view your expenses.'),
+              Text(
+                _timeoutMinutes == 0
+                    ? 'PiggyAI locks whenever it leaves the foreground.'
+                    : 'PiggyAI locked after $_timeoutMinutes minute'
+                        '${_timeoutMinutes == 1 ? '' : 's'} in the background.',
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 22),
               FilledButton.icon(
                 onPressed: _authenticate,
@@ -131,6 +233,7 @@ class _HomeShellState extends State<HomeShell> {
   static const List<Widget> _screens = <Widget>[
     DashboardScreen(),
     PendingTransactionsScreen(),
+    TransactionHistoryScreen(),
     SettingsScreen(),
   ];
 
@@ -154,6 +257,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: Icon(Icons.inbox_rounded),
             label: 'Review',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long_rounded),
+            label: 'History',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_rounded),
