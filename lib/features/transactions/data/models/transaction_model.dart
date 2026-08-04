@@ -1,0 +1,43 @@
+import 'package:isar_community/isar.dart';
+import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+
+part 'transaction_model.g.dart';
+
+@collection
+class TransactionModel {
+  TransactionModel({
+    this.id = Isar.autoIncrement,
+    this.amount = 0,
+    this.type = TransactionType.debit,
+    this.encryptedMerchant = '',
+    required this.timestamp,
+    this.categoryId,
+    this.status = TransactionStatus.pending,
+    this.encryptedOriginalSmsText = '',
+    this.encryptedAccountTail = '',
+    this.smsFingerprint,
+    this.isManual = false,
+  }) : createdAt = DateTime.now();
+
+  Id id;
+  double amount;
+
+  @enumerated
+  TransactionType type;
+
+  String encryptedMerchant;
+  DateTime timestamp;
+  int? categoryId;
+
+  @enumerated
+  TransactionStatus status;
+
+  String encryptedOriginalSmsText;
+  String encryptedAccountTail;
+
+  @Index(unique: true, replace: false)
+  String? smsFingerprint;
+
+  bool isManual;
+  DateTime createdAt;
+}
