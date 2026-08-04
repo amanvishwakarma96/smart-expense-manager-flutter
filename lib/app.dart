@@ -23,9 +23,7 @@ class PiggyAiApp extends ConsumerWidget {
       theme: AppTheme.light(),
       home: resetRequired
           ? const _ResetCompleteScreen()
-          : const _OnboardingGate(
-              child: _AppLockGate(child: HomeShell()),
-            ),
+          : const _OnboardingGate(child: _AppLockGate(child: HomeShell())),
     );
   }
 }
@@ -49,7 +47,9 @@ class _OnboardingGateState extends ConsumerState<_OnboardingGate> {
   }
 
   Future<void> _load() async {
-    final bool completed = await ref.read(onboardingServiceProvider).isCompleted();
+    final bool completed = await ref
+        .read(onboardingServiceProvider)
+        .isCompleted();
     if (mounted) {
       setState(() => _completed = completed);
     }
@@ -58,9 +58,7 @@ class _OnboardingGateState extends ConsumerState<_OnboardingGate> {
   @override
   Widget build(BuildContext context) {
     if (_completed == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (!_completed!) {
       return OnboardingScreen(
@@ -151,7 +149,8 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
     }
 
     final DateTime? pausedAt = _pausedAt;
-    final bool timeoutReached = pausedAt != null &&
+    final bool timeoutReached =
+        pausedAt != null &&
         DateTime.now().difference(pausedAt) >= Duration(minutes: timeout);
     setState(() {
       _lockEnabled = true;
@@ -167,7 +166,9 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
   }
 
   Future<void> _authenticate() async {
-    final bool authenticated = await ref.read(appLockServiceProvider).authenticate();
+    final bool authenticated = await ref
+        .read(appLockServiceProvider)
+        .authenticate();
     if (mounted) {
       setState(() => _unlocked = authenticated);
     }
@@ -176,9 +177,7 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (!_lockEnabled || _unlocked) {
       return widget.child;
@@ -195,15 +194,15 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
               Text(
                 'PiggyAI is locked',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 10),
               Text(
                 _timeoutMinutes == 0
                     ? 'PiggyAI locks whenever it leaves the foreground.'
                     : 'PiggyAI locked after $_timeoutMinutes minute'
-                        '${_timeoutMinutes == 1 ? '' : 's'} in the background.',
+                          '${_timeoutMinutes == 1 ? '' : 's'} in the background.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 22),

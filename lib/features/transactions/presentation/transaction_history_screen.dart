@@ -47,9 +47,9 @@ class _TransactionHistoryScreenState
           children: <Widget>[
             Text(
               'History',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 4),
             const Text('Search and filter confirmed transactions locally.'),
@@ -121,7 +121,10 @@ class _TransactionHistoryScreenState
                       ];
                     },
                     child: Chip(
-                      avatar: const Icon(Icons.calendar_month_rounded, size: 18),
+                      avatar: const Icon(
+                        Icons.calendar_month_rounded,
+                        size: 18,
+                      ),
                       label: Text(_periodLabel(_periodFilter)),
                     ),
                   ),
@@ -175,41 +178,45 @@ class _TransactionHistoryScreenState
     final DateTime ninetyDaysAgo = now.subtract(const Duration(days: 90));
     final String query = _searchController.text.trim().toLowerCase();
 
-    return items.where((ExpenseTransaction item) {
-      final bool matchesType = switch (_typeFilter) {
-        _HistoryTypeFilter.all => true,
-        _HistoryTypeFilter.debit => item.isDebit,
-        _HistoryTypeFilter.credit => !item.isDebit,
-      };
-      if (!matchesType) {
-        return false;
-      }
+    return items
+        .where((ExpenseTransaction item) {
+          final bool matchesType = switch (_typeFilter) {
+            _HistoryTypeFilter.all => true,
+            _HistoryTypeFilter.debit => item.isDebit,
+            _HistoryTypeFilter.credit => !item.isDebit,
+          };
+          if (!matchesType) {
+            return false;
+          }
 
-      final bool matchesPeriod = switch (_periodFilter) {
-        _HistoryPeriodFilter.currentMonth =>
-          item.timestamp.year == now.year && item.timestamp.month == now.month,
-        _HistoryPeriodFilter.last90Days =>
-          !item.timestamp.isBefore(ninetyDaysAgo),
-        _HistoryPeriodFilter.all => true,
-      };
-      if (!matchesPeriod) {
-        return false;
-      }
+          final bool matchesPeriod = switch (_periodFilter) {
+            _HistoryPeriodFilter.currentMonth =>
+              item.timestamp.year == now.year &&
+                  item.timestamp.month == now.month,
+            _HistoryPeriodFilter.last90Days => !item.timestamp.isBefore(
+              ninetyDaysAgo,
+            ),
+            _HistoryPeriodFilter.all => true,
+          };
+          if (!matchesPeriod) {
+            return false;
+          }
 
-      if (query.isEmpty) {
-        return true;
-      }
-      final CategoryModel? category = _categoryFor(item.categoryId, categories);
-      return item.merchant.toLowerCase().contains(query) ||
-          item.accountTail.toLowerCase().contains(query) ||
-          (category?.name.toLowerCase().contains(query) ?? false);
-    }).toList(growable: false);
+          if (query.isEmpty) {
+            return true;
+          }
+          final CategoryModel? category = _categoryFor(
+            item.categoryId,
+            categories,
+          );
+          return item.merchant.toLowerCase().contains(query) ||
+              item.accountTail.toLowerCase().contains(query) ||
+              (category?.name.toLowerCase().contains(query) ?? false);
+        })
+        .toList(growable: false);
   }
 
-  CategoryModel? _categoryFor(
-    int? categoryId,
-    List<CategoryModel> categories,
-  ) {
+  CategoryModel? _categoryFor(int? categoryId, List<CategoryModel> categories) {
     for (final CategoryModel category in categories) {
       if (category.id == categoryId) {
         return category;
@@ -306,7 +313,7 @@ class _HistoryCard extends StatelessWidget {
               privacyMode
                   ? '₹ •••'
                   : '${transaction.isDebit ? '-' : '+'}'
-                      '${inrCurrency.format(transaction.amount)}',
+                        '${inrCurrency.format(transaction.amount)}',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 color: transaction.isDebit

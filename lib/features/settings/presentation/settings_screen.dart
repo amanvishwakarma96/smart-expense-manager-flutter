@@ -111,9 +111,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _editBudget(CategoryModel category) async {
@@ -137,9 +137,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(
-                double.tryParse(controller.text.trim()),
-              ),
+              onPressed: () => Navigator.of(
+                context,
+              ).pop(double.tryParse(controller.text.trim())),
               child: const Text('Save'),
             ),
           ],
@@ -271,9 +271,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: <Widget>[
           Text(
             'Settings',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 18),
           _SettingsCard(
@@ -456,9 +456,9 @@ class _SettingsCard extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
             ...children,

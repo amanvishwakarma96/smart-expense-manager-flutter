@@ -101,7 +101,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const Expanded(
                     child: Text(
                       'PiggyAI',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                   TextButton(onPressed: _finish, child: const Text('Skip')),
@@ -170,7 +173,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         icon: _activatingSms
                             ? const SizedBox.square(
                                 dimension: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.sms_rounded),
                         label: Text(
@@ -190,7 +195,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: _next,
-                        child: Text(_page == 2 ? 'Start privately' : 'Continue'),
+                        child: Text(
+                          _page == 2 ? 'Start privately' : 'Continue',
+                        ),
                       ),
                     ),
                 ],
@@ -236,9 +243,9 @@ class _OnboardingPage extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 14),
           Text(
