@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/app.dart';
 import 'package:smart_expense_manager/core/database/app_database.dart';
@@ -15,6 +16,7 @@ import 'package:smart_expense_manager/features/transactions/data/repositories/tr
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   final Isar isar = await AppDatabase.open();
   final SecureCipherService cipher = await SecureCipherService.create();
