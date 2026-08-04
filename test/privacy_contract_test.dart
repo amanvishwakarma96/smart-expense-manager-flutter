@@ -54,6 +54,14 @@ void main() {
     }
   });
 
+  test('runtime font network fetching is disabled', () {
+    final String mainSource = File('lib/main.dart').readAsStringSync();
+    expect(
+      mainSource,
+      contains('GoogleFonts.config.allowRuntimeFetching = false'),
+    );
+  });
+
   test('manual entry is independent from SMS permission', () {
     final String source = File(
       'lib/features/transactions/data/repositories/transaction_repository.dart',
@@ -65,5 +73,17 @@ void main() {
     final String method = source.substring(start, end);
     expect(method, isNot(contains('Permission')));
     expect(method, isNot(contains('Sms')));
+  });
+
+  test('confirmation erases the retained original SMS text', () {
+    final String source = File(
+      'lib/features/transactions/data/repositories/transaction_repository.dart',
+    ).readAsStringSync();
+    final int start = source.indexOf('Future<void> confirm');
+    final int end = source.indexOf('Future<void> updatePending', start);
+    expect(start, greaterThanOrEqualTo(0));
+    expect(end, greaterThan(start));
+    final String method = source.substring(start, end);
+    expect(method, contains("encryptedOriginalSmsText = ''"));
   });
 }
