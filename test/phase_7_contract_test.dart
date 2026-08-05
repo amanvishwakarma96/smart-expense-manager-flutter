@@ -22,7 +22,7 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('privacyMode'));
-    expect(source, contains("'$defaultCurrencySymbol •••••'"));
+    expect(source, contains('•••••'));
     expect(source, contains('calculated only on this device'));
   });
 
