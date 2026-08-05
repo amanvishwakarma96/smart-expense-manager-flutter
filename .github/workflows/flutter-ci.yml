@@ -19,7 +19,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Check out repository
@@ -58,6 +58,32 @@ jobs:
 
       - name: Build Android debug APK
         run: flutter build apk --debug
+
+      - name: Build shareable Android APK
+        run: flutter build apk --release
+
+      - name: Package shareable APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          apk_name="PiggyAI-test-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/${apk_name}"
+          (
+            cd dist
+            sha256sum "${apk_name}" > SHA256SUMS.txt
+          )
+
+      - name: Upload shareable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PiggyAI-Android-${{ github.run_number }}
+          path: |
+            dist/*.apk
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
 
       - name: Verify main has no generated changes
         if: github.event_name != 'pull_request'
