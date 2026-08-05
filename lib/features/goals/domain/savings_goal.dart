@@ -30,7 +30,9 @@ class SavingsGoal {
     return (savedAmount / targetAmount).clamp(0, 1).toDouble();
   }
 
-  double get remaining => (targetAmount - savedAmount).clamp(0, targetAmount);
+  double get remaining {
+    return (targetAmount - savedAmount).clamp(0, targetAmount).toDouble();
+  }
 
   bool get isComplete => savedAmount >= targetAmount;
 
