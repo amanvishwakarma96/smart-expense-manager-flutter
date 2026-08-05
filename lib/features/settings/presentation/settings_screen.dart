@@ -6,9 +6,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/security/app_lock_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/settings/presentation/backup_settings_card.dart';
 import 'package:smart_expense_manager/features/settings/presentation/budget_alert_settings_card.dart';
+import 'package:smart_expense_manager/features/settings/presentation/recurring_transactions_card.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_inbox_import_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
@@ -113,9 +115,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _editBudget(CategoryModel category) async {
@@ -131,7 +131,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             controller: controller,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(prefixText: '₹ '),
+            decoration: const InputDecoration(
+              prefixText: '$defaultCurrencySymbol ',
+            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -236,8 +238,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return AlertDialog(
           title: const Text('Delete all local financial data?'),
           content: const Text(
-            'This permanently removes transactions, categories, rules, and '
-            'the installation encryption key. There is no cloud copy.',
+            'This permanently removes transactions, recurring items, '
+            'categories, rules, and the installation encryption key. '
+            'There is no cloud copy.',
           ),
           actions: <Widget>[
             TextButton(
@@ -271,13 +274,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 120),
         children: <Widget>[
-          Text(
-            'Settings',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: AppPalette.heroGradient,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.64),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Icon(Icons.tune_rounded),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Make PiggyAI yours',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const Text(
+                        'Private controls, INR budgets, and friendly automation.',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
           _SettingsCard(
             title: 'Privacy',
             children: <Widget>[
@@ -349,6 +381,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 14),
+          const RecurringTransactionsCard(),
           const SizedBox(height: 14),
           _SettingsCard(
             title: 'Monthly budgets',
@@ -460,12 +494,7 @@ class _SettingsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-            ),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
             ...children,
           ],
