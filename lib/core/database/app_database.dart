@@ -2,6 +2,7 @@ import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/recurring_transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
 
 class AppDatabase {
@@ -14,6 +15,7 @@ class AppDatabase {
         TransactionModelSchema,
         CategoryModelSchema,
         MerchantRuleModelSchema,
+        RecurringTransactionModelSchema,
       ],
       directory: directory.path,
       name: 'piggyai',
