@@ -24,12 +24,9 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
   static final DateFormat _goalDateFormat = DateFormat('d MMM yyyy');
 
   _GoalsMode _mode = _GoalsMode.goals;
-  DateTime _calendarMonth = DateTime(
-    DateTime.now().year,
-    DateTime.now().month,
-  );
+  DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
 
-  Future<void> _editGoal([SavingsGoal? goal]) async {
+  Future<void> _openGoalEditor([SavingsGoal? goal]) async {
     final TextEditingController nameController = TextEditingController(
       text: goal?.name ?? '',
     );
@@ -40,26 +37,25 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
       text: goal == null ? '0' : goal.savedAmount.toStringAsFixed(0),
     );
     DateTime? targetDate = goal?.targetDate;
-    String color = goal?.hexColor ?? 'CBB8FF';
-    String iconName = goal?.iconName ?? 'savings';
+    String hexColor = goal?.hexColor ?? _goalColors.first;
+    String iconName = goal?.iconName ?? _goalIcons.first;
     String? errorText;
 
-    final _GoalDraft? draft = await showModalBottomSheet<_GoalDraft>(
+    final _GoalDraft? draft = await showDialog<_GoalDraft>(
       context: context,
-      isScrollControlled: true,
-      builder: (BuildContext sheetContext) {
+      builder: (BuildContext dialogContext) {
         return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setSheetState) {
+          builder: (BuildContext context, StateSetter setDialogState) {
             Future<void> pickDate() async {
               final DateTime now = DateTime.now();
               final DateTime? picked = await showDatePicker(
-                context: sheetContext,
+                context: dialogContext,
                 initialDate: targetDate ?? now.add(const Duration(days: 90)),
                 firstDate: DateTime(now.year, now.month, now.day),
                 lastDate: DateTime(now.year + 20),
               );
-              if (picked != null && sheetContext.mounted) {
-                setSheetState(() => targetDate = picked);
+              if (picked != null && dialogContext.mounted) {
+                setDialogState(() => targetDate = picked);
               }
             }
 
@@ -76,45 +72,33 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
                   target <= 0 ||
                   saved == null ||
                   saved < 0) {
-                setSheetState(() {
+                setDialogState(() {
                   errorText =
                       'Enter a name, a target above zero, and valid savings.';
                 });
                 return;
               }
-              Navigator.of(sheetContext).pop(
+              Navigator.of(dialogContext).pop(
                 _GoalDraft(
                   name: name,
                   targetAmount: target,
                   savedAmount: saved,
                   targetDate: targetDate,
-                  hexColor: color,
+                  hexColor: hexColor,
                   iconName: iconName,
                 ),
               );
             }
 
-            return Padding(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                8,
-                20,
-                24 + MediaQuery.viewInsetsOf(sheetContext).bottom,
-              ),
-              child: SingleChildScrollView(
+            return AlertDialog(
+              title: Text(goal == null ? 'Create a happy goal ✨' : 'Edit goal'),
+              content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(
-                      goal == null ? 'Create a happy goal ✨' : 'Tune your goal',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Goal names are encrypted before they are stored.',
-                    ),
-                    const SizedBox(height: 18),
+                    const Text('Goal names are encrypted before storage.'),
+                    const SizedBox(height: 14),
                     TextField(
                       controller: nameController,
                       autofocus: goal == null,
@@ -125,34 +109,26 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: TextField(
-                            controller: targetController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: const InputDecoration(
-                              labelText: 'Target',
-                              prefixText: '₹ ',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: savedController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: const InputDecoration(
-                              labelText: 'Already saved',
-                              prefixText: '₹ ',
-                            ),
-                          ),
-                        ),
-                      ],
+                    TextField(
+                      controller: targetController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Target amount',
+                        prefixText: '₹ ',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: savedController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Already saved',
+                        prefixText: '₹ ',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
@@ -160,30 +136,26 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
                       icon: const Icon(Icons.event_rounded),
                       label: Text(
                         targetDate == null
-                            ? 'Add an optional target date'
-                            : 'Target ${_goalDateFormat.format(targetDate!)}',
+                            ? 'Optional target date'
+                            : _goalDateFormat.format(targetDate!),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Pick a mood',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Colour',
+                      style: TextStyle(fontWeight: FontWeight.w900),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
+                      spacing: 9,
                       children: _goalColors.map((String value) {
-                        final bool selected = color == value;
+                        final bool selected = value == hexColor;
                         return InkWell(
-                          onTap: () => setSheetState(() => color = value),
+                          onTap: () => setDialogState(() => hexColor = value),
                           borderRadius: BorderRadius.circular(99),
-                          child: AnimatedContainer(
-                            duration: 180.ms,
-                            width: 42,
-                            height: 42,
+                          child: Container(
+                            width: 38,
+                            height: 38,
                             decoration: BoxDecoration(
                               color: colorFromHex(value),
                               shape: BoxShape.circle,
@@ -195,35 +167,33 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
                               ),
                             ),
                             child: selected
-                                ? const Icon(Icons.check_rounded, size: 20)
+                                ? const Icon(Icons.check_rounded, size: 18)
                                 : null,
                           ),
                         );
                       }).toList(growable: false),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Choose an icon',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Icon',
+                      style: TextStyle(fontWeight: FontWeight.w900),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Wrap(
-                      spacing: 8,
+                      spacing: 7,
                       children: _goalIcons.map((String value) {
                         return ChoiceChip(
                           selected: iconName == value,
                           onSelected: (_) {
-                            setSheetState(() => iconName = value);
+                            setDialogState(() => iconName = value);
                           },
-                          avatar: Icon(_goalIcon(value), size: 18),
+                          avatar: Icon(_goalIcon(value), size: 17),
                           label: Text(_goalIconLabel(value)),
                         );
                       }).toList(growable: false),
                     ),
                     if (errorText != null) ...<Widget>[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Text(
                         errorText!,
                         style: TextStyle(
@@ -232,18 +202,19 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: submit,
-                        icon: const Icon(Icons.auto_awesome_rounded),
-                        label: Text(goal == null ? 'Create goal' : 'Save goal'),
-                      ),
-                    ),
                   ],
                 ),
               ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: submit,
+                  child: Text(goal == null ? 'Create' : 'Save'),
+                ),
+              ],
             );
           },
         );
@@ -326,39 +297,18 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
           amount,
         );
     if (mounted) {
-      _message(
-        goal.progress < 1
-            ? 'Nice! Your goal just moved forward ⭐'
-            : 'Goal complete—amazing work! 🎉',
-      );
+      _message('Nice! Your goal moved forward ⭐');
     }
   }
 
   Future<void> _archiveGoal(SavingsGoal goal) async {
-    final bool archive = await showDialog<bool>(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text('Archive this goal?'),
-              content: Text(
-                '${goal.name} will leave the active list but remain in your '
-                'encrypted local database and backups.',
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Archive'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
-    if (!archive) {
+    final bool confirmed = await _confirm(
+      title: 'Archive this goal?',
+      message:
+          '${goal.name} will leave the active list but remain in encrypted backups.',
+      action: 'Archive',
+    );
+    if (!confirmed) {
       return;
     }
     await ref.read(savingsGoalRepositoryProvider).setArchived(goal.id, true);
@@ -368,30 +318,13 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
   }
 
   Future<void> _deleteGoal(SavingsGoal goal) async {
-    final bool remove = await showDialog<bool>(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text('Delete this goal permanently?'),
-              content: Text(
-                '${goal.name} and its saved progress will be removed from this '
-                'device. This cannot be undone.',
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
-    if (!remove) {
+    final bool confirmed = await _confirm(
+      title: 'Delete this goal permanently?',
+      message:
+          '${goal.name} and its saved progress will be removed from this device.',
+      action: 'Delete',
+    );
+    if (!confirmed) {
       return;
     }
     await ref.read(savingsGoalRepositoryProvider).delete(goal.id);
@@ -400,79 +333,87 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
     }
   }
 
-  void _previousMonth() {
-    setState(() {
-      _calendarMonth = DateTime(
-        _calendarMonth.year,
-        _calendarMonth.month - 1,
-      );
-    });
-  }
-
-  void _nextMonth() {
-    final DateTime next = DateTime(
-      _calendarMonth.year,
-      _calendarMonth.month + 1,
-    );
-    final DateTime current = DateTime(DateTime.now().year, DateTime.now().month);
-    if (!next.isAfter(current)) {
-      setState(() => _calendarMonth = next);
-    }
+  Future<bool> _confirm({
+    required String title,
+    required String message,
+    required String action,
+  }) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: Text(title),
+              content: Text(message),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(action),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 
   void _showDayTransactions(
     DateTime date,
-    List<ExpenseTransaction> transactions,
+    List<ExpenseTransaction> items,
     bool privacyMode,
   ) {
     showModalBottomSheet<void>(
       context: context,
       builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                DateFormat('EEEE, d MMMM').format(date),
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 14),
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: transactions.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
-                  itemBuilder: (BuildContext context, int index) {
-                    final ExpenseTransaction item = transactions[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: item.isDebit
-                            ? AppPalette.peach
-                            : AppPalette.mint,
-                        child: Icon(
-                          item.isDebit
-                              ? Icons.arrow_upward_rounded
-                              : Icons.arrow_downward_rounded,
-                        ),
-                      ),
-                      title: Text(item.merchant),
-                      subtitle: Text(
-                        item.isRecurring ? 'Recurring • reviewed' : 'Confirmed',
-                      ),
-                      trailing: Text(
-                        privacyMode
-                            ? '₹ •••'
-                            : '${item.isDebit ? '-' : '+'}${inrCurrency.format(item.amount)}',
-                        style: const TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                    );
-                  },
+        return SizedBox(
+          height: math.min(160 + items.length * 72, 520).toDouble(),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  DateFormat('EEEE, d MMMM').format(date),
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: items.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (BuildContext context, int index) {
+                      final ExpenseTransaction item = items[index];
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          backgroundColor: item.isDebit
+                              ? AppPalette.peach
+                              : AppPalette.mint,
+                          child: Icon(
+                            item.isDebit
+                                ? Icons.arrow_upward_rounded
+                                : Icons.arrow_downward_rounded,
+                          ),
+                        ),
+                        title: Text(item.merchant),
+                        subtitle: Text(
+                          item.isRecurring ? 'Recurring • reviewed' : 'Confirmed',
+                        ),
+                        trailing: Text(
+                          privacyMode
+                              ? '₹ •••'
+                              : '${item.isDebit ? '-' : '+'}${inrCurrency.format(item.amount)}',
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -488,69 +429,44 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final bool privacyMode = ref.watch(privacyModeProvider);
-    final AsyncValue<List<SavingsGoal>> goals = ref.watch(savingsGoalsProvider);
-    final AsyncValue<List<ExpenseTransaction>> transactions = ref.watch(
-      confirmedTransactionsProvider,
-    );
-
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 120),
         children: <Widget>[
-          _GoalsHero(
-            mode: _mode,
-            onModeChanged: (_GoalsMode value) => setState(() => _mode = value),
-          ),
+          _header(),
           const SizedBox(height: 18),
           if (_mode == _GoalsMode.goals)
-            goals.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (Object error, StackTrace stackTrace) => const _ErrorCard(
-                title: 'Goals are resting',
-                message: 'Restart PiggyAI and try opening your local goals again.',
-              ),
-              data: (List<SavingsGoal> items) => _GoalsView(
-                goals: items,
-                privacyMode: privacyMode,
-                onCreate: () => _editGoal(),
-                onEdit: _editGoal,
-                onContribute: _addContribution,
-                onArchive: _archiveGoal,
-                onDelete: _deleteGoal,
-              ),
-            )
+            ref.watch(savingsGoalsProvider).when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (Object error, StackTrace stackTrace) =>
+                      const _ErrorCard(
+                    title: 'Goals are resting',
+                    message: 'Restart PiggyAI and try opening them again.',
+                  ),
+                  data: (List<SavingsGoal> goals) {
+                    return _goalsContent(goals, privacyMode);
+                  },
+                )
           else
-            transactions.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (Object error, StackTrace stackTrace) => const _ErrorCard(
-                title: 'Calendar is unavailable',
-                message: 'Your transactions remain safely stored on-device.',
-              ),
-              data: (List<ExpenseTransaction> items) => _CashFlowCalendar(
-                month: _calendarMonth,
-                transactions: items,
-                privacyMode: privacyMode,
-                onPreviousMonth: _previousMonth,
-                onNextMonth: _nextMonth,
-                onDayTap: (DateTime date, List<ExpenseTransaction> dayItems) {
-                  _showDayTransactions(date, dayItems, privacyMode);
-                },
-              ),
-            ),
+            ref.watch(confirmedTransactionsProvider).when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (Object error, StackTrace stackTrace) =>
+                      const _ErrorCard(
+                    title: 'Calendar is unavailable',
+                    message: 'Your transactions remain stored on-device.',
+                  ),
+                  data: (List<ExpenseTransaction> items) {
+                    return _calendarContent(items, privacyMode);
+                  },
+                ),
         ],
       ),
     );
   }
-}
 
-class _GoalsHero extends StatelessWidget {
-  const _GoalsHero({required this.mode, required this.onModeChanged});
-
-  final _GoalsMode mode;
-  final ValueChanged<_GoalsMode> onModeChanged;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _header() {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -572,18 +488,19 @@ class _GoalsHero extends StatelessWidget {
                 child: const Icon(Icons.savings_rounded, size: 30),
               ),
               const SizedBox(width: 14),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
                       'Dreams & daily flow',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                    const SizedBox(height: 3),
-                    const Text(
-                      'Save with tiny wins and understand every day at a glance.',
-                    ),
+                    SizedBox(height: 3),
+                    Text('Tiny savings wins and a colourful money calendar.'),
                   ],
                 ),
               ),
@@ -603,235 +520,169 @@ class _GoalsHero extends StatelessWidget {
                 label: Text('Calendar'),
               ),
             ],
-            selected: <_GoalsMode>{mode},
-            onSelectionChanged: (Set<_GoalsMode> selected) {
-              onModeChanged(selected.first);
+            selected: <_GoalsMode>{_mode},
+            onSelectionChanged: (Set<_GoalsMode> value) {
+              setState(() => _mode = value.first);
             },
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
-                return states.contains(WidgetState.selected)
-                    ? Colors.white
-                    : Colors.white.withValues(alpha: 0.34);
-              }),
-              side: const WidgetStatePropertyAll<BorderSide>(BorderSide.none),
-            ),
           ),
         ],
       ),
     ).animate().fadeIn().slideY(begin: 0.05, end: 0);
   }
-}
 
-class _GoalsView extends StatelessWidget {
-  const _GoalsView({
-    required this.goals,
-    required this.privacyMode,
-    required this.onCreate,
-    required this.onEdit,
-    required this.onContribute,
-    required this.onArchive,
-    required this.onDelete,
-  });
-
-  final List<SavingsGoal> goals;
-  final bool privacyMode;
-  final VoidCallback onCreate;
-  final ValueChanged<SavingsGoal> onEdit;
-  final ValueChanged<SavingsGoal> onContribute;
-  final ValueChanged<SavingsGoal> onArchive;
-  final ValueChanged<SavingsGoal> onDelete;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _goalsContent(List<SavingsGoal> goals, bool privacyMode) {
     if (goals.isEmpty) {
-      return _PlayfulEmptyGoals(onCreate: onCreate);
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(26),
+          child: Column(
+            children: <Widget>[
+              Container(
+                width: 104,
+                height: 104,
+                decoration: const BoxDecoration(
+                  gradient: AppPalette.heroGradient,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.rocket_launch_rounded, size: 50),
+              ),
+              const SizedBox(height: 17),
+              Text(
+                'Give your money a tiny mission',
+                style: Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Create a private goal and celebrate every small step. '
+                'Everything stays on this device.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                onPressed: _openGoalEditor,
+                icon: const Icon(Icons.auto_awesome_rounded),
+                label: const Text('Create my first goal'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     final double totalSaved = goals.fold(
       0,
-      (double value, SavingsGoal item) => value + item.savedAmount,
+      (double sum, SavingsGoal item) => sum + item.savedAmount,
     );
     final double totalTarget = goals.fold(
       0,
-      (double value, SavingsGoal item) => value + item.targetAmount,
+      (double sum, SavingsGoal item) => sum + item.targetAmount,
     );
     final int stars = goals.fold(
       0,
-      (int value, SavingsGoal item) => value + item.earnedMilestones,
+      (int sum, SavingsGoal item) => sum + item.earnedMilestones,
     );
     final int completed = goals.where((SavingsGoal item) => item.isComplete).length;
 
     return Column(
       children: <Widget>[
-        _RewardSummary(
-          totalSaved: totalSaved,
-          totalTarget: totalTarget,
-          stars: stars,
-          completed: completed,
-          privacyMode: privacyMode,
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          const Text(
+                            'Your pocket constellation',
+                            style: TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$stars milestone star${stars == 1 ? '' : 's'} earned',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Chip(
+                      avatar: const Icon(Icons.star_rounded),
+                      label: Text(stars.toString()),
+                      backgroundColor: AppPalette.lemon,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 13),
+                LinearProgressIndicator(
+                  value: totalTarget <= 0
+                      ? 0
+                      : math.min(totalSaved / totalTarget, 1.0),
+                  minHeight: 12,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  privacyMode
+                      ? '₹ ••••• saved across active goals'
+                      : '${inrCurrency.format(totalSaved)} of ${inrCurrency.format(totalTarget)} saved',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                if (completed > 0) ...<Widget>[
+                  const SizedBox(height: 7),
+                  Text(
+                    '🎉 $completed completed goal${completed == 1 ? '' : 's'}',
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 13),
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: onCreate,
+            onPressed: _openGoalEditor,
             icon: const Icon(Icons.add_rounded),
             label: const Text('Create another goal'),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 13),
         ...goals.indexed.map((entry) {
-          final int index = entry.$1;
-          final SavingsGoal goal = entry.$2;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: _GoalCard(
-              goal: goal,
-              privacyMode: privacyMode,
-              onEdit: () => onEdit(goal),
-              onContribute: () => onContribute(goal),
-              onArchive: () => onArchive(goal),
-              onDelete: () => onDelete(goal),
-            )
+            padding: const EdgeInsets.only(bottom: 13),
+            child: _goalCard(entry.$2, privacyMode)
                 .animate()
-                .fadeIn(delay: (80 * index).ms)
+                .fadeIn(delay: (entry.$1 * 70).ms)
                 .slideY(begin: 0.04, end: 0),
           );
         }),
       ],
     );
   }
-}
 
-class _RewardSummary extends StatelessWidget {
-  const _RewardSummary({
-    required this.totalSaved,
-    required this.totalTarget,
-    required this.stars,
-    required this.completed,
-    required this.privacyMode,
-  });
-
-  final double totalSaved;
-  final double totalTarget;
-  final int stars;
-  final int completed;
-  final bool privacyMode;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const Text(
-                        'Your pocket constellation',
-                        style: TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$stars milestone star${stars == 1 ? '' : 's'} earned',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppPalette.lemon,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      const Icon(Icons.star_rounded),
-                      const SizedBox(width: 5),
-                      Text(
-                        stars.toString(),
-                        style: const TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            LinearProgressIndicator(
-              value: totalTarget <= 0
-                  ? 0
-                  : math.min(totalSaved / totalTarget, 1),
-              minHeight: 12,
-              borderRadius: BorderRadius.circular(99),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              privacyMode
-                  ? '₹ ••••• saved across your active goals'
-                  : '${inrCurrency.format(totalSaved)} of ${inrCurrency.format(totalTarget)} saved',
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-            if (completed > 0) ...<Widget>[
-              const SizedBox(height: 8),
-              Text('🎉 $completed completed goal${completed == 1 ? '' : 's'}'),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GoalCard extends StatelessWidget {
-  const _GoalCard({
-    required this.goal,
-    required this.privacyMode,
-    required this.onEdit,
-    required this.onContribute,
-    required this.onArchive,
-    required this.onDelete,
-  });
-
-  final SavingsGoal goal;
-  final bool privacyMode;
-  final VoidCallback onEdit;
-  final VoidCallback onContribute;
-  final VoidCallback onArchive;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _goalCard(SavingsGoal goal, bool privacyMode) {
     final Color color = colorFromHex(goal.hexColor);
-    final DateTime? targetDate = goal.targetDate;
-    final int daysLeft = targetDate == null
-        ? 0
-        : targetDate.difference(DateTime.now()).inDays;
+    final int? daysLeft = goal.targetDate?.difference(DateTime.now()).inDays;
 
     return Container(
-      padding: const EdgeInsets.all(19),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: <Color>[
             color.withValues(alpha: 0.92),
-            color.withValues(alpha: 0.48),
+            color.withValues(alpha: 0.50),
             Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: color.withValues(alpha: 0.72)),
+        border: Border.all(color: color.withValues(alpha: 0.75)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -839,11 +690,11 @@ class _GoalCard extends StatelessWidget {
           Row(
             children: <Widget>[
               CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.white.withValues(alpha: 0.78),
-                child: Icon(_goalIcon(goal.iconName), size: 27),
+                radius: 24,
+                backgroundColor: Colors.white.withValues(alpha: 0.80),
+                child: Icon(_goalIcon(goal.iconName), size: 26),
               ),
-              const SizedBox(width: 13),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -852,19 +703,15 @@ class _GoalCard extends StatelessWidget {
                       goal.name,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    if (goal.isComplete)
-                      const Text(
-                        'Goal complete! You did it 🎊',
-                        style: TextStyle(fontWeight: FontWeight.w800),
-                      )
-                    else if (targetDate != null)
-                      Text(
-                        daysLeft >= 0
-                            ? '$daysLeft day${daysLeft == 1 ? '' : 's'} remaining'
-                            : 'Target date passed—keep going gently',
-                      )
-                    else
-                      const Text('No deadline, just steady progress'),
+                    Text(
+                      goal.isComplete
+                          ? 'Goal complete! You did it 🎊'
+                          : daysLeft == null
+                          ? 'No deadline, just steady progress'
+                          : daysLeft >= 0
+                          ? '$daysLeft day${daysLeft == 1 ? '' : 's'} remaining'
+                          : 'Target date passed—keep going gently',
+                    ),
                   ],
                 ),
               ),
@@ -872,11 +719,14 @@ class _GoalCard extends StatelessWidget {
                 onSelected: (String value) {
                   switch (value) {
                     case 'edit':
-                      onEdit();
+                      _openGoalEditor(goal);
+                      break;
                     case 'archive':
-                      onArchive();
+                      _archiveGoal(goal);
+                      break;
                     case 'delete':
-                      onDelete();
+                      _deleteGoal(goal);
+                      break;
                   }
                 },
                 itemBuilder: (BuildContext context) {
@@ -898,17 +748,14 @@ class _GoalCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 17),
-          ClipRRect(
+          const SizedBox(height: 15),
+          LinearProgressIndicator(
+            value: goal.progress,
+            minHeight: 14,
             borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(
-              value: goal.progress,
-              minHeight: 14,
-              backgroundColor: Colors.white.withValues(alpha: 0.72),
-              color: AppPalette.lavenderDeep,
-            ),
+            backgroundColor: Colors.white.withValues(alpha: 0.70),
           ),
-          const SizedBox(height: 9),
+          const SizedBox(height: 8),
           Row(
             children: <Widget>[
               Expanded(
@@ -927,35 +774,30 @@ class _GoalCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 13),
-          Row(
+          const SizedBox(height: 11),
+          Wrap(
+            spacing: 6,
             children: List<Widget>.generate(5, (int index) {
               final bool earned = index < goal.earnedMilestones;
-              return Padding(
-                padding: const EdgeInsets.only(right: 7),
-                child: AnimatedContainer(
-                  duration: 220.ms,
-                  width: 31,
-                  height: 31,
-                  decoration: BoxDecoration(
-                    color: earned
-                        ? AppPalette.sunshine
-                        : Colors.white.withValues(alpha: 0.58),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    earned ? Icons.star_rounded : Icons.star_border_rounded,
-                    size: 20,
-                  ),
+              return CircleAvatar(
+                radius: 15,
+                backgroundColor: earned
+                    ? AppPalette.sunshine
+                    : Colors.white.withValues(alpha: 0.58),
+                child: Icon(
+                  earned ? Icons.star_rounded : Icons.star_border_rounded,
+                  size: 19,
                 ),
               );
             }),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 13),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: goal.isComplete ? null : onContribute,
+              onPressed: goal.isComplete
+                  ? null
+                  : () => _addContribution(goal),
               icon: Icon(
                 goal.isComplete
                     ? Icons.emoji_events_rounded
@@ -970,157 +812,88 @@ class _GoalCard extends StatelessWidget {
       ),
     );
   }
-}
 
-class _PlayfulEmptyGoals extends StatelessWidget {
-  const _PlayfulEmptyGoals({required this.onCreate});
-
-  final VoidCallback onCreate;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(26),
-        child: Column(
-          children: <Widget>[
-            Container(
-              width: 108,
-              height: 108,
-              decoration: const BoxDecoration(
-                gradient: AppPalette.heroGradient,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.rocket_launch_rounded, size: 52),
-            ).animate(onPlay: (AnimationController controller) {
-              controller.repeat(reverse: true);
-            }).scale(
-              duration: 1200.ms,
-              begin: const Offset(0.96, 0.96),
-              end: const Offset(1.04, 1.04),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'Give your money a tiny mission',
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Create a private savings goal and celebrate every small step. '
-              'Everything stays on this device.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: onCreate,
-              icon: const Icon(Icons.auto_awesome_rounded),
-              label: const Text('Create my first goal'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CashFlowCalendar extends StatelessWidget {
-  const _CashFlowCalendar({
-    required this.month,
-    required this.transactions,
-    required this.privacyMode,
-    required this.onPreviousMonth,
-    required this.onNextMonth,
-    required this.onDayTap,
-  });
-
-  final DateTime month;
-  final List<ExpenseTransaction> transactions;
-  final bool privacyMode;
-  final VoidCallback onPreviousMonth;
-  final VoidCallback onNextMonth;
-  final void Function(DateTime, List<ExpenseTransaction>) onDayTap;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _calendarContent(
+    List<ExpenseTransaction> transactions,
+    bool privacyMode,
+  ) {
     final List<ExpenseTransaction> monthItems = transactions
         .where((ExpenseTransaction item) {
-          return item.timestamp.year == month.year &&
-              item.timestamp.month == month.month;
+          return item.timestamp.year == _month.year &&
+              item.timestamp.month == _month.month;
         })
         .toList(growable: false);
     final double spent = monthItems
         .where((ExpenseTransaction item) => item.isDebit)
-        .fold(0, (double value, ExpenseTransaction item) => value + item.amount);
+        .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
     final double income = monthItems
         .where((ExpenseTransaction item) => !item.isDebit)
-        .fold(0, (double value, ExpenseTransaction item) => value + item.amount);
+        .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
     final DateTime currentMonth = DateTime(
       DateTime.now().year,
       DateTime.now().month,
     );
-    final bool canMoveForward = month.isBefore(currentMonth);
 
     return Column(
       children: <Widget>[
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(17),
             child: Column(
               children: <Widget>[
                 Row(
                   children: <Widget>[
                     IconButton.filledTonal(
-                      onPressed: onPreviousMonth,
+                      onPressed: () {
+                        setState(() {
+                          _month = DateTime(_month.year, _month.month - 1);
+                        });
+                      },
                       icon: const Icon(Icons.chevron_left_rounded),
                     ),
                     Expanded(
                       child: Text(
-                        monthYearFormat.format(month),
+                        monthYearFormat.format(_month),
                         style: Theme.of(context).textTheme.titleLarge,
                         textAlign: TextAlign.center,
                       ),
                     ),
                     IconButton.filledTonal(
-                      onPressed: canMoveForward ? onNextMonth : null,
+                      onPressed: _month.isBefore(currentMonth)
+                          ? () {
+                              setState(() {
+                                _month = DateTime(
+                                  _month.year,
+                                  _month.month + 1,
+                                );
+                              });
+                            }
+                          : null,
                       icon: const Icon(Icons.chevron_right_rounded),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 Row(
                   children: <Widget>[
-                    Expanded(
-                      child: _CalendarMetric(
-                        label: 'Income',
-                        value: privacyMode
-                            ? '₹ •••'
-                            : inrCurrency.format(income),
-                        color: AppPalette.mint,
-                        icon: Icons.south_west_rounded,
-                      ),
+                    _metric(
+                      'Income',
+                      privacyMode ? '₹ •••' : inrCurrency.format(income),
+                      AppPalette.mint,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _CalendarMetric(
-                        label: 'Spent',
-                        value: privacyMode
-                            ? '₹ •••'
-                            : inrCurrency.format(spent),
-                        color: AppPalette.peach,
-                        icon: Icons.north_east_rounded,
-                      ),
+                    const SizedBox(width: 8),
+                    _metric(
+                      'Spent',
+                      privacyMode ? '₹ •••' : inrCurrency.format(spent),
+                      AppPalette.peach,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _CalendarMetric(
-                        label: 'Net',
-                        value: privacyMode
-                            ? '₹ •••'
-                            : inrCurrency.format(income - spent),
-                        color: AppPalette.lavender,
-                        icon: Icons.balance_rounded,
-                      ),
+                    const SizedBox(width: 8),
+                    _metric(
+                      'Net',
+                      privacyMode
+                          ? '₹ •••'
+                          : inrCurrency.format(income - spent),
+                      AppPalette.lavender,
                     ),
                   ],
                 ),
@@ -1128,55 +901,49 @@ class _CashFlowCalendar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 13),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(11),
             child: Column(
               children: <Widget>[
                 const Row(
                   children: <Widget>[
-                    _WeekdayLabel('Mon'),
-                    _WeekdayLabel('Tue'),
-                    _WeekdayLabel('Wed'),
-                    _WeekdayLabel('Thu'),
-                    _WeekdayLabel('Fri'),
-                    _WeekdayLabel('Sat'),
-                    _WeekdayLabel('Sun'),
+                    _Weekday('Mon'),
+                    _Weekday('Tue'),
+                    _Weekday('Wed'),
+                    _Weekday('Thu'),
+                    _Weekday('Fri'),
+                    _Weekday('Sat'),
+                    _Weekday('Sun'),
                   ],
                 ),
-                const SizedBox(height: 8),
-                _CalendarGrid(
-                  month: month,
-                  transactions: monthItems,
-                  privacyMode: privacyMode,
-                  onDayTap: onDayTap,
-                ),
+                const SizedBox(height: 7),
+                _calendarGrid(monthItems, privacyMode),
               ],
             ),
           ),
         ),
         if (monthItems.isEmpty) ...<Widget>[
-          const SizedBox(height: 14),
+          const SizedBox(height: 13),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(19),
             decoration: BoxDecoration(
               color: AppPalette.lemon,
               borderRadius: BorderRadius.circular(24),
             ),
             child: const Column(
               children: <Widget>[
-                Icon(Icons.calendar_today_rounded, size: 36),
-                SizedBox(height: 8),
+                Icon(Icons.calendar_today_rounded, size: 34),
+                SizedBox(height: 7),
                 Text(
                   'A quiet month so far 🌤️',
                   style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Confirmed transactions will paint this calendar with local '
-                  'income and spending signals.',
+                  'Confirmed transactions will colour this calendar.',
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -1186,84 +953,39 @@ class _CashFlowCalendar extends StatelessWidget {
       ],
     );
   }
-}
 
-class _CalendarMetric extends StatelessWidget {
-  const _CalendarMetric({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.icon,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        children: <Widget>[
-          Icon(icon, size: 20),
-          const SizedBox(height: 5),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 2),
-          FittedBox(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w900),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WeekdayLabel extends StatelessWidget {
-  const _WeekdayLabel(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _metric(String label, String value, Color color) {
     return Expanded(
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(17),
+        ),
+        child: Column(
+          children: <Widget>[
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 3),
+            FittedBox(
+              child: Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-}
 
-class _CalendarGrid extends StatelessWidget {
-  const _CalendarGrid({
-    required this.month,
-    required this.transactions,
-    required this.privacyMode,
-    required this.onDayTap,
-  });
-
-  final DateTime month;
-  final List<ExpenseTransaction> transactions;
-  final bool privacyMode;
-  final void Function(DateTime, List<ExpenseTransaction>) onDayTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final DateTime firstDay = DateTime(month.year, month.month);
-    final int leadingCells = firstDay.weekday - 1;
-    final int daysInMonth = DateTime(month.year, month.month + 1, 0).day;
-    final int usedCells = leadingCells + daysInMonth;
-    final int cellCount = ((usedCells / 7).ceil()) * 7;
+  Widget _calendarGrid(
+    List<ExpenseTransaction> monthItems,
+    bool privacyMode,
+  ) {
+    final DateTime firstDay = DateTime(_month.year, _month.month);
+    final int leading = firstDay.weekday - 1;
+    final int days = DateTime(_month.year, _month.month + 1, 0).day;
+    final int cellCount = (((leading + days) / 7).ceil()) * 7;
 
     return GridView.builder(
       shrinkWrap: true,
@@ -1276,47 +998,41 @@ class _CalendarGrid extends StatelessWidget {
         childAspectRatio: 0.78,
       ),
       itemBuilder: (BuildContext context, int index) {
-        final int day = index - leadingCells + 1;
-        if (day < 1 || day > daysInMonth) {
+        final int day = index - leading + 1;
+        if (day < 1 || day > days) {
           return const SizedBox.shrink();
         }
-        final DateTime date = DateTime(month.year, month.month, day);
-        final List<ExpenseTransaction> dayItems = transactions
+        final DateTime date = DateTime(_month.year, _month.month, day);
+        final List<ExpenseTransaction> items = monthItems
             .where((ExpenseTransaction item) {
-              return item.timestamp.year == date.year &&
-                  item.timestamp.month == date.month &&
-                  item.timestamp.day == date.day;
+              return item.timestamp.day == day;
             })
             .toList(growable: false);
-        final double debit = dayItems
+        final double debit = items
             .where((ExpenseTransaction item) => item.isDebit)
-            .fold(
-              0,
-              (double value, ExpenseTransaction item) => value + item.amount,
-            );
-        final double credit = dayItems
+            .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
+        final double credit = items
             .where((ExpenseTransaction item) => !item.isDebit)
-            .fold(
-              0,
-              (double value, ExpenseTransaction item) => value + item.amount,
-            );
-        final bool today = _sameDate(date, DateTime.now());
-        final Color background = debit > 0 && credit > 0
+            .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
+        final Color color = debit > 0 && credit > 0
             ? AppPalette.lavender
             : debit > 0
             ? AppPalette.peach
             : credit > 0
             ? AppPalette.mint
             : AppPalette.canvas;
+        final bool today = _sameDay(date, DateTime.now());
 
         return InkWell(
-          onTap: dayItems.isEmpty ? null : () => onDayTap(date, dayItems),
-          borderRadius: BorderRadius.circular(14),
+          onTap: items.isEmpty
+              ? null
+              : () => _showDayTransactions(date, items, privacyMode),
+          borderRadius: BorderRadius.circular(13),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
             decoration: BoxDecoration(
-              color: background,
-              borderRadius: BorderRadius.circular(14),
+              color: color,
+              borderRadius: BorderRadius.circular(13),
               border: Border.all(
                 color: today ? AppPalette.lavenderDeep : Colors.transparent,
                 width: today ? 2 : 1,
@@ -1331,22 +1047,21 @@ class _CalendarGrid extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                if (dayItems.isNotEmpty) ...<Widget>[
+                if (items.isNotEmpty) ...<Widget>[
                   Icon(
                     debit > credit
                         ? Icons.arrow_upward_rounded
                         : Icons.arrow_downward_rounded,
                     size: 13,
                   ),
-                  const SizedBox(height: 2),
                   FittedBox(
                     child: Text(
                       privacyMode
                           ? '•••'
                           : _compactAmount(math.max(debit, credit)),
                       style: const TextStyle(
-                        fontWeight: FontWeight.w900,
                         fontSize: 9,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -1358,19 +1073,22 @@ class _CalendarGrid extends StatelessWidget {
       },
     );
   }
+}
 
-  static bool _sameDate(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
+class _Weekday extends StatelessWidget {
+  const _Weekday(this.label);
 
-  static String _compactAmount(double value) {
-    if (value >= 100000) {
-      return '₹${(value / 100000).toStringAsFixed(1)}L';
-    }
-    if (value >= 1000) {
-      return '₹${(value / 1000).toStringAsFixed(1)}K';
-    }
-    return '₹${value.toStringAsFixed(0)}';
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+      ),
+    );
   }
 }
 
@@ -1387,8 +1105,8 @@ class _ErrorCard extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: <Widget>[
-            const Icon(Icons.cloud_off_rounded, size: 48),
-            const SizedBox(height: 12),
+            const Icon(Icons.cloud_off_rounded, size: 46),
+            const SizedBox(height: 11),
             Text(title, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 6),
             Text(message, textAlign: TextAlign.center),
@@ -1452,4 +1170,20 @@ String _goalIconLabel(String name) {
     'school' => 'Learn',
     _ => 'Save',
   };
+}
+
+bool _sameDay(DateTime first, DateTime second) {
+  return first.year == second.year &&
+      first.month == second.month &&
+      first.day == second.day;
+}
+
+String _compactAmount(double value) {
+  if (value >= 100000) {
+    return '₹${(value / 100000).toStringAsFixed(1)}L';
+  }
+  if (value >= 1000) {
+    return '₹${(value / 1000).toStringAsFixed(1)}K';
+  }
+  return '₹${value.toStringAsFixed(0)}';
 }
