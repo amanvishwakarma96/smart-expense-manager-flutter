@@ -10,6 +10,9 @@ class AppLockService {
   AppLockService._(this._storage, this._localAuthentication);
 
   static const String _enabledKey = 'piggyai.biometric_lock.enabled';
+  static const String _timeoutKey = 'piggyai.biometric_lock.timeout_minutes';
+  static const int defaultTimeoutMinutes = 1;
+  static const List<int> supportedTimeoutMinutes = <int>[0, 1, 5, 15];
 
   final FlutterSecureStorage _storage;
   final LocalAuthentication _localAuthentication;
@@ -20,6 +23,23 @@ class AppLockService {
 
   Future<void> setEnabled(bool enabled) {
     return _storage.write(key: _enabledKey, value: enabled.toString());
+  }
+
+  Future<int> getTimeoutMinutes() async {
+    final int? stored = int.tryParse(
+      await _storage.read(key: _timeoutKey) ?? '',
+    );
+    if (stored == null || !supportedTimeoutMinutes.contains(stored)) {
+      return defaultTimeoutMinutes;
+    }
+    return stored;
+  }
+
+  Future<void> setTimeoutMinutes(int minutes) {
+    if (!supportedTimeoutMinutes.contains(minutes)) {
+      throw ArgumentError.value(minutes, 'minutes', 'Unsupported lock timeout');
+    }
+    return _storage.write(key: _timeoutKey, value: minutes.toString());
   }
 
   Future<bool> authenticate() async {

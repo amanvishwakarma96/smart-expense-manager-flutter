@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/app_lock_service.dart';
+import 'package:smart_expense_manager/core/security/onboarding_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
@@ -46,6 +47,9 @@ final Provider<SmsEngineCoordinator> smsEngineCoordinatorProvider =
 
 final Provider<AppLockService> appLockServiceProvider =
     Provider<AppLockService>((Ref ref) => AppLockService());
+
+final Provider<OnboardingService> onboardingServiceProvider =
+    Provider<OnboardingService>((Ref ref) => OnboardingService());
 
 final StreamProvider<List<ExpenseTransaction>> pendingTransactionsProvider =
     StreamProvider<List<ExpenseTransaction>>((Ref ref) {

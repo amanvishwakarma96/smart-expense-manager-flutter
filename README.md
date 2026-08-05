@@ -18,6 +18,17 @@ after confirmation.
 - iOS uses manual entry because iOS does not expose the SMS inbox to
   third-party apps.
 
+## Current capabilities
+
+- Privacy-first onboarding with optional Android SMS activation.
+- Manual debit and credit entry on Android and iOS.
+- Android bank-SMS detection with a pending review queue.
+- Local merchant categorization rules and monthly category budgets.
+- Searchable confirmed-transaction history with type and date filters.
+- Category spending and seven-day cash-flow charts.
+- Privacy amount masking and configurable biometric/device-lock timing.
+- Full local financial-data deletion with encryption-key removal.
+
 ## Stack
 
 - Flutter and Dart
@@ -49,13 +60,16 @@ dart run build_runner build
 dart format lib test
 flutter analyze --fatal-infos
 flutter test
+flutter build apk --debug
 ```
 
 ## Platform behavior
 
-- **Android:** manual entry, user-initiated inbox scan, incoming transaction SMS
-  detection, pending review, budgets, local rules, charts, and app lock.
-- **iOS:** manual entry, budgets, local rules, charts, and app lock. Automatic SMS
-  access is intentionally unavailable.
+- **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
+  transaction SMS detection, pending review, history search, budgets, local
+  rules, charts, privacy mode, and configurable app lock.
+- **iOS:** onboarding, manual entry, history search, budgets, local rules,
+  charts, privacy mode, and configurable app lock. Automatic SMS access is
+  intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.
