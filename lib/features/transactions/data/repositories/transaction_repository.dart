@@ -6,6 +6,7 @@ import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/recurring_transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 
@@ -178,6 +179,7 @@ class TransactionRepository {
   Future<void> clearAll() {
     return _isar.writeTxn(() async {
       await _isar.transactionModels.clear();
+      await _isar.recurringTransactionModels.clear();
       await _isar.merchantRuleModels.clear();
       await _isar.categoryModels.clear();
     });
@@ -202,6 +204,7 @@ class TransactionRepository {
       accountTail: await _cipher.decrypt(model.encryptedAccountTail),
       originalSmsText: await _cipher.decrypt(model.encryptedOriginalSmsText),
       isManual: model.isManual,
+      isRecurring: model.isRecurring,
     );
   }
 }
