@@ -3,6 +3,8 @@ import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/app_lock_service.dart';
 import 'package:smart_expense_manager/core/security/onboarding_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/goals/data/repositories/savings_goal_repository.dart';
+import 'package:smart_expense_manager/features/goals/domain/savings_goal.dart';
 import 'package:smart_expense_manager/features/settings/services/backup_file_service.dart';
 import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
 import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
@@ -42,6 +44,14 @@ final Provider<RecurringTransactionRepository>
 recurringTransactionRepositoryProvider =
     Provider<RecurringTransactionRepository>((Ref ref) {
       return RecurringTransactionRepository(
+        ref.watch(isarProvider),
+        ref.watch(cipherProvider),
+      );
+    });
+
+final Provider<SavingsGoalRepository> savingsGoalRepositoryProvider =
+    Provider<SavingsGoalRepository>((Ref ref) {
+      return SavingsGoalRepository(
         ref.watch(isarProvider),
         ref.watch(cipherProvider),
       );
@@ -95,6 +105,11 @@ final StreamProvider<List<ExpenseTransaction>> confirmedTransactionsProvider =
 final StreamProvider<List<RecurringTransaction>> recurringTransactionsProvider =
     StreamProvider<List<RecurringTransaction>>((Ref ref) {
       return ref.watch(recurringTransactionRepositoryProvider).watchAll();
+    });
+
+final StreamProvider<List<SavingsGoal>> savingsGoalsProvider =
+    StreamProvider<List<SavingsGoal>>((Ref ref) {
+      return ref.watch(savingsGoalRepositoryProvider).watchActive();
     });
 
 final StreamProvider<List<CategoryModel>> categoriesProvider =
