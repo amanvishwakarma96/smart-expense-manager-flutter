@@ -143,6 +143,32 @@ class TransactionRepository {
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
   }
 
+  Future<void> updateConfirmed({
+    required int id,
+    required double amount,
+    required String merchant,
+    required TransactionType type,
+    required DateTime timestamp,
+    int? categoryId,
+  }) async {
+    final TransactionModel? model = await _isar.transactionModels.get(id);
+    if (model == null || model.status != TransactionStatus.confirmed) {
+      return;
+    }
+    final int? previousCategoryId = model.categoryId;
+    model
+      ..amount = amount
+      ..type = type
+      ..timestamp = timestamp
+      ..categoryId = categoryId
+      ..encryptedMerchant = await _cipher.encrypt(merchant);
+    await _isar.writeTxn(() => _isar.transactionModels.put(model));
+    await _budgetAlertService?.checkCategory(previousCategoryId);
+    if (categoryId != previousCategoryId) {
+      await _budgetAlertService?.checkCategory(categoryId);
+    }
+  }
+
   Future<void> delete(int id) {
     return _isar.writeTxn(() async {
       await _isar.transactionModels.delete(id);
