@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/goals/data/models/savings_goal_model.dart';
 import 'package:smart_expense_manager/features/settings/services/encrypted_backup_codec.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
@@ -16,12 +17,14 @@ class BackupSnapshotSummary {
     required this.categories,
     required this.merchantRules,
     this.recurringTransactions = 0,
+    this.savingsGoals = 0,
   });
 
   final int transactions;
   final int categories;
   final int merchantRules;
   final int recurringTransactions;
+  final int savingsGoals;
 }
 
 class BackupExportResult extends BackupSnapshotSummary {
@@ -32,6 +35,7 @@ class BackupExportResult extends BackupSnapshotSummary {
     required super.categories,
     required super.merchantRules,
     super.recurringTransactions,
+    super.savingsGoals,
   });
 
   final Uint8List bytes;
@@ -47,8 +51,8 @@ class LocalBackupService {
 
   LocalBackupService._(this._isar, this._cipher, this._codec);
 
-  static const int snapshotVersion = 2;
-  static const Set<int> supportedSnapshotVersions = <int>{1, 2};
+  static const int snapshotVersion = 3;
+  static const Set<int> supportedSnapshotVersions = <int>{1, 2, 3};
 
   final Isar _isar;
   final SecureCipherService _cipher;
@@ -66,6 +70,9 @@ class LocalBackupService {
         .findAll();
     final List<RecurringTransactionModel> recurring = await _isar
         .recurringTransactionModels
+        .where()
+        .findAll();
+    final List<SavingsGoalModel> goals = await _isar.savingsGoalModels
         .where()
         .findAll();
 
@@ -104,6 +111,22 @@ class LocalBackupService {
       });
     }
 
+    final List<Map<String, Object?>> goalPayload = <Map<String, Object?>>[];
+    for (final SavingsGoalModel item in goals) {
+      goalPayload.add(<String, Object?>{
+        'id': item.id,
+        'name': await _cipher.decrypt(item.encryptedName),
+        'targetAmount': item.targetAmount,
+        'savedAmount': item.savedAmount,
+        'targetDate': item.targetDate?.toUtc().toIso8601String(),
+        'hexColor': item.hexColor,
+        'iconName': item.iconName,
+        'isArchived': item.isArchived,
+        'createdAt': item.createdAt.toUtc().toIso8601String(),
+        'updatedAt': item.updatedAt.toUtc().toIso8601String(),
+      });
+    }
+
     final Map<String, Object?> payload = <String, Object?>{
       'snapshotVersion': snapshotVersion,
       'createdAt': DateTime.now().toUtc().toIso8601String(),
@@ -128,6 +151,7 @@ class LocalBackupService {
           )
           .toList(growable: false),
       'recurringTransactions': recurringPayload,
+      'savingsGoals': goalPayload,
       'transactions': transactionPayload,
     };
 
@@ -147,6 +171,7 @@ class LocalBackupService {
       categories: categories.length,
       merchantRules: rules.length,
       recurringTransactions: recurring.length,
+      savingsGoals: goals.length,
     );
   }
 
@@ -178,6 +203,9 @@ class LocalBackupService {
     final List<Map<String, Object?>> recurringMaps = rawVersion >= 2
         ? _mapList(payload['recurringTransactions'], 'recurringTransactions')
         : const <Map<String, Object?>>[];
+    final List<Map<String, Object?>> goalMaps = rawVersion >= 3
+        ? _mapList(payload['savingsGoals'], 'savingsGoals')
+        : const <Map<String, Object?>>[];
     if (categoryMaps.isEmpty) {
       throw const FormatException('Backup does not contain any categories');
     }
@@ -205,7 +233,7 @@ class LocalBackupService {
 
     final Set<int> ruleIds = <int>{};
     final List<MerchantRuleModel> rules = ruleMaps
-        .map((map) {
+        .map((Map<String, Object?> map) {
           final int id = _positiveInt(map['id'], 'merchantRule.id');
           if (!ruleIds.add(id)) {
             throw const FormatException(
@@ -272,6 +300,39 @@ class LocalBackupService {
       );
     }
 
+    final Set<int> goalIds = <int>{};
+    final List<SavingsGoalModel> goals = <SavingsGoalModel>[];
+    for (final Map<String, Object?> map in goalMaps) {
+      final int id = _positiveInt(map['id'], 'savingsGoal.id');
+      if (!goalIds.add(id)) {
+        throw const FormatException('Backup contains duplicate savings goal IDs');
+      }
+      final SavingsGoalModel goal = SavingsGoalModel(
+        id: id,
+        encryptedName: await _cipher.encrypt(
+          _requiredString(map['name'], 'savingsGoal.name'),
+        ),
+        targetAmount: _positiveNumber(
+          map['targetAmount'],
+          'savingsGoal.targetAmount',
+        ),
+        savedAmount: _nonNegativeNumber(
+          map['savedAmount'],
+          'savingsGoal.savedAmount',
+        ),
+        targetDate: _optionalDateTime(
+          map['targetDate'],
+          'savingsGoal.targetDate',
+        ),
+        hexColor: _requiredString(map['hexColor'], 'savingsGoal.hexColor'),
+        iconName: _requiredString(map['iconName'], 'savingsGoal.iconName'),
+        isArchived: _bool(map['isArchived'], 'savingsGoal.isArchived'),
+      )
+        ..createdAt = _dateTime(map['createdAt'], 'savingsGoal.createdAt')
+        ..updatedAt = _dateTime(map['updatedAt'], 'savingsGoal.updatedAt');
+      goals.add(goal);
+    }
+
     final Set<int> transactionIds = <int>{};
     final Set<String> fingerprints = <String>{};
     final List<TransactionModel> transactions = <TransactionModel>[];
@@ -319,11 +380,13 @@ class LocalBackupService {
     await _isar.writeTxn(() async {
       await _isar.transactionModels.clear();
       await _isar.recurringTransactionModels.clear();
+      await _isar.savingsGoalModels.clear();
       await _isar.merchantRuleModels.clear();
       await _isar.categoryModels.clear();
       await _isar.categoryModels.putAll(categories);
       await _isar.merchantRuleModels.putAll(rules);
       await _isar.recurringTransactionModels.putAll(recurring);
+      await _isar.savingsGoalModels.putAll(goals);
       await _isar.transactionModels.putAll(transactions);
     });
 
@@ -332,6 +395,7 @@ class LocalBackupService {
       categories: categories.length,
       merchantRules: rules.length,
       recurringTransactions: recurring.length,
+      savingsGoals: goals.length,
     );
   }
 
@@ -410,6 +474,13 @@ class LocalBackupService {
 
   DateTime _dateTime(Object? value, String name) {
     return DateTime.parse(_requiredString(value, name)).toLocal();
+  }
+
+  DateTime? _optionalDateTime(Object? value, String name) {
+    if (value == null) {
+      return null;
+    }
+    return _dateTime(value, name);
   }
 
   TransactionType _transactionType(Object? value) {
