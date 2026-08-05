@@ -148,30 +148,33 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 9,
-                      children: _goalColors.map((String value) {
-                        final bool selected = value == hexColor;
-                        return InkWell(
-                          onTap: () => setDialogState(() => hexColor = value),
-                          borderRadius: BorderRadius.circular(99),
-                          child: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: colorFromHex(value),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: selected
-                                    ? AppPalette.ink
-                                    : Colors.transparent,
-                                width: 3,
+                      children: _goalColors
+                          .map((String value) {
+                            final bool selected = value == hexColor;
+                            return InkWell(
+                              onTap: () =>
+                                  setDialogState(() => hexColor = value),
+                              borderRadius: BorderRadius.circular(99),
+                              child: Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: colorFromHex(value),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: selected
+                                        ? AppPalette.ink
+                                        : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                ),
+                                child: selected
+                                    ? const Icon(Icons.check_rounded, size: 18)
+                                    : null,
                               ),
-                            ),
-                            child: selected
-                                ? const Icon(Icons.check_rounded, size: 18)
-                                : null,
-                          ),
-                        );
-                      }).toList(growable: false),
+                            );
+                          })
+                          .toList(growable: false),
                     ),
                     const SizedBox(height: 14),
                     const Text(
@@ -181,16 +184,18 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 7,
-                      children: _goalIcons.map((String value) {
-                        return ChoiceChip(
-                          selected: iconName == value,
-                          onSelected: (_) {
-                            setDialogState(() => iconName = value);
-                          },
-                          avatar: Icon(_goalIcon(value), size: 17),
-                          label: Text(_goalIconLabel(value)),
-                        );
-                      }).toList(growable: false),
+                      children: _goalIcons
+                          .map((String value) {
+                            return ChoiceChip(
+                              selected: iconName == value,
+                              onSelected: (_) {
+                                setDialogState(() => iconName = value);
+                              },
+                              avatar: Icon(_goalIcon(value), size: 17),
+                              label: Text(_goalIconLabel(value)),
+                            );
+                          })
+                          .toList(growable: false),
                     ),
                     if (errorText != null) ...<Widget>[
                       const SizedBox(height: 10),
@@ -227,7 +232,9 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
     if (draft == null) {
       return;
     }
-    await ref.read(savingsGoalRepositoryProvider).save(
+    await ref
+        .read(savingsGoalRepositoryProvider)
+        .save(
           id: goal?.id,
           name: draft.name,
           targetAmount: draft.targetAmount,
@@ -292,10 +299,9 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
     if (amount == null) {
       return;
     }
-    await ref.read(savingsGoalRepositoryProvider).addContribution(
-          goal.id,
-          amount,
-        );
+    await ref
+        .read(savingsGoalRepositoryProvider)
+        .addContribution(goal.id, amount);
     if (mounted) {
       _message('Nice! Your goal moved forward ⭐');
     }
@@ -400,7 +406,9 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
                         ),
                         title: Text(item.merchant),
                         subtitle: Text(
-                          item.isRecurring ? 'Recurring • reviewed' : 'Confirmed',
+                          item.isRecurring
+                              ? 'Recurring • reviewed'
+                              : 'Confirmed',
                         ),
                         trailing: Text(
                           privacyMode
@@ -421,9 +429,9 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -436,27 +444,31 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
           _header(),
           const SizedBox(height: 18),
           if (_mode == _GoalsMode.goals)
-            ref.watch(savingsGoalsProvider).when(
+            ref
+                .watch(savingsGoalsProvider)
+                .when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (Object error, StackTrace stackTrace) =>
                       const _ErrorCard(
-                    title: 'Goals are resting',
-                    message: 'Restart PiggyAI and try opening them again.',
-                  ),
+                        title: 'Goals are resting',
+                        message: 'Restart PiggyAI and try opening them again.',
+                      ),
                   data: (List<SavingsGoal> goals) {
                     return _goalsContent(goals, privacyMode);
                   },
                 )
           else
-            ref.watch(confirmedTransactionsProvider).when(
+            ref
+                .watch(confirmedTransactionsProvider)
+                .when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (Object error, StackTrace stackTrace) =>
                       const _ErrorCard(
-                    title: 'Calendar is unavailable',
-                    message: 'Your transactions remain stored on-device.',
-                  ),
+                        title: 'Calendar is unavailable',
+                        message: 'Your transactions remain stored on-device.',
+                      ),
                   data: (List<ExpenseTransaction> items) {
                     return _calendarContent(items, privacyMode);
                   },
@@ -582,7 +594,9 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
       0,
       (int sum, SavingsGoal item) => sum + item.earnedMilestones,
     );
-    final int completed = goals.where((SavingsGoal item) => item.isComplete).length;
+    final int completed = goals
+        .where((SavingsGoal item) => item.isComplete)
+        .length;
 
     return Column(
       children: <Widget>[
@@ -795,17 +809,13 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: goal.isComplete
-                  ? null
-                  : () => _addContribution(goal),
+              onPressed: goal.isComplete ? null : () => _addContribution(goal),
               icon: Icon(
                 goal.isComplete
                     ? Icons.emoji_events_rounded
                     : Icons.add_rounded,
               ),
-              label: Text(
-                goal.isComplete ? 'Goal achieved' : 'Add savings',
-              ),
+              label: Text(goal.isComplete ? 'Goal achieved' : 'Add savings'),
             ),
           ),
         ],
@@ -978,10 +988,7 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
     );
   }
 
-  Widget _calendarGrid(
-    List<ExpenseTransaction> monthItems,
-    bool privacyMode,
-  ) {
+  Widget _calendarGrid(List<ExpenseTransaction> monthItems, bool privacyMode) {
     final DateTime firstDay = DateTime(_month.year, _month.month);
     final int leading = firstDay.weekday - 1;
     final int days = DateTime(_month.year, _month.month + 1, 0).day;
@@ -1010,10 +1017,16 @@ class _GoalsCalendarScreenState extends ConsumerState<GoalsCalendarScreen> {
             .toList(growable: false);
         final double debit = items
             .where((ExpenseTransaction item) => item.isDebit)
-            .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
+            .fold(
+              0,
+              (double sum, ExpenseTransaction item) => sum + item.amount,
+            );
         final double credit = items
             .where((ExpenseTransaction item) => !item.isDebit)
-            .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
+            .fold(
+              0,
+              (double sum, ExpenseTransaction item) => sum + item.amount,
+            );
         final Color color = debit > 0 && credit > 0
             ? AppPalette.lavender
             : debit > 0

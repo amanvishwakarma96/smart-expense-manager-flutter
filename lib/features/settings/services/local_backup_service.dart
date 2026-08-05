@@ -305,31 +305,40 @@ class LocalBackupService {
     for (final Map<String, Object?> map in goalMaps) {
       final int id = _positiveInt(map['id'], 'savingsGoal.id');
       if (!goalIds.add(id)) {
-        throw const FormatException('Backup contains duplicate savings goal IDs');
+        throw const FormatException(
+          'Backup contains duplicate savings goal IDs',
+        );
       }
-      final SavingsGoalModel goal = SavingsGoalModel(
-        id: id,
-        encryptedName: await _cipher.encrypt(
-          _requiredString(map['name'], 'savingsGoal.name'),
-        ),
-        targetAmount: _positiveNumber(
-          map['targetAmount'],
-          'savingsGoal.targetAmount',
-        ),
-        savedAmount: _nonNegativeNumber(
-          map['savedAmount'],
-          'savingsGoal.savedAmount',
-        ),
-        targetDate: _optionalDateTime(
-          map['targetDate'],
-          'savingsGoal.targetDate',
-        ),
-        hexColor: _requiredString(map['hexColor'], 'savingsGoal.hexColor'),
-        iconName: _requiredString(map['iconName'], 'savingsGoal.iconName'),
-        isArchived: _bool(map['isArchived'], 'savingsGoal.isArchived'),
-      )
-        ..createdAt = _dateTime(map['createdAt'], 'savingsGoal.createdAt')
-        ..updatedAt = _dateTime(map['updatedAt'], 'savingsGoal.updatedAt');
+      final SavingsGoalModel goal =
+          SavingsGoalModel(
+              id: id,
+              encryptedName: await _cipher.encrypt(
+                _requiredString(map['name'], 'savingsGoal.name'),
+              ),
+              targetAmount: _positiveNumber(
+                map['targetAmount'],
+                'savingsGoal.targetAmount',
+              ),
+              savedAmount: _nonNegativeNumber(
+                map['savedAmount'],
+                'savingsGoal.savedAmount',
+              ),
+              targetDate: _optionalDateTime(
+                map['targetDate'],
+                'savingsGoal.targetDate',
+              ),
+              hexColor: _requiredString(
+                map['hexColor'],
+                'savingsGoal.hexColor',
+              ),
+              iconName: _requiredString(
+                map['iconName'],
+                'savingsGoal.iconName',
+              ),
+              isArchived: _bool(map['isArchived'], 'savingsGoal.isArchived'),
+            )
+            ..createdAt = _dateTime(map['createdAt'], 'savingsGoal.createdAt')
+            ..updatedAt = _dateTime(map['updatedAt'], 'savingsGoal.updatedAt');
       goals.add(goal);
     }
 
