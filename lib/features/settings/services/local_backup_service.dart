@@ -145,6 +145,9 @@ class LocalBackupService {
       payload['transactions'],
       'transactions',
     );
+    if (categoryMaps.isEmpty) {
+      throw const FormatException('Backup does not contain any categories');
+    }
 
     final List<CategoryModel> categories = categoryMaps.map((map) {
       return CategoryModel(
@@ -152,7 +155,7 @@ class LocalBackupService {
         name: _requiredString(map['name'], 'category.name'),
         iconName: _requiredString(map['iconName'], 'category.iconName'),
         hexColor: _requiredString(map['hexColor'], 'category.hexColor'),
-        monthlyBudgetLimit: _number(
+        monthlyBudgetLimit: _nonNegativeNumber(
           map['monthlyBudgetLimit'],
           'category.monthlyBudgetLimit',
         ),
@@ -166,7 +169,12 @@ class LocalBackupService {
       throw const FormatException('Backup contains duplicate category IDs');
     }
 
+    final Set<int> ruleIds = <int>{};
     final List<MerchantRuleModel> rules = ruleMaps.map((map) {
+      final int id = _positiveInt(map['id'], 'merchantRule.id');
+      if (!ruleIds.add(id)) {
+        throw const FormatException('Backup contains duplicate merchant rule IDs');
+      }
       final int categoryId = _positiveInt(
         map['mappedCategoryId'],
         'merchantRule.mappedCategoryId',
@@ -175,7 +183,7 @@ class LocalBackupService {
         throw const FormatException('Merchant rule references an unknown category');
       }
       return MerchantRuleModel(
-        id: _positiveInt(map['id'], 'merchantRule.id'),
+        id: id,
         merchantPattern: _requiredString(
           map['merchantPattern'],
           'merchantRule.merchantPattern',
@@ -184,9 +192,14 @@ class LocalBackupService {
       );
     }).toList(growable: false);
 
+    final Set<int> transactionIds = <int>{};
     final Set<String> fingerprints = <String>{};
     final List<TransactionModel> transactions = <TransactionModel>[];
     for (final Map<String, Object?> map in transactionMaps) {
+      final int id = _positiveInt(map['id'], 'transaction.id');
+      if (!transactionIds.add(id)) {
+        throw const FormatException('Backup contains duplicate transaction IDs');
+      }
       final int? categoryId = _nullableInt(map['categoryId']);
       if (categoryId != null && !categoryIds.contains(categoryId)) {
         throw const FormatException('Transaction references an unknown category');
@@ -197,11 +210,9 @@ class LocalBackupService {
       }
       transactions.add(
         TransactionModel(
-          id: _positiveInt(map['id'], 'transaction.id'),
+          id: id,
           amount: _positiveNumber(map['amount'], 'transaction.amount'),
-          type: TransactionType.values.byName(
-            _requiredString(map['type'], 'transaction.type'),
-          ),
+          type: _transactionType(map['type']),
           encryptedMerchant: await _cipher.encrypt(
             _requiredString(map['merchant'], 'transaction.merchant'),
           ),
@@ -209,9 +220,7 @@ class LocalBackupService {
             _requiredString(map['timestamp'], 'transaction.timestamp'),
           ).toLocal(),
           categoryId: categoryId,
-          status: TransactionStatus.values.byName(
-            _requiredString(map['status'], 'transaction.status'),
-          ),
+          status: _transactionStatus(map['status']),
           encryptedOriginalSmsText: await _cipher.encrypt(
             _nullableString(map['originalSmsText']) ?? '',
           ),
@@ -219,7 +228,7 @@ class LocalBackupService {
             _nullableString(map['accountTail']) ?? '',
           ),
           smsFingerprint: fingerprint,
-          isManual: map['isManual'] as bool? ?? false,
+          isManual: _bool(map['isManual'], 'transaction.isManual'),
         ),
       );
     }
@@ -276,12 +285,47 @@ class LocalBackupService {
     throw FormatException('$name must be numeric');
   }
 
+  double _nonNegativeNumber(Object? value, String name) {
+    final double parsed = _number(value, name);
+    if (parsed < 0) {
+      throw FormatException('$name must not be negative');
+    }
+    return parsed;
+  }
+
   double _positiveNumber(Object? value, String name) {
     final double parsed = _number(value, name);
     if (parsed <= 0) {
       throw FormatException('$name must be greater than zero');
     }
     return parsed;
+  }
+
+  bool _bool(Object? value, String name) {
+    if (value is bool) {
+      return value;
+    }
+    throw FormatException('$name must be true or false');
+  }
+
+  TransactionType _transactionType(Object? value) {
+    final String name = _requiredString(value, 'transaction.type');
+    for (final TransactionType type in TransactionType.values) {
+      if (type.name == name) {
+        return type;
+      }
+    }
+    throw FormatException('Unknown transaction type: $name');
+  }
+
+  TransactionStatus _transactionStatus(Object? value) {
+    final String name = _requiredString(value, 'transaction.status');
+    for (final TransactionStatus status in TransactionStatus.values) {
+      if (status.name == name) {
+        return status;
+      }
+    }
+    throw FormatException('Unknown transaction status: $name');
   }
 
   String _requiredString(Object? value, String name) {
