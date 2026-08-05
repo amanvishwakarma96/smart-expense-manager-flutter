@@ -13,10 +13,8 @@ class SavingsGoalModel {
     this.hexColor = 'CBB8FF',
     this.iconName = 'savings',
     this.isArchived = false,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : createdAt = createdAt ?? DateTime.now(),
-       updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = DateTime.now(),
+       updatedAt = DateTime.now();
 
   Id id;
   String encryptedName;
