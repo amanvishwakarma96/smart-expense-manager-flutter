@@ -13,6 +13,7 @@ class RecurringTransactionModel {
     this.encryptedMerchant = '',
     this.categoryId,
     this.frequency = RecurringFrequency.monthly,
+    this.scheduleDay = 1,
     required this.nextDueAt,
     this.isActive = true,
   });
@@ -29,6 +30,7 @@ class RecurringTransactionModel {
   @enumerated
   RecurringFrequency frequency;
 
+  int scheduleDay;
   DateTime nextDueAt;
   bool isActive;
   DateTime createdAt = DateTime.now();
