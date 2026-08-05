@@ -35,11 +35,15 @@ after confirmation.
 - Weekly and monthly recurring expenses or income that always enter review
   before they affect budgets.
 - Editable confirmed transaction history with local deletion controls.
-- Local merchant categorization rules and monthly category budgets.
+- Custom colorful categories with editable monthly INR budgets.
+- Full local merchant-rule creation, editing, deletion, and specific-first
+  matching.
 - Local budget-threshold notifications with privacy-safe notification text.
 - Searchable confirmed-transaction history with type and date filters.
 - Monthly local insights including daily average, top category, and
   month-over-month spending movement.
+- A deterministic 30-day local forecast combining recent flexible spending with
+  upcoming recurring items.
 - Encrypted savings goals with contribution progress, optional dates, colors,
   icons, and five playful milestone stars.
 - A monthly cash-flow calendar with privacy masking and daily confirmed-
@@ -51,6 +55,30 @@ after confirmation.
 - Password-protected encrypted local backup export and restore, including
   recurring schedules and savings goals.
 - Full local financial-data deletion with encryption-key removal.
+
+## Local spending forecast
+
+- The forecast is deterministic and runs entirely on the device; it is not a
+  cloud AI prediction.
+- It uses up to 60 recent days of confirmed, non-recurring activity to estimate
+  flexible spending for the next 30 days.
+- Active weekly and monthly recurring templates are added separately so they are
+  not double counted.
+- The card compares projected spending with category budgets and labels its
+  confidence according to the amount of local history available.
+- Privacy mode masks every projected amount.
+- Estimates are guidance only and never modify transactions, budgets, or goals.
+
+## Categories and merchant rules
+
+- Users can create or edit category names, icons, colors, and monthly budgets.
+- A category cannot be deleted while a transaction, recurring item, or merchant
+  rule references it, and PiggyAI always keeps at least one category.
+- Merchant rules can be added, edited, and deleted from Settings.
+- Longer merchant patterns are checked before broader patterns so specific rules
+  win, for example `amazon prime` before `amazon`.
+- Categories and merchant rules remain local and are already included in
+  explicit encrypted backups.
 
 ## Savings goals and rewards
 
@@ -136,12 +164,13 @@ flutter build apk --debug
 
 - **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
   transaction SMS detection, pending review, recurring transactions, editable
-  history, savings goals, cash-flow calendar, budgets, local alerts, encrypted
-  backup/restore, rules, insights, charts, privacy mode, and configurable app
-  lock.
+  history, custom categories, merchant rules, local forecast, savings goals,
+  cash-flow calendar, budgets, local alerts, encrypted backup/restore, insights,
+  charts, privacy mode, and configurable app lock.
 - **iOS:** onboarding, manual entry, recurring transactions, editable history,
-  savings goals, cash-flow calendar, budgets, local alerts, encrypted
-  backup/restore, local rules, insights, charts, privacy mode, and configurable
-  app lock. Automatic SMS access is intentionally unavailable.
+  custom categories, merchant rules, local forecast, savings goals, cash-flow
+  calendar, budgets, local alerts, encrypted backup/restore, insights, charts,
+  privacy mode, and configurable app lock. Automatic SMS access is intentionally
+  unavailable.
 
 The app must remain usable in airplane mode after installation.
