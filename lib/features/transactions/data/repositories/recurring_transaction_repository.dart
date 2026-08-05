@@ -20,6 +20,31 @@ class RecurringTransactionRepository {
   final Isar _isar;
   final SecureCipherService _cipher;
 
+  static DateTime nextOccurrence({
+    required DateTime current,
+    required RecurringFrequency frequency,
+    required int scheduleDay,
+  }) {
+    if (frequency == RecurringFrequency.weekly) {
+      return current.add(const Duration(days: 7));
+    }
+
+    final DateTime targetMonth = DateTime(current.year, current.month + 1);
+    final int lastDay = DateTime(
+      targetMonth.year,
+      targetMonth.month + 1,
+      0,
+    ).day;
+    final int day = math.min(scheduleDay, lastDay);
+    return DateTime(
+      targetMonth.year,
+      targetMonth.month,
+      day,
+      current.hour,
+      current.minute,
+    );
+  }
+
   Stream<List<RecurringTransaction>> watchAll() {
     return _isar.recurringTransactionModels
         .where()
@@ -103,7 +128,11 @@ class RecurringTransactionRepository {
             isRecurring: true,
           ),
         );
-        template.nextDueAt = _nextOccurrence(template);
+        template.nextDueAt = nextOccurrence(
+          current: template.nextDueAt,
+          frequency: template.frequency,
+          scheduleDay: template.scheduleDay,
+        );
         generatedForTemplate += 1;
       }
       changed.add(template);
@@ -117,28 +146,6 @@ class RecurringTransactionRepository {
       await _isar.recurringTransactionModels.putAll(changed);
     });
     return generated.length;
-  }
-
-  DateTime _nextOccurrence(RecurringTransactionModel template) {
-    final DateTime current = template.nextDueAt;
-    if (template.frequency == RecurringFrequency.weekly) {
-      return current.add(const Duration(days: 7));
-    }
-
-    final DateTime targetMonth = DateTime(current.year, current.month + 1);
-    final int lastDay = DateTime(
-      targetMonth.year,
-      targetMonth.month + 1,
-      0,
-    ).day;
-    final int day = math.min(template.scheduleDay, lastDay);
-    return DateTime(
-      targetMonth.year,
-      targetMonth.month,
-      day,
-      current.hour,
-      current.minute,
-    );
   }
 
   Future<RecurringTransaction> _toDomain(
