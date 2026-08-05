@@ -2,6 +2,39 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.4.0] - Unreleased
+
+### Added
+
+- INR (`₹`, `en_IN`) as the explicit default application currency.
+- Weekly and monthly recurring expenses or income with encrypted local
+  templates.
+- Due recurring occurrences enter the pending-review queue instead of being
+  confirmed automatically.
+- Recurring item creation, editing, pausing, resuming, and deletion in Settings.
+- Editable confirmed transaction history and local transaction deletion.
+- Monthly local insights for daily average, top category, and spending movement
+  versus the previous month.
+- Animated playful empty states, colorful summary cards, richer tactile
+  controls, and a broader pastel design system.
+- Recurring schedule and Phase 5 privacy-contract regression tests.
+
+### Changed
+
+- Encrypted backups now include recurring schedules and recurring-source flags.
+- Version 1 encrypted snapshots remain restorable while new snapshots use
+  version 2.
+- Transaction entry, history, dashboard, and Settings now use the playful,
+  friendly INR-first visual language.
+
+### Security
+
+- Recurring merchant text is encrypted before local persistence.
+- Recurring occurrences never bypass the confirmation queue or affect budgets
+  before user approval.
+- Recurring templates remain fully local and are included only in explicitly
+  created password-protected backups.
+
 ## [0.3.0] - Unreleased
 
 ### Added
