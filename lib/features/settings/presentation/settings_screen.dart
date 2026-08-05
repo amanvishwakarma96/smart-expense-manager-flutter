@@ -7,6 +7,8 @@ import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/security/app_lock_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
+import 'package:smart_expense_manager/features/settings/presentation/backup_settings_card.dart';
+import 'package:smart_expense_manager/features/settings/presentation/budget_alert_settings_card.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_inbox_import_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
@@ -382,6 +384,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
           const SizedBox(height: 14),
+          const BudgetAlertSettingsCard(),
+          const SizedBox(height: 14),
           _SettingsCard(
             title: 'Smart categorization',
             children: <Widget>[
@@ -396,6 +400,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 14),
+          const BackupSettingsCard(),
           const SizedBox(height: 14),
           _SettingsCard(
             title: 'Privacy contract',
