@@ -7,13 +7,13 @@ import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/security/app_lock_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
-import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/settings/presentation/backup_settings_card.dart';
 import 'package:smart_expense_manager/features/settings/presentation/budget_alert_settings_card.dart';
+import 'package:smart_expense_manager/features/settings/presentation/category_management_card.dart';
+import 'package:smart_expense_manager/features/settings/presentation/merchant_rules_card.dart';
 import 'package:smart_expense_manager/features/settings/presentation/recurring_transactions_card.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_inbox_import_service.dart';
-import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -115,122 +115,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  Future<void> _editBudget(CategoryModel category) async {
-    final TextEditingController controller = TextEditingController(
-      text: category.monthlyBudgetLimit.toStringAsFixed(0),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
-    final double? value = await showDialog<double>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('${category.name} budget'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              prefixText: '$defaultCurrencySymbol ',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(
-                context,
-              ).pop(double.tryParse(controller.text.trim())),
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-    controller.dispose();
-    if (value != null && value >= 0) {
-      await ref
-          .read(categoryRepositoryProvider)
-          .updateBudget(category.id, value);
-    }
-  }
-
-  Future<void> _addMerchantRule() async {
-    final List<CategoryModel> categories = await ref
-        .read(categoryRepositoryProvider)
-        .getAll();
-    if (!mounted || categories.isEmpty) {
-      return;
-    }
-    final TextEditingController patternController = TextEditingController();
-    int categoryId = categories.first.id;
-    final bool? save = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setDialogState) {
-            return AlertDialog(
-              title: const Text('Local merchant rule'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  TextField(
-                    controller: patternController,
-                    decoration: const InputDecoration(
-                      labelText: 'Merchant pattern',
-                      hintText: 'Example: SWIGGY',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
-                    initialValue: categoryId,
-                    decoration: const InputDecoration(labelText: 'Category'),
-                    items: categories
-                        .map((CategoryModel item) {
-                          return DropdownMenuItem<int>(
-                            value: item.id,
-                            child: Text(item.name),
-                          );
-                        })
-                        .toList(growable: false),
-                    onChanged: (int? value) {
-                      if (value != null) {
-                        setDialogState(() => categoryId = value);
-                      }
-                    },
-                  ),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-    final String pattern = patternController.text.trim();
-    patternController.dispose();
-    if (save == true && pattern.isNotEmpty) {
-      await ref
-          .read(merchantRuleRepositoryProvider)
-          .saveRule(merchantPattern: pattern, categoryId: categoryId);
-      if (mounted) {
-        _message('Merchant rule saved only on this device.');
-      }
-    }
   }
 
   Future<void> _deleteAllData() async {
@@ -240,7 +127,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return AlertDialog(
           title: const Text('Delete all local financial data?'),
           content: const Text(
-            'This permanently removes transactions, recurring items, '
+            'This permanently removes transactions, recurring items, goals, '
             'categories, rules, and the installation encryption key. '
             'There is no cloud copy.',
           ),
@@ -267,9 +154,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<List<CategoryModel>> categories = ref.watch(
-      categoriesProvider,
-    );
     final bool private = ref.watch(privacyModeProvider);
 
     return SafeArea(
@@ -386,56 +270,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 14),
           const RecurringTransactionsCard(),
           const SizedBox(height: 14),
-          _SettingsCard(
-            title: 'Monthly budgets',
-            children: <Widget>[
-              categories.when(
-                loading: () => const LinearProgressIndicator(),
-                error: (Object error, StackTrace stackTrace) =>
-                    const Text('Could not load categories.'),
-                data: (List<CategoryModel> items) {
-                  return Column(
-                    children: items
-                        .map((CategoryModel category) {
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: CircleAvatar(
-                              backgroundColor: colorFromHex(category.hexColor),
-                              child: const Icon(Icons.category_rounded),
-                            ),
-                            title: Text(category.name),
-                            subtitle: Text(
-                              '${inrCurrency.format(category.monthlyBudgetLimit)} / month',
-                            ),
-                            trailing: IconButton(
-                              onPressed: () => _editBudget(category),
-                              icon: const Icon(Icons.edit_rounded),
-                            ),
-                          );
-                        })
-                        .toList(growable: false),
-                  );
-                },
-              ),
-            ],
-          ),
+          const CategoryManagementCard(),
           const SizedBox(height: 14),
           const BudgetAlertSettingsCard(),
           const SizedBox(height: 14),
-          _SettingsCard(
-            title: 'Smart categorization',
-            children: <Widget>[
-              const Text(
-                'Merchant matching uses local rules, not a cloud AI service.',
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _addMerchantRule,
-                icon: const Icon(Icons.auto_awesome_rounded),
-                label: const Text('Add merchant rule'),
-              ),
-            ],
-          ),
+          const MerchantRulesCard(),
           const SizedBox(height: 14),
           const BackupSettingsCard(),
           const SizedBox(height: 14),
