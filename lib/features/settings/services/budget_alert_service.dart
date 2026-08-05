@@ -12,9 +12,13 @@ class BudgetAlertService {
     required Isar isar,
     FlutterSecureStorage storage = const FlutterSecureStorage(),
     FlutterLocalNotificationsPlugin? notifications,
-  }) : _isar = isar,
-       _storage = storage,
-       _notifications = notifications ?? FlutterLocalNotificationsPlugin();
+  }) : this._(
+         isar,
+         storage,
+         notifications ?? FlutterLocalNotificationsPlugin(),
+       );
+
+  BudgetAlertService._(this._isar, this._storage, this._notifications);
 
   static const String _enabledKey = 'piggyai.budget_alerts.enabled';
   static const String _thresholdKey = 'piggyai.budget_alerts.threshold';
