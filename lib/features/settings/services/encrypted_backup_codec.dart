@@ -12,7 +12,9 @@ class BackupPasswordException implements Exception {
 
 class EncryptedBackupCodec {
   EncryptedBackupCodec({int iterations = defaultIterations})
-    : _iterations = iterations;
+    : this._(iterations);
+
+  EncryptedBackupCodec._(this._iterations);
 
   static const String format = 'piggyai-encrypted-backup';
   static const int version = 1;
