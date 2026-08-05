@@ -2,6 +2,37 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.6.0] - Unreleased
+
+### Added
+
+- Custom category creation and editing with playful icons, colors, and monthly
+  INR budgets.
+- Safe category deletion that blocks removal while transactions, recurring
+  templates, or merchant rules still reference the category.
+- Full merchant-rule listing, editing, and deletion with longest-pattern-first
+  matching for more specific local categorization.
+- A deterministic 30-day spending forecast built from up to 60 days of
+  non-recurring history and upcoming recurring templates.
+- Forecast confidence labels, budget comparison, scheduled/flexible spending
+  breakdowns, and privacy-aware values.
+- Phase 7 forecast, management, privacy, and offline regression tests.
+
+### Changed
+
+- Settings now uses dedicated category and merchant-rule management cards rather
+  than one-purpose budget and add-rule dialogs.
+- The monthly insight section now includes a colorful next-30-days forecast.
+- Category and merchant-rule streams are sorted for predictable, friendly UI.
+- Merchant matching checks longer patterns before broader patterns.
+
+### Security
+
+- Forecast calculations are deterministic and run entirely on-device without a
+  remote model, API, analytics, or network client.
+- Privacy mode masks all forecast amounts.
+- No Android internet permission, backend, cloud sync, or telemetry was added.
+
 ## [0.5.0] - Unreleased
 
 ### Added
