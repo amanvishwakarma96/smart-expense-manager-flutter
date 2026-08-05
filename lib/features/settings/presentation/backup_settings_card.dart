@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/features/settings/services/encrypted_backup_codec.dart';
@@ -17,7 +16,7 @@ class BackupSettingsCard extends ConsumerStatefulWidget {
 class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
   bool _busy = false;
 
-  Future<void> _exportBackup(BuildContext shareContext) async {
+  Future<void> _exportBackup(Rect? sharePositionOrigin) async {
     final String? password = await _promptPassword(
       title: 'Create encrypted backup',
       confirmPassword: true,
@@ -32,7 +31,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
           .createEncryptedBackup(password);
       await ref.read(backupFileServiceProvider).shareBackup(
             backup,
-            sharePositionOrigin: _shareOrigin(shareContext),
+            sharePositionOrigin: sharePositionOrigin,
           );
       if (mounted) {
         _message(
@@ -285,7 +284,8 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
                   return SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => _exportBackup(shareContext),
+                      onPressed: () =>
+                          _exportBackup(_shareOrigin(shareContext)),
                       icon: const Icon(Icons.lock_rounded),
                       label: const Text('Create encrypted backup'),
                     ),
