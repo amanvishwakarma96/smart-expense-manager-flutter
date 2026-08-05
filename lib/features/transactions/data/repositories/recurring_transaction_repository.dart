@@ -8,10 +8,8 @@ import 'package:smart_expense_manager/features/transactions/domain/expense_trans
 import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
 
 class RecurringTransactionRepository {
-  RecurringTransactionRepository(
-    Isar isar,
-    SecureCipherService cipher,
-  ) : this._(isar, cipher);
+  RecurringTransactionRepository(Isar isar, SecureCipherService cipher)
+    : this._(isar, cipher);
 
   RecurringTransactionRepository._(this._isar, this._cipher);
 
@@ -50,7 +48,10 @@ class RecurringTransactionRepository {
         .where()
         .watch(fireImmediately: true)
         .asyncMap((List<RecurringTransactionModel> models) async {
-          models.sort((RecurringTransactionModel a, RecurringTransactionModel b) {
+          models.sort((
+            RecurringTransactionModel a,
+            RecurringTransactionModel b,
+          ) {
             return a.nextDueAt.compareTo(b.nextDueAt);
           });
           return Future.wait(models.map(_toDomain));

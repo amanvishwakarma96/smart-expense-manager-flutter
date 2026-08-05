@@ -194,7 +194,8 @@ class _TransactionHistoryScreenState
                     const PlayfulEmptyState(
                       icon: Icons.receipt_long_rounded,
                       title: 'History is taking a tiny break',
-                      message: 'Your financial data is still safe on this device.',
+                      message:
+                          'Your financial data is still safe on this device.',
                       accentColor: AppPalette.rose,
                     ),
                 data: (List<ExpenseTransaction> items) {
@@ -247,7 +248,8 @@ class _TransactionHistoryScreenState
                           privacyMode: privacyMode,
                         );
                       }
-                      final ExpenseTransaction transaction = filtered[index - 1];
+                      final ExpenseTransaction transaction =
+                          filtered[index - 1];
                       return _HistoryCard(
                             transaction: transaction,
                             category: _categoryFor(

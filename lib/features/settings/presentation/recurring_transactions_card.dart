@@ -19,9 +19,8 @@ class RecurringTransactionsCard extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (BuildContext context) => _RecurringEditorSheet(
-        transaction: transaction,
-      ),
+      builder: (BuildContext context) =>
+          _RecurringEditorSheet(transaction: transaction),
     );
   }
 
@@ -132,109 +131,113 @@ class RecurringTransactionsCard extends ConsumerWidget {
                         ),
                       ],
                     ),
-                  ).animate().fadeIn().scale(
-                    begin: const Offset(0.97, 0.97),
-                  );
+                  ).animate().fadeIn().scale(begin: const Offset(0.97, 0.97));
                 }
                 return Column(
-                  children: items.indexed.map((entry) {
-                    final int index = entry.$1;
-                    final RecurringTransaction item = entry.$2;
-                    final Color accent = AppPalette.playfulSequence[
-                      index % AppPalette.playfulSequence.length
-                    ];
-                    return Padding(
-                      padding: EdgeInsets.only(top: index == 0 ? 0 : 10),
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: accent.withValues(alpha: item.isActive ? 0.72 : 0.30),
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.66),
-                                borderRadius: BorderRadius.circular(15),
+                  children: items.indexed
+                      .map((entry) {
+                        final int index = entry.$1;
+                        final RecurringTransaction item = entry.$2;
+                        final Color accent =
+                            AppPalette.playfulSequence[index %
+                                AppPalette.playfulSequence.length];
+                        return Padding(
+                          padding: EdgeInsets.only(top: index == 0 ? 0 : 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: accent.withValues(
+                                alpha: item.isActive ? 0.72 : 0.30,
                               ),
-                              child: Icon(
-                                item.isDebit
-                                    ? Icons.north_east_rounded
-                                    : Icons.south_west_rounded,
-                              ),
+                              borderRadius: BorderRadius.circular(22),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    item.merchant,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                    ),
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.66),
+                                    borderRadius: BorderRadius.circular(15),
                                   ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    '${_frequencyLabel(item.frequency)} · next ${transactionDayFormat.format(item.nextDueAt)}',
+                                  child: Icon(
+                                    item.isDebit
+                                        ? Icons.north_east_rounded
+                                        : Icons.south_west_rounded,
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    privacyMode
-                                        ? '$defaultCurrencySymbol ••••'
-                                        : inrCurrency.format(item.amount),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                        item.merchant,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        '${_frequencyLabel(item.frequency)} · next ${transactionDayFormat.format(item.nextDueAt)}',
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        privacyMode
+                                            ? '$defaultCurrencySymbol ••••'
+                                            : inrCurrency.format(item.amount),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                                Switch(
+                                  value: item.isActive,
+                                  onChanged: (bool value) {
+                                    ref
+                                        .read(
+                                          recurringTransactionRepositoryProvider,
+                                        )
+                                        .setActive(item.id, value);
+                                  },
+                                ),
+                                PopupMenuButton<_RecurringAction>(
+                                  onSelected: (_RecurringAction action) {
+                                    switch (action) {
+                                      case _RecurringAction.edit:
+                                        _openEditor(context, transaction: item);
+                                        break;
+                                      case _RecurringAction.delete:
+                                        _delete(context, ref, item);
+                                        break;
+                                    }
+                                  },
+                                  itemBuilder: (BuildContext context) {
+                                    return const <
+                                      PopupMenuEntry<_RecurringAction>
+                                    >[
+                                      PopupMenuItem<_RecurringAction>(
+                                        value: _RecurringAction.edit,
+                                        child: Text('Edit'),
+                                      ),
+                                      PopupMenuItem<_RecurringAction>(
+                                        value: _RecurringAction.delete,
+                                        child: Text('Delete'),
+                                      ),
+                                    ];
+                                  },
+                                ),
+                              ],
                             ),
-                            Switch(
-                              value: item.isActive,
-                              onChanged: (bool value) {
-                                ref
-                                    .read(recurringTransactionRepositoryProvider)
-                                    .setActive(item.id, value);
-                              },
-                            ),
-                            PopupMenuButton<_RecurringAction>(
-                              onSelected: (_RecurringAction action) {
-                                switch (action) {
-                                  case _RecurringAction.edit:
-                                    _openEditor(context, transaction: item);
-                                    break;
-                                  case _RecurringAction.delete:
-                                    _delete(context, ref, item);
-                                    break;
-                                }
-                              },
-                              itemBuilder: (BuildContext context) {
-                                return const <PopupMenuEntry<_RecurringAction>>[
-                                  PopupMenuItem<_RecurringAction>(
-                                    value: _RecurringAction.edit,
-                                    child: Text('Edit'),
-                                  ),
-                                  PopupMenuItem<_RecurringAction>(
-                                    value: _RecurringAction.delete,
-                                    child: Text('Delete'),
-                                  ),
-                                ];
-                              },
-                            ),
-                          ],
-                        ),
-                      ).animate().fadeIn(delay: (index * 45).ms).slideX(
-                        begin: 0.04,
-                        end: 0,
-                      ),
-                    );
-                  }).toList(growable: false),
+                          ).animate().fadeIn(delay: (index * 45).ms).slideX(begin: 0.04, end: 0),
+                        );
+                      })
+                      .toList(growable: false),
                 );
               },
             ),
@@ -262,8 +265,7 @@ class _RecurringEditorSheet extends ConsumerStatefulWidget {
       _RecurringEditorSheetState();
 }
 
-class _RecurringEditorSheetState
-    extends ConsumerState<_RecurringEditorSheet> {
+class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _merchantController;
   late final TextEditingController _amountController;
@@ -313,7 +315,9 @@ class _RecurringEditorSheetState
       return;
     }
     setState(() => _saving = true);
-    await ref.read(recurringTransactionRepositoryProvider).save(
+    await ref
+        .read(recurringTransactionRepositoryProvider)
+        .save(
           id: widget.transaction?.id,
           amount: double.parse(_amountController.text.trim()),
           type: _type,
@@ -365,7 +369,9 @@ class _RecurringEditorSheetState
                                 : 'Edit recurring item',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
-                          const Text('It will land in Review before confirmation.'),
+                          const Text(
+                            'It will land in Review before confirmation.',
+                          ),
                         ],
                       ),
                     ),
@@ -482,7 +488,9 @@ class _RecurringEditorSheetState
                       )
                     : const Icon(Icons.check_rounded),
                 label: Text(
-                  widget.transaction == null ? 'Save recurring item' : 'Save changes',
+                  widget.transaction == null
+                      ? 'Save recurring item'
+                      : 'Save changes',
                 ),
               ),
             ],

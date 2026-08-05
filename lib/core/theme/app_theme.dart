@@ -44,16 +44,17 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData light() {
-    final ColorScheme colors = ColorScheme.fromSeed(
-      seedColor: AppPalette.lavenderDeep,
-      brightness: Brightness.light,
-      surface: AppPalette.canvas,
-    ).copyWith(
-      primary: AppPalette.lavenderDeep,
-      secondary: AppPalette.mintDeep,
-      tertiary: AppPalette.coral,
-      onSurface: AppPalette.ink,
-    );
+    final ColorScheme colors =
+        ColorScheme.fromSeed(
+          seedColor: AppPalette.lavenderDeep,
+          brightness: Brightness.light,
+          surface: AppPalette.canvas,
+        ).copyWith(
+          primary: AppPalette.lavenderDeep,
+          secondary: AppPalette.mintDeep,
+          tertiary: AppPalette.coral,
+          onSurface: AppPalette.ink,
+        );
     const RoundedRectangleBorder roundedCard = RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(26)),
     );
@@ -85,7 +86,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppPalette.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
+        ),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(22)),
           borderSide: BorderSide.none,

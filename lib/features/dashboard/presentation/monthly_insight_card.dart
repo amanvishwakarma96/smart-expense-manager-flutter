@@ -23,16 +23,20 @@ class MonthlyInsightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
     final DateTime previousMonth = DateTime(now.year, now.month - 1);
-    final List<ExpenseTransaction> current = transactions.where((item) {
-      return item.isDebit &&
-          item.timestamp.year == now.year &&
-          item.timestamp.month == now.month;
-    }).toList(growable: false);
-    final List<ExpenseTransaction> previous = transactions.where((item) {
-      return item.isDebit &&
-          item.timestamp.year == previousMonth.year &&
-          item.timestamp.month == previousMonth.month;
-    }).toList(growable: false);
+    final List<ExpenseTransaction> current = transactions
+        .where((item) {
+          return item.isDebit &&
+              item.timestamp.year == now.year &&
+              item.timestamp.month == now.month;
+        })
+        .toList(growable: false);
+    final List<ExpenseTransaction> previous = transactions
+        .where((item) {
+          return item.isDebit &&
+              item.timestamp.year == previousMonth.year &&
+              item.timestamp.month == previousMonth.month;
+        })
+        .toList(growable: false);
 
     final double currentSpent = current.fold(
       0,
@@ -67,9 +71,8 @@ class MonthlyInsightCard extends StatelessWidget {
         : ((currentSpent - previousSpent) / previousSpent) * 100;
     final bool spendingImproved = trendPercent < 0;
 
-    String amount(double value) => privacyMode
-        ? '$defaultCurrencySymbol ••••'
-        : inrCurrency.format(value);
+    String amount(double value) =>
+        privacyMode ? '$defaultCurrencySymbol ••••' : inrCurrency.format(value);
 
     return Card(
       child: Padding(

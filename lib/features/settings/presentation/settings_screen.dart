@@ -115,7 +115,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _editBudget(CategoryModel category) async {

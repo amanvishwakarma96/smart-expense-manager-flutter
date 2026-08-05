@@ -19,9 +19,8 @@ Future<void> showTransactionEditorDialog(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (BuildContext context) => _TransactionEditorSheet(
-      transaction: transaction,
-    ),
+    builder: (BuildContext context) =>
+        _TransactionEditorSheet(transaction: transaction),
   );
 }
 

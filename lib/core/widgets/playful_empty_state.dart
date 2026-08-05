@@ -37,24 +37,34 @@ class PlayfulEmptyState extends StatelessWidget {
                   Positioned(
                     left: 8,
                     top: 10,
-                    child: _Bubble(
-                      size: 34,
-                      color: AppPalette.sunshine.withValues(alpha: 0.78),
-                    ).animate(onPlay: (controller) => controller.repeat())
-                      .moveY(begin: 0, end: -7, duration: 1300.ms)
-                      .then()
-                      .moveY(begin: -7, end: 0, duration: 1300.ms),
+                    child:
+                        _Bubble(
+                              size: 34,
+                              color: AppPalette.sunshine.withValues(
+                                alpha: 0.78,
+                              ),
+                            )
+                            .animate(
+                              onPlay: (controller) => controller.repeat(),
+                            )
+                            .moveY(begin: 0, end: -7, duration: 1300.ms)
+                            .then()
+                            .moveY(begin: -7, end: 0, duration: 1300.ms),
                   ),
                   Positioned(
                     right: 5,
                     bottom: 8,
-                    child: _Bubble(
-                      size: 28,
-                      color: AppPalette.mint.withValues(alpha: 0.85),
-                    ).animate(onPlay: (controller) => controller.repeat())
-                      .moveY(begin: 0, end: 6, duration: 1500.ms)
-                      .then()
-                      .moveY(begin: 6, end: 0, duration: 1500.ms),
+                    child:
+                        _Bubble(
+                              size: 28,
+                              color: AppPalette.mint.withValues(alpha: 0.85),
+                            )
+                            .animate(
+                              onPlay: (controller) => controller.repeat(),
+                            )
+                            .moveY(begin: 0, end: 6, duration: 1500.ms)
+                            .then()
+                            .moveY(begin: 6, end: 0, duration: 1500.ms),
                   ),
                   Container(
                     width: 82,
@@ -64,7 +74,9 @@ class PlayfulEmptyState extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: <BoxShadow>[
                         BoxShadow(
-                          color: AppPalette.lavenderDeep.withValues(alpha: 0.14),
+                          color: AppPalette.lavenderDeep.withValues(
+                            alpha: 0.14,
+                          ),
                           blurRadius: 22,
                           offset: const Offset(0, 10),
                         ),
@@ -83,9 +95,9 @@ class PlayfulEmptyState extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
             ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.12, end: 0),
             const SizedBox(height: 8),
             ConstrainedBox(
@@ -99,12 +111,13 @@ class PlayfulEmptyState extends StatelessWidget {
             if (actionLabel != null && onAction != null) ...<Widget>[
               const SizedBox(height: 20),
               FilledButton.icon(
-                onPressed: onAction,
-                icon: const Icon(Icons.auto_awesome_rounded),
-                label: Text(actionLabel!),
-              ).animate().fadeIn(delay: 240.ms).scale(
-                begin: const Offset(0.96, 0.96),
-              ),
+                    onPressed: onAction,
+                    icon: const Icon(Icons.auto_awesome_rounded),
+                    label: Text(actionLabel!),
+                  )
+                  .animate()
+                  .fadeIn(delay: 240.ms)
+                  .scale(begin: const Offset(0.96, 0.96)),
             ],
           ],
         ),

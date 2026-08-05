@@ -204,27 +204,29 @@ class LocalBackupService {
     }
 
     final Set<int> ruleIds = <int>{};
-    final List<MerchantRuleModel> rules = ruleMaps.map((map) {
-      final int id = _positiveInt(map['id'], 'merchantRule.id');
-      if (!ruleIds.add(id)) {
-        throw const FormatException(
-          'Backup contains duplicate merchant rule IDs',
-        );
-      }
-      final int categoryId = _categoryReference(
-        map['mappedCategoryId'],
-        categoryIds,
-        'merchantRule.mappedCategoryId',
-      );
-      return MerchantRuleModel(
-        id: id,
-        merchantPattern: _requiredString(
-          map['merchantPattern'],
-          'merchantRule.merchantPattern',
-        ),
-        mappedCategoryId: categoryId,
-      );
-    }).toList(growable: false);
+    final List<MerchantRuleModel> rules = ruleMaps
+        .map((map) {
+          final int id = _positiveInt(map['id'], 'merchantRule.id');
+          if (!ruleIds.add(id)) {
+            throw const FormatException(
+              'Backup contains duplicate merchant rule IDs',
+            );
+          }
+          final int categoryId = _categoryReference(
+            map['mappedCategoryId'],
+            categoryIds,
+            'merchantRule.mappedCategoryId',
+          );
+          return MerchantRuleModel(
+            id: id,
+            merchantPattern: _requiredString(
+              map['merchantPattern'],
+              'merchantRule.merchantPattern',
+            ),
+            mappedCategoryId: categoryId,
+          );
+        })
+        .toList(growable: false);
 
     final Set<int> recurringIds = <int>{};
     final List<RecurringTransactionModel> recurring =
@@ -243,7 +245,9 @@ class LocalBackupService {
         map['scheduleDay'],
         'recurring.scheduleDay',
       );
-      final int maxScheduleDay = frequency == RecurringFrequency.weekly ? 7 : 31;
+      final int maxScheduleDay = frequency == RecurringFrequency.weekly
+          ? 7
+          : 31;
       if (scheduleDay > maxScheduleDay) {
         throw const FormatException('Recurring schedule day is invalid');
       }
@@ -335,12 +339,14 @@ class LocalBackupService {
     if (value is! List<dynamic>) {
       throw FormatException('Backup $name is invalid');
     }
-    return value.map((Object? item) {
-      if (item is! Map<String, dynamic>) {
-        throw FormatException('Backup $name contains an invalid item');
-      }
-      return item.cast<String, Object?>();
-    }).toList(growable: false);
+    return value
+        .map((Object? item) {
+          if (item is! Map<String, dynamic>) {
+            throw FormatException('Backup $name contains an invalid item');
+          }
+          return item.cast<String, Object?>();
+        })
+        .toList(growable: false);
   }
 
   int _positiveInt(Object? value, String name) {
@@ -358,11 +364,7 @@ class LocalBackupService {
     return id;
   }
 
-  int? _nullableCategoryReference(
-    Object? value,
-    Set<int> ids,
-    String name,
-  ) {
+  int? _nullableCategoryReference(Object? value, Set<int> ids, String name) {
     if (value == null) {
       return null;
     }

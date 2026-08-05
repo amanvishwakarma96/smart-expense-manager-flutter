@@ -33,7 +33,8 @@ class DashboardScreen extends ConsumerWidget {
         error: (Object error, StackTrace stackTrace) => const PlayfulEmptyState(
           icon: Icons.error_outline_rounded,
           title: 'Analytics took a tiny nap',
-          message: 'Your money data is still safe and stored only on this device.',
+          message:
+              'Your money data is still safe and stored only on this device.',
           accentColor: AppPalette.rose,
         ),
         data: (List<ExpenseTransaction> items) {
@@ -43,7 +44,8 @@ class DashboardScreen extends ConsumerWidget {
                 const PlayfulEmptyState(
                   icon: Icons.category_outlined,
                   title: 'Categories are hiding',
-                  message: 'Restart PiggyAI and they should pop back into view.',
+                  message:
+                      'Restart PiggyAI and they should pop back into view.',
                   accentColor: AppPalette.sky,
                 ),
             data: (List<CategoryModel> categoryItems) {
@@ -294,9 +296,9 @@ class _MetricCard extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
         ],
       ),
