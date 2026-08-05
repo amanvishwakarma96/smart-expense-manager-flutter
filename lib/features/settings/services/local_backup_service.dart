@@ -38,9 +38,9 @@ class LocalBackupService {
     required Isar isar,
     required SecureCipherService cipher,
     EncryptedBackupCodec? codec,
-  }) : _isar = isar,
-       _cipher = cipher,
-       _codec = codec ?? EncryptedBackupCodec();
+  }) : this._(isar, cipher, codec ?? EncryptedBackupCodec());
+
+  LocalBackupService._(this._isar, this._cipher, this._codec);
 
   static const int snapshotVersion = 1;
 
