@@ -11,6 +11,7 @@ import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/category_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/merchant_rule_repository.dart';
+import 'package:smart_expense_manager/features/transactions/data/repositories/recurring_transaction_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/transaction_repository.dart';
 
 Future<void> main() async {
@@ -31,6 +32,9 @@ Future<void> main() async {
     merchantRuleRepository: MerchantRuleRepository(isar),
   );
   unawaited(smsEngine.drainNativeQueue());
+  unawaited(
+    RecurringTransactionRepository(isar, cipher).generateDueTransactions(),
+  );
 
   runApp(
     ProviderScope(
