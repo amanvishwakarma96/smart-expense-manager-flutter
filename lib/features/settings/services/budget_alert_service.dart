@@ -27,6 +27,16 @@ class BudgetAlertService {
   final FlutterLocalNotificationsPlugin _notifications;
   bool _initialized = false;
 
+  static int alertBucketForPercentage({
+    required int percentage,
+    required int threshold,
+  }) {
+    if (percentage >= 100) {
+      return 100;
+    }
+    return percentage >= threshold ? threshold : 0;
+  }
+
   Future<bool> isEnabled() async {
     return await _storage.read(key: _enabledKey) == 'true';
   }
@@ -100,12 +110,10 @@ class BudgetAlertService {
           (double total, TransactionModel item) => total + item.amount,
         );
     final int percentage = (spent / category.monthlyBudgetLimit * 100).floor();
-    final int threshold = await getThreshold();
-    final int bucket = percentage >= 100
-        ? 100
-        : percentage >= threshold
-        ? threshold
-        : 0;
+    final int bucket = alertBucketForPercentage(
+      percentage: percentage,
+      threshold: await getThreshold(),
+    );
     if (bucket == 0) {
       return;
     }
