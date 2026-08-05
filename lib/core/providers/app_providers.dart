@@ -10,6 +10,7 @@ import 'package:smart_expense_manager/features/settings/services/budget_alert_se
 import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/category_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/merchant_rule_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/recurring_transaction_repository.dart';
@@ -115,6 +116,11 @@ final StreamProvider<List<SavingsGoal>> savingsGoalsProvider =
 final StreamProvider<List<CategoryModel>> categoriesProvider =
     StreamProvider<List<CategoryModel>>((Ref ref) {
       return ref.watch(categoryRepositoryProvider).watchAll();
+    });
+
+final StreamProvider<List<MerchantRuleModel>> merchantRulesProvider =
+    StreamProvider<List<MerchantRuleModel>>((Ref ref) {
+      return ref.watch(merchantRuleRepositoryProvider).watchAll();
     });
 
 class PrivacyModeController extends Notifier<bool> {
