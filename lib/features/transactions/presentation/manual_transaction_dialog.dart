@@ -1,34 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
+import 'package:smart_expense_manager/core/theme/app_theme.dart';
+import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 
 Future<void> showManualTransactionDialog(BuildContext context) {
+  return showTransactionEditorDialog(context);
+}
+
+Future<void> showTransactionEditorDialog(
+  BuildContext context, {
+  ExpenseTransaction? transaction,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (BuildContext context) => const _ManualTransactionSheet(),
+    builder: (BuildContext context) => _TransactionEditorSheet(
+      transaction: transaction,
+    ),
   );
 }
 
-class _ManualTransactionSheet extends ConsumerStatefulWidget {
-  const _ManualTransactionSheet();
+class _TransactionEditorSheet extends ConsumerStatefulWidget {
+  const _TransactionEditorSheet({this.transaction});
+
+  final ExpenseTransaction? transaction;
 
   @override
-  ConsumerState<_ManualTransactionSheet> createState() =>
-      _ManualTransactionSheetState();
+  ConsumerState<_TransactionEditorSheet> createState() =>
+      _TransactionEditorSheetState();
 }
 
-class _ManualTransactionSheetState
-    extends ConsumerState<_ManualTransactionSheet> {
+class _TransactionEditorSheetState
+    extends ConsumerState<_TransactionEditorSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _merchantController = TextEditingController();
-  TransactionType _type = TransactionType.debit;
+  late final TextEditingController _amountController;
+  late final TextEditingController _merchantController;
+  late TransactionType _type;
+  late DateTime _timestamp;
   int? _categoryId;
   bool _saving = false;
+
+  bool get _isEditing => widget.transaction != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final ExpenseTransaction? transaction = widget.transaction;
+    _amountController = TextEditingController(
+      text: transaction?.amount.toStringAsFixed(2) ?? '',
+    );
+    _merchantController = TextEditingController(
+      text: transaction?.merchant ?? '',
+    );
+    _type = transaction?.type ?? TransactionType.debit;
+    _timestamp = transaction?.timestamp ?? DateTime.now();
+    _categoryId = transaction?.categoryId;
+  }
 
   @override
   void dispose() {
@@ -37,20 +69,54 @@ class _ManualTransactionSheetState
     super.dispose();
   }
 
+  Future<void> _pickDate() async {
+    final DateTime? selected = await showDatePicker(
+      context: context,
+      initialDate: _timestamp,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      helpText: 'Choose transaction date',
+    );
+    if (selected == null || !mounted) {
+      return;
+    }
+    setState(() {
+      _timestamp = DateTime(
+        selected.year,
+        selected.month,
+        selected.day,
+        _timestamp.hour,
+        _timestamp.minute,
+      );
+    });
+  }
+
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
     setState(() => _saving = true);
-    await ref
-        .read(transactionRepositoryProvider)
-        .addManualTransaction(
-          amount: double.parse(_amountController.text.trim()),
-          type: _type,
-          merchant: _merchantController.text.trim(),
-          timestamp: DateTime.now(),
-          categoryId: _categoryId,
-        );
+    final double amount = double.parse(_amountController.text.trim());
+    final String merchant = _merchantController.text.trim();
+    final repository = ref.read(transactionRepositoryProvider);
+    if (_isEditing) {
+      await repository.updateConfirmed(
+        id: widget.transaction!.id,
+        amount: amount,
+        type: _type,
+        merchant: merchant,
+        timestamp: _timestamp,
+        categoryId: _categoryId,
+      );
+    } else {
+      await repository.addManualTransaction(
+        amount: amount,
+        type: _type,
+        merchant: merchant,
+        timestamp: _timestamp,
+        categoryId: _categoryId,
+      );
+    }
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -61,11 +127,15 @@ class _ManualTransactionSheetState
     final AsyncValue<List<CategoryModel>> categories = ref.watch(
       categoriesProvider,
     );
+    final Color accent = _type == TransactionType.debit
+        ? AppPalette.peach
+        : AppPalette.mint;
+
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
-        top: 18,
+        top: 8,
         bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
       ),
       child: Form(
@@ -74,12 +144,53 @@ class _ManualTransactionSheetState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text(
-                'Add transaction',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
+              AnimatedContainer(
+                duration: 260.ms,
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(26),
                 ),
-              ),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      width: 54,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.68),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(
+                        _type == TransactionType.debit
+                            ? Icons.north_east_rounded
+                            : Icons.south_west_rounded,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            _isEditing
+                                ? 'Tune this transaction'
+                                : 'Add a money moment',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            _isEditing
+                                ? 'Fix the details and keep your insights accurate.'
+                                : 'Saved privately on this device in $defaultCurrencyCode.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn().slideY(begin: 0.08, end: 0),
               const SizedBox(height: 18),
               SegmentedButton<TransactionType>(
                 segments: const <ButtonSegment<TransactionType>>[
@@ -106,8 +217,9 @@ class _ManualTransactionSheetState
                   decimal: true,
                 ),
                 decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  prefixText: '₹ ',
+                  labelText: 'Amount in INR',
+                  prefixText: '$defaultCurrencySymbol ',
+                  prefixIcon: Icon(Icons.currency_rupee_rounded),
                 ),
                 validator: (String? value) {
                   final double? amount = double.tryParse(value?.trim() ?? '');
@@ -119,8 +231,10 @@ class _ManualTransactionSheetState
               const SizedBox(height: 12),
               TextFormField(
                 controller: _merchantController,
+                textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   labelText: 'Merchant or note',
+                  prefixIcon: Icon(Icons.storefront_rounded),
                 ),
                 validator: (String? value) => (value?.trim().isEmpty ?? true)
                     ? 'Enter a merchant or note'
@@ -134,7 +248,10 @@ class _ManualTransactionSheetState
                 data: (List<CategoryModel> items) {
                   return DropdownButtonFormField<int>(
                     initialValue: _categoryId,
-                    decoration: const InputDecoration(labelText: 'Category'),
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                      prefixIcon: Icon(Icons.category_rounded),
+                    ),
                     items: items
                         .map((CategoryModel item) {
                           return DropdownMenuItem<int>(
@@ -148,6 +265,18 @@ class _ManualTransactionSheetState
                   );
                 },
               ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(22),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Transaction date',
+                    prefixIcon: Icon(Icons.calendar_month_rounded),
+                  ),
+                  child: Text(transactionDayFormat.format(_timestamp)),
+                ),
+              ),
               const SizedBox(height: 18),
               FilledButton.icon(
                 onPressed: _saving ? null : _save,
@@ -156,8 +285,12 @@ class _ManualTransactionSheetState
                         dimension: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.check_rounded),
-                label: const Text('Save locally'),
+                    : Icon(
+                        _isEditing
+                            ? Icons.auto_fix_high_rounded
+                            : Icons.check_rounded,
+                      ),
+                label: Text(_isEditing ? 'Save changes' : 'Save locally'),
               ),
             ],
           ),
