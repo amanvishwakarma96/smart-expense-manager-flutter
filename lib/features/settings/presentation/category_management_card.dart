@@ -86,16 +86,18 @@ class _CategoryManagementCardState
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _icons.entries.map((entry) {
-                        return ChoiceChip(
-                          selected: iconName == entry.key,
-                          onSelected: (_) {
-                            setDialogState(() => iconName = entry.key);
-                          },
-                          avatar: Icon(entry.value, size: 18),
-                          label: const Text(''),
-                        );
-                      }).toList(growable: false),
+                      children: _icons.entries
+                          .map((entry) {
+                            return ChoiceChip(
+                              selected: iconName == entry.key,
+                              onSelected: (_) {
+                                setDialogState(() => iconName = entry.key);
+                              },
+                              avatar: Icon(entry.value, size: 18),
+                              label: const Text(''),
+                            );
+                          })
+                          .toList(growable: false),
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -105,33 +107,35 @@ class _CategoryManagementCardState
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 10,
-                      children: _colors.map((String value) {
-                        final bool selected = hexColor == value;
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(99),
-                          onTap: () {
-                            setDialogState(() => hexColor = value);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 180),
-                            width: selected ? 42 : 36,
-                            height: selected ? 42 : 36,
-                            decoration: BoxDecoration(
-                              color: colorFromHex(value),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: selected
-                                    ? AppPalette.ink
-                                    : Colors.transparent,
-                                width: 3,
+                      children: _colors
+                          .map((String value) {
+                            final bool selected = hexColor == value;
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(99),
+                              onTap: () {
+                                setDialogState(() => hexColor = value);
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                width: selected ? 42 : 36,
+                                height: selected ? 42 : 36,
+                                decoration: BoxDecoration(
+                                  color: colorFromHex(value),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: selected
+                                        ? AppPalette.ink
+                                        : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                ),
+                                child: selected
+                                    ? const Icon(Icons.check_rounded, size: 20)
+                                    : null,
                               ),
-                            ),
-                            child: selected
-                                ? const Icon(Icons.check_rounded, size: 20)
-                                : null,
-                          ),
-                        );
-                      }).toList(growable: false),
+                            );
+                          })
+                          .toList(growable: false),
                     ),
                   ],
                 ),
@@ -164,7 +168,9 @@ class _CategoryManagementCardState
       return;
     }
     try {
-      await ref.read(categoryRepositoryProvider).save(
+      await ref
+          .read(categoryRepositoryProvider)
+          .save(
             id: category?.id,
             name: name,
             iconName: iconName,
@@ -172,7 +178,9 @@ class _CategoryManagementCardState
             monthlyBudgetLimit: budget,
           );
       if (mounted) {
-        _message(category == null ? 'Category added locally.' : 'Category updated.');
+        _message(
+          category == null ? 'Category added locally.' : 'Category updated.',
+        );
       }
     } on ArgumentError catch (error) {
       if (mounted) {
@@ -182,7 +190,8 @@ class _CategoryManagementCardState
   }
 
   Future<void> _delete(CategoryModel category) async {
-    final bool confirmed = await showDialog<bool>(
+    final bool confirmed =
+        await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) {
             return AlertDialog(
@@ -227,9 +236,9 @@ class _CategoryManagementCardState
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -259,9 +268,7 @@ class _CategoryManagementCardState
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Create your own colorful buckets and monthly limits.',
-            ),
+            const Text('Create your own colorful buckets and monthly limits.'),
             const SizedBox(height: 10),
             categories.when(
               loading: () => const LinearProgressIndicator(),
@@ -269,41 +276,43 @@ class _CategoryManagementCardState
                   const Text('Could not load categories.'),
               data: (List<CategoryModel> items) {
                 return Column(
-                  children: items.map((CategoryModel category) {
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: colorFromHex(category.hexColor),
-                        child: Icon(
-                          _icons[category.iconName] ?? Icons.circle_rounded,
-                        ),
-                      ),
-                      title: Text(category.name),
-                      subtitle: Text(
-                        '${inrCurrency.format(category.monthlyBudgetLimit)} / month',
-                      ),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (String action) {
-                          if (action == 'edit') {
-                            _edit(category);
-                          } else if (action == 'delete') {
-                            _delete(category);
-                          }
-                        },
-                        itemBuilder: (BuildContext context) =>
-                            const <PopupMenuEntry<String>>[
-                              PopupMenuItem<String>(
-                                value: 'edit',
-                                child: Text('Edit'),
-                              ),
-                              PopupMenuItem<String>(
-                                value: 'delete',
-                                child: Text('Delete'),
-                              ),
-                            ],
-                      ),
-                    );
-                  }).toList(growable: false),
+                  children: items
+                      .map((CategoryModel category) {
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: CircleAvatar(
+                            backgroundColor: colorFromHex(category.hexColor),
+                            child: Icon(
+                              _icons[category.iconName] ?? Icons.circle_rounded,
+                            ),
+                          ),
+                          title: Text(category.name),
+                          subtitle: Text(
+                            '${inrCurrency.format(category.monthlyBudgetLimit)} / month',
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (String action) {
+                              if (action == 'edit') {
+                                _edit(category);
+                              } else if (action == 'delete') {
+                                _delete(category);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                const <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'edit',
+                                    child: Text('Edit'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  ),
+                                ],
+                          ),
+                        );
+                      })
+                      .toList(growable: false),
                 );
               },
             ),

@@ -52,12 +52,14 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
                   DropdownButtonFormField<int>(
                     initialValue: categoryId,
                     decoration: const InputDecoration(labelText: 'Category'),
-                    items: categories.map((CategoryModel category) {
-                      return DropdownMenuItem<int>(
-                        value: category.id,
-                        child: Text(category.name),
-                      );
-                    }).toList(growable: false),
+                    items: categories
+                        .map((CategoryModel category) {
+                          return DropdownMenuItem<int>(
+                            value: category.id,
+                            child: Text(category.name),
+                          );
+                        })
+                        .toList(growable: false),
                     onChanged: (int? value) {
                       if (value != null) {
                         setDialogState(() => categoryId = value);
@@ -93,13 +95,17 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
       return;
     }
     try {
-      await ref.read(merchantRuleRepositoryProvider).saveRule(
+      await ref
+          .read(merchantRuleRepositoryProvider)
+          .saveRule(
             id: rule?.id,
             merchantPattern: pattern,
             categoryId: categoryId,
           );
       if (mounted) {
-        _message(rule == null ? 'Merchant rule added locally.' : 'Rule updated.');
+        _message(
+          rule == null ? 'Merchant rule added locally.' : 'Rule updated.',
+        );
       }
     } on ArgumentError catch (error) {
       if (mounted) {
@@ -109,7 +115,8 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
   }
 
   Future<void> _delete(MerchantRuleModel rule) async {
-    final bool confirmed = await showDialog<bool>(
+    final bool confirmed =
+        await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) {
             return AlertDialog(
@@ -142,9 +149,9 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -221,41 +228,43 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
                     category.id: category.name,
                 };
                 return Column(
-                  children: items.map((MerchantRuleModel rule) {
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const CircleAvatar(
-                        child: Icon(Icons.bolt_rounded),
-                      ),
-                      title: Text(rule.merchantPattern.toUpperCase()),
-                      subtitle: Text(
-                        '→ ${categoryNames[rule.mappedCategoryId] ?? 'Missing category'}',
-                      ),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (String action) {
-                          if (action == 'edit') {
-                            _edit(
-                              categories.value ?? const <CategoryModel>[],
-                              rule: rule,
-                            );
-                          } else if (action == 'delete') {
-                            _delete(rule);
-                          }
-                        },
-                        itemBuilder: (BuildContext context) =>
-                            const <PopupMenuEntry<String>>[
-                              PopupMenuItem<String>(
-                                value: 'edit',
-                                child: Text('Edit'),
-                              ),
-                              PopupMenuItem<String>(
-                                value: 'delete',
-                                child: Text('Delete'),
-                              ),
-                            ],
-                      ),
-                    );
-                  }).toList(growable: false),
+                  children: items
+                      .map((MerchantRuleModel rule) {
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.bolt_rounded),
+                          ),
+                          title: Text(rule.merchantPattern.toUpperCase()),
+                          subtitle: Text(
+                            '→ ${categoryNames[rule.mappedCategoryId] ?? 'Missing category'}',
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (String action) {
+                              if (action == 'edit') {
+                                _edit(
+                                  categories.value ?? const <CategoryModel>[],
+                                  rule: rule,
+                                );
+                              } else if (action == 'delete') {
+                                _delete(rule);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                const <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'edit',
+                                    child: Text('Edit'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  ),
+                                ],
+                          ),
+                        );
+                      })
+                      .toList(growable: false),
                 );
               },
             ),

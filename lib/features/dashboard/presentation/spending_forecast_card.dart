@@ -95,9 +95,9 @@ class SpendingForecastCard extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             money(forecast.projectedSpend),
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
           ),
           const Text(
             'estimated spending',
@@ -143,9 +143,9 @@ class SpendingForecastCard extends StatelessWidget {
             forecast.historyDays == 0
                 ? 'Add confirmed transactions to improve the estimate.'
                 : 'Based on ${forecast.historyDays} day${forecast.historyDays == 1 ? '' : 's'} of recent history plus active recurring items.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
           ),
         ],
       ),

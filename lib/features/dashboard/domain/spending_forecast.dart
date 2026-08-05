@@ -51,11 +51,13 @@ class SpendingForecastService {
     final DateTime historyStart = today.subtract(
       const Duration(days: historyWindowDays - 1),
     );
-    final List<ExpenseTransaction> history = transactions.where((item) {
-      return !item.timestamp.isBefore(historyStart) &&
-          !item.timestamp.isAfter(current) &&
-          !item.isRecurring;
-    }).toList(growable: false);
+    final List<ExpenseTransaction> history = transactions
+        .where((item) {
+          return !item.timestamp.isBefore(historyStart) &&
+              !item.timestamp.isAfter(current) &&
+              !item.isRecurring;
+        })
+        .toList(growable: false);
 
     final DateTime? earliest = history.isEmpty
         ? null
@@ -77,12 +79,17 @@ class SpendingForecastService {
 
     final double historicalDebit = history
         .where((ExpenseTransaction item) => item.isDebit)
-        .fold(0, (double total, ExpenseTransaction item) => total + item.amount);
+        .fold(
+          0,
+          (double total, ExpenseTransaction item) => total + item.amount,
+        );
     final double historicalCredit = history
         .where((ExpenseTransaction item) => !item.isDebit)
-        .fold(0, (double total, ExpenseTransaction item) => total + item.amount);
-    final double variableSpend =
-        historicalDebit / divisor * forecastWindowDays;
+        .fold(
+          0,
+          (double total, ExpenseTransaction item) => total + item.amount,
+        );
+    final double variableSpend = historicalDebit / divisor * forecastWindowDays;
     final double variableIncome =
         historicalCredit / divisor * forecastWindowDays;
 
@@ -136,22 +143,13 @@ class SpendingForecastService {
     );
   }
 
-  DateTime _nextOccurrence(
-    RecurringTransaction template,
-    DateTime current,
-  ) {
+  DateTime _nextOccurrence(RecurringTransaction template, DateTime current) {
     if (template.frequency == RecurringFrequency.weekly) {
       return current.add(const Duration(days: 7));
     }
     final DateTime month = DateTime(current.year, current.month + 1);
     final int lastDay = DateTime(month.year, month.month + 1, 0).day;
     final int day = math.min(template.nextDueAt.day, lastDay);
-    return DateTime(
-      month.year,
-      month.month,
-      day,
-      current.hour,
-      current.minute,
-    );
+    return DateTime(month.year, month.month, day, current.hour, current.minute);
   }
 }

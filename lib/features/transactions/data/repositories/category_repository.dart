@@ -12,14 +12,14 @@ class CategoryRepository {
   final Isar _isar;
 
   Stream<List<CategoryModel>> watchAll() {
-    return _isar.categoryModels.where().watch(fireImmediately: true).map(
-      (List<CategoryModel> items) {
-        items.sort((CategoryModel a, CategoryModel b) {
-          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-        });
-        return items;
-      },
-    );
+    return _isar.categoryModels.where().watch(fireImmediately: true).map((
+      List<CategoryModel> items,
+    ) {
+      items.sort((CategoryModel a, CategoryModel b) {
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+      return items;
+    });
   }
 
   Future<List<CategoryModel>> getAll() async {
@@ -156,7 +156,9 @@ class CategoryRepository {
         .findAll();
     final bool inUse =
         transactions.any((TransactionModel item) => item.categoryId == id) ||
-        recurring.any((RecurringTransactionModel item) => item.categoryId == id) ||
+        recurring.any(
+          (RecurringTransactionModel item) => item.categoryId == id,
+        ) ||
         rules.any((MerchantRuleModel item) => item.mappedCategoryId == id);
     if (inUse) {
       return CategoryDeleteResult.inUse;

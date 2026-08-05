@@ -8,14 +8,14 @@ class MerchantRuleRepository {
   final Isar _isar;
 
   Stream<List<MerchantRuleModel>> watchAll() {
-    return _isar.merchantRuleModels.where().watch(fireImmediately: true).map(
-      (List<MerchantRuleModel> items) {
-        items.sort((MerchantRuleModel a, MerchantRuleModel b) {
-          return a.merchantPattern.compareTo(b.merchantPattern);
-        });
-        return items;
-      },
-    );
+    return _isar.merchantRuleModels.where().watch(fireImmediately: true).map((
+      List<MerchantRuleModel> items,
+    ) {
+      items.sort((MerchantRuleModel a, MerchantRuleModel b) {
+        return a.merchantPattern.compareTo(b.merchantPattern);
+      });
+      return items;
+    });
   }
 
   Future<List<MerchantRuleModel>> getAll() async {
