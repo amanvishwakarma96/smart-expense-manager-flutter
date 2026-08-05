@@ -5,6 +5,12 @@ read transaction alerts on Android, parse them entirely on-device, place
 detected expenses into a pending-review inbox, and update local budgets only
 after confirmation.
 
+## Product defaults
+
+- Default currency: Indian Rupee (`INR`, `₹`) with the `en_IN` locale.
+- Visual style: playful, friendly, tactile, colorful, and easy to understand.
+- Data policy: local-only by default, with no backend or automatic sync.
+
 ## Privacy architecture
 
 - No backend, account, cloud sync, advertising, analytics, or telemetry.
@@ -25,13 +31,31 @@ after confirmation.
 - Manual debit and credit entry on Android and iOS.
 - Android bank-SMS detection with a pending review queue.
 - Indian UPI, IMPS, NEFT, RTGS, ATM, card, refund, and reversal parsing rules.
+- Weekly and monthly recurring expenses or income that always enter review
+  before they affect budgets.
+- Editable confirmed transaction history with local deletion controls.
 - Local merchant categorization rules and monthly category budgets.
 - Local budget-threshold notifications with privacy-safe notification text.
 - Searchable confirmed-transaction history with type and date filters.
+- Monthly local insights including daily average, top category, and
+  month-over-month spending movement.
 - Category spending and seven-day cash-flow charts.
+- Animated pastel cards, tactile controls, colorful summaries, and friendly
+  empty states.
 - Privacy amount masking and configurable biometric/device-lock timing.
-- Password-protected encrypted local backup export and restore.
+- Password-protected encrypted local backup export and restore, including
+  recurring schedules.
 - Full local financial-data deletion with encryption-key removal.
+
+## Recurring transaction behavior
+
+- Recurring templates are stored locally with encrypted merchant text.
+- Weekly and monthly schedules are supported.
+- Due occurrences become pending-review transactions rather than being
+  confirmed automatically.
+- Month-end schedules safely clamp to the final available day of shorter
+  months.
+- Users can edit, pause, resume, or delete recurring templates from Settings.
 
 ## Encrypted backup behavior
 
@@ -85,11 +109,12 @@ flutter build apk --debug
 ## Platform behavior
 
 - **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
-  transaction SMS detection, pending review, history search, budgets, local
-  alerts, encrypted backup/restore, rules, charts, privacy mode, and configurable
-  app lock.
-- **iOS:** onboarding, manual entry, history search, budgets, local alerts,
-  encrypted backup/restore, local rules, charts, privacy mode, and configurable
-  app lock. Automatic SMS access is intentionally unavailable.
+  transaction SMS detection, pending review, recurring transactions, editable
+  history, budgets, local alerts, encrypted backup/restore, rules, insights,
+  charts, privacy mode, and configurable app lock.
+- **iOS:** onboarding, manual entry, recurring transactions, editable history,
+  budgets, local alerts, encrypted backup/restore, local rules, insights,
+  charts, privacy mode, and configurable app lock. Automatic SMS access is
+  intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.
