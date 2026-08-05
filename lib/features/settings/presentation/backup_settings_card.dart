@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,10 +56,24 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
   }
 
   Future<void> _restoreBackup() async {
-    final bytes = await ref.read(backupFileServiceProvider).pickBackup();
+    Uint8List? bytes;
+    try {
+      bytes = await ref.read(backupFileServiceProvider).pickBackup();
+    } on FormatException catch (error) {
+      if (mounted) {
+        _message(error.message.toString());
+      }
+      return;
+    } on Object {
+      if (mounted) {
+        _message('Could not open the selected backup file.');
+      }
+      return;
+    }
     if (bytes == null || !mounted) {
       return;
     }
+
     final String? password = await _promptPassword(
       title: 'Unlock backup',
       confirmPassword: false,
