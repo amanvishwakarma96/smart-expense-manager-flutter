@@ -59,7 +59,8 @@ class LocalBackupService {
         .where()
         .findAll();
 
-    final List<Map<String, Object?>> transactionPayload = <Map<String, Object?>>[];
+    final List<Map<String, Object?>> transactionPayload =
+        <Map<String, Object?>>[];
     for (final TransactionModel item in transactions) {
       transactionPayload.add(<String, Object?>{
         'id': item.id,
@@ -69,9 +70,7 @@ class LocalBackupService {
         'timestamp': item.timestamp.toUtc().toIso8601String(),
         'categoryId': item.categoryId,
         'status': item.status.name,
-        'originalSmsText': await _cipher.decrypt(
-          item.encryptedOriginalSmsText,
-        ),
+        'originalSmsText': await _cipher.decrypt(item.encryptedOriginalSmsText),
         'accountTail': await _cipher.decrypt(item.encryptedAccountTail),
         'smsFingerprint': item.smsFingerprint,
         'isManual': item.isManual,
@@ -109,7 +108,8 @@ class LocalBackupService {
       password: password,
     );
     final DateTime now = DateTime.now();
-    final String date = '${now.year.toString().padLeft(4, '0')}'
+    final String date =
+        '${now.year.toString().padLeft(4, '0')}'
         '${now.month.toString().padLeft(2, '0')}'
         '${now.day.toString().padLeft(2, '0')}';
     return BackupExportResult(
@@ -149,18 +149,20 @@ class LocalBackupService {
       throw const FormatException('Backup does not contain any categories');
     }
 
-    final List<CategoryModel> categories = categoryMaps.map((map) {
-      return CategoryModel(
-        id: _positiveInt(map['id'], 'category.id'),
-        name: _requiredString(map['name'], 'category.name'),
-        iconName: _requiredString(map['iconName'], 'category.iconName'),
-        hexColor: _requiredString(map['hexColor'], 'category.hexColor'),
-        monthlyBudgetLimit: _nonNegativeNumber(
-          map['monthlyBudgetLimit'],
-          'category.monthlyBudgetLimit',
-        ),
-      );
-    }).toList(growable: false);
+    final List<CategoryModel> categories = categoryMaps
+        .map((map) {
+          return CategoryModel(
+            id: _positiveInt(map['id'], 'category.id'),
+            name: _requiredString(map['name'], 'category.name'),
+            iconName: _requiredString(map['iconName'], 'category.iconName'),
+            hexColor: _requiredString(map['hexColor'], 'category.hexColor'),
+            monthlyBudgetLimit: _nonNegativeNumber(
+              map['monthlyBudgetLimit'],
+              'category.monthlyBudgetLimit',
+            ),
+          );
+        })
+        .toList(growable: false);
 
     final Set<int> categoryIds = categories
         .map((CategoryModel item) => item.id)
@@ -170,27 +172,33 @@ class LocalBackupService {
     }
 
     final Set<int> ruleIds = <int>{};
-    final List<MerchantRuleModel> rules = ruleMaps.map((map) {
-      final int id = _positiveInt(map['id'], 'merchantRule.id');
-      if (!ruleIds.add(id)) {
-        throw const FormatException('Backup contains duplicate merchant rule IDs');
-      }
-      final int categoryId = _positiveInt(
-        map['mappedCategoryId'],
-        'merchantRule.mappedCategoryId',
-      );
-      if (!categoryIds.contains(categoryId)) {
-        throw const FormatException('Merchant rule references an unknown category');
-      }
-      return MerchantRuleModel(
-        id: id,
-        merchantPattern: _requiredString(
-          map['merchantPattern'],
-          'merchantRule.merchantPattern',
-        ),
-        mappedCategoryId: categoryId,
-      );
-    }).toList(growable: false);
+    final List<MerchantRuleModel> rules = ruleMaps
+        .map((map) {
+          final int id = _positiveInt(map['id'], 'merchantRule.id');
+          if (!ruleIds.add(id)) {
+            throw const FormatException(
+              'Backup contains duplicate merchant rule IDs',
+            );
+          }
+          final int categoryId = _positiveInt(
+            map['mappedCategoryId'],
+            'merchantRule.mappedCategoryId',
+          );
+          if (!categoryIds.contains(categoryId)) {
+            throw const FormatException(
+              'Merchant rule references an unknown category',
+            );
+          }
+          return MerchantRuleModel(
+            id: id,
+            merchantPattern: _requiredString(
+              map['merchantPattern'],
+              'merchantRule.merchantPattern',
+            ),
+            mappedCategoryId: categoryId,
+          );
+        })
+        .toList(growable: false);
 
     final Set<int> transactionIds = <int>{};
     final Set<String> fingerprints = <String>{};
@@ -198,15 +206,21 @@ class LocalBackupService {
     for (final Map<String, Object?> map in transactionMaps) {
       final int id = _positiveInt(map['id'], 'transaction.id');
       if (!transactionIds.add(id)) {
-        throw const FormatException('Backup contains duplicate transaction IDs');
+        throw const FormatException(
+          'Backup contains duplicate transaction IDs',
+        );
       }
       final int? categoryId = _nullableInt(map['categoryId']);
       if (categoryId != null && !categoryIds.contains(categoryId)) {
-        throw const FormatException('Transaction references an unknown category');
+        throw const FormatException(
+          'Transaction references an unknown category',
+        );
       }
       final String? fingerprint = _nullableString(map['smsFingerprint']);
       if (fingerprint != null && !fingerprints.add(fingerprint)) {
-        throw const FormatException('Backup contains duplicate SMS fingerprints');
+        throw const FormatException(
+          'Backup contains duplicate SMS fingerprints',
+        );
       }
       transactions.add(
         TransactionModel(
@@ -253,12 +267,14 @@ class LocalBackupService {
     if (value is! List<dynamic>) {
       throw FormatException('Backup $name is invalid');
     }
-    return value.map((Object? item) {
-      if (item is! Map<String, dynamic>) {
-        throw FormatException('Backup $name contains an invalid item');
-      }
-      return item.cast<String, Object?>();
-    }).toList(growable: false);
+    return value
+        .map((Object? item) {
+          if (item is! Map<String, dynamic>) {
+            throw FormatException('Backup $name contains an invalid item');
+          }
+          return item.cast<String, Object?>();
+        })
+        .toList(growable: false);
   }
 
   int _positiveInt(Object? value, String name) {

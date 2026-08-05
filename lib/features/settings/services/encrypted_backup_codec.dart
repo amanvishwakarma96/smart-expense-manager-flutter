@@ -7,7 +7,8 @@ class BackupPasswordException implements Exception {
   const BackupPasswordException();
 
   @override
-  String toString() => 'The backup password is incorrect or the file is damaged.';
+  String toString() =>
+      'The backup password is incorrect or the file is damaged.';
 }
 
 class EncryptedBackupCodec {

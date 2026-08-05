@@ -16,11 +16,7 @@ class TransactionRepository {
     BudgetAlertService? budgetAlertService,
   }) : this._(isar, cipher, budgetAlertService);
 
-  TransactionRepository._(
-    this._isar,
-    this._cipher,
-    this._budgetAlertService,
-  );
+  TransactionRepository._(this._isar, this._cipher, this._budgetAlertService);
 
   final Isar _isar;
   final SecureCipherService _cipher;

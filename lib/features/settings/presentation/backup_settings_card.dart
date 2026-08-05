@@ -29,10 +29,9 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
       final BackupExportResult backup = await ref
           .read(localBackupServiceProvider)
           .createEncryptedBackup(password);
-      await ref.read(backupFileServiceProvider).shareBackup(
-            backup,
-            sharePositionOrigin: sharePositionOrigin,
-          );
+      await ref
+          .read(backupFileServiceProvider)
+          .shareBackup(backup, sharePositionOrigin: sharePositionOrigin);
       if (mounted) {
         _message(
           'Encrypted ${backup.transactions} transaction'
@@ -134,13 +133,10 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
             void submit() {
               final String password = passwordController.text;
               if (password.length < 8) {
-                setDialogState(
-                  () => errorText = 'Use at least 8 characters.',
-                );
+                setDialogState(() => errorText = 'Use at least 8 characters.');
                 return;
               }
-              if (confirmPassword &&
-                  password != confirmationController.text) {
+              if (confirmPassword && password != confirmationController.text) {
                 setDialogState(() => errorText = 'Passwords do not match.');
                 return;
               }
@@ -251,9 +247,9 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -266,9 +262,9 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
           children: <Widget>[
             Text(
               'Encrypted local backup',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 6),
             const Text(

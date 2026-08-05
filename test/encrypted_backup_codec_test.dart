@@ -47,10 +47,7 @@ void main() {
       );
 
       expect(
-        codec.decrypt(
-          encryptedBytes: encrypted,
-          password: 'wrong-password',
-        ),
+        codec.decrypt(encryptedBytes: encrypted, password: 'wrong-password'),
         throwsA(isA<BackupPasswordException>()),
       );
     });

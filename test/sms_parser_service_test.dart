@@ -38,7 +38,8 @@ void main() {
     test('parses VPA UPI debit with rupee slash notation', () {
       final result = parser.parse(
         sender: 'ICICIB',
-        body: 'Rs.799/- debited from A/c XX1122 and paid to VPA '
+        body:
+            'Rs.799/- debited from A/c XX1122 and paid to VPA '
             'swiggy@upi via UPI. Ref 918273.',
       );
 
@@ -63,7 +64,8 @@ void main() {
     test('parses ATM cash withdrawal', () {
       final result = parser.parse(
         sender: 'KOTAKB',
-        body: 'INR 2,000 withdrawn from account no. 4321 at HDFC ATM '
+        body:
+            'INR 2,000 withdrawn from account no. 4321 at HDFC ATM '
             'on 05-Aug. Available balance INR 8,500.',
       );
 
@@ -77,7 +79,8 @@ void main() {
     test('parses incoming NEFT transfer', () {
       final result = parser.parse(
         sender: 'YESBNK',
-        body: 'A/c XX9876 credited with INR 25,000 from ACME PRIVATE '
+        body:
+            'A/c XX9876 credited with INR 25,000 from ACME PRIVATE '
             'LIMITED through NEFT.',
       );
 
@@ -91,7 +94,8 @@ void main() {
     test('classifies card reversal as credit', () {
       final result = parser.parse(
         sender: 'BANK',
-        body: 'A purchase of INR 499 on card ending with 7788 was reversed '
+        body:
+            'A purchase of INR 499 on card ending with 7788 was reversed '
             'and credited as refund from AMAZON via CARD.',
       );
 

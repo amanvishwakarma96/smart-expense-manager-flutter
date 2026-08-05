@@ -65,9 +65,9 @@ class _BudgetAlertSettingsCardState
   }
 
   void _message(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -80,9 +80,9 @@ class _BudgetAlertSettingsCardState
           children: <Widget>[
             Text(
               'Budget alerts',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 6),
             const Text(
@@ -108,12 +108,14 @@ class _BudgetAlertSettingsCardState
                   decoration: const InputDecoration(
                     labelText: 'Warning threshold',
                   ),
-                  items: BudgetAlertService.supportedThresholds.map((int value) {
-                    return DropdownMenuItem<int>(
-                      value: value,
-                      child: Text('$value% used'),
-                    );
-                  }).toList(growable: false),
+                  items: BudgetAlertService.supportedThresholds
+                      .map((int value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value% used'),
+                        );
+                      })
+                      .toList(growable: false),
                   onChanged: _setThreshold,
                 ),
             ],

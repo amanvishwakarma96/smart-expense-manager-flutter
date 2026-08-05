@@ -29,7 +29,8 @@ class BackupFileService {
         ShareParams(
           title: 'PiggyAI encrypted backup',
           subject: 'PiggyAI encrypted backup',
-          text: 'Password-protected PiggyAI backup. Keep the password separate.',
+          text:
+              'Password-protected PiggyAI backup. Keep the password separate.',
           files: <cross.XFile>[cross.XFile(file.path)],
           sharePositionOrigin: sharePositionOrigin,
         ),

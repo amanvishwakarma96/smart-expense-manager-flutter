@@ -109,10 +109,7 @@ class BudgetAlertService {
               item.timestamp.year == current.year &&
               item.timestamp.month == current.month;
         })
-        .fold(
-          0,
-          (double total, TransactionModel item) => total + item.amount,
-        );
+        .fold(0, (double total, TransactionModel item) => total + item.amount);
     final int percentage = (spent / category.monthlyBudgetLimit * 100).floor();
     final int bucket = alertBucketForPercentage(
       percentage: percentage,
@@ -122,12 +119,11 @@ class BudgetAlertService {
       return;
     }
 
-    final String stateKey = '$_alertStatePrefix.'
+    final String stateKey =
+        '$_alertStatePrefix.'
         '${current.year}-${current.month}.$categoryId';
-    final int previousBucket = int.tryParse(
-          await _storage.read(key: stateKey) ?? '',
-        ) ??
-        0;
+    final int previousBucket =
+        int.tryParse(await _storage.read(key: stateKey) ?? '') ?? 0;
     if (previousBucket >= bucket) {
       return;
     }
