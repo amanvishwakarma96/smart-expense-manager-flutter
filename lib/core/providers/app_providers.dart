@@ -10,8 +10,10 @@ import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_co
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/category_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/merchant_rule_repository.dart';
+import 'package:smart_expense_manager/features/transactions/data/repositories/recurring_transaction_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/transaction_repository.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
 
 final Provider<Isar> isarProvider = Provider<Isar>((Ref ref) {
   throw StateError('isarProvider must be overridden at startup');
@@ -33,6 +35,15 @@ final Provider<TransactionRepository> transactionRepositoryProvider =
         ref.watch(isarProvider),
         ref.watch(cipherProvider),
         budgetAlertService: ref.watch(budgetAlertServiceProvider),
+      );
+    });
+
+final Provider<RecurringTransactionRepository>
+recurringTransactionRepositoryProvider =
+    Provider<RecurringTransactionRepository>((Ref ref) {
+      return RecurringTransactionRepository(
+        ref.watch(isarProvider),
+        ref.watch(cipherProvider),
       );
     });
 
@@ -79,6 +90,11 @@ final StreamProvider<List<ExpenseTransaction>> pendingTransactionsProvider =
 final StreamProvider<List<ExpenseTransaction>> confirmedTransactionsProvider =
     StreamProvider<List<ExpenseTransaction>>((Ref ref) {
       return ref.watch(transactionRepositoryProvider).watchConfirmed();
+    });
+
+final StreamProvider<List<RecurringTransaction>> recurringTransactionsProvider =
+    StreamProvider<List<RecurringTransaction>>((Ref ref) {
+      return ref.watch(recurringTransactionRepositoryProvider).watchAll();
     });
 
 final StreamProvider<List<CategoryModel>> categoriesProvider =

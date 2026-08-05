@@ -5,19 +5,23 @@ import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/settings/services/encrypted_backup_codec.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/recurring_transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
 
 class BackupSnapshotSummary {
   const BackupSnapshotSummary({
     required this.transactions,
     required this.categories,
     required this.merchantRules,
+    this.recurringTransactions = 0,
   });
 
   final int transactions;
   final int categories;
   final int merchantRules;
+  final int recurringTransactions;
 }
 
 class BackupExportResult extends BackupSnapshotSummary {
@@ -27,6 +31,7 @@ class BackupExportResult extends BackupSnapshotSummary {
     required super.transactions,
     required super.categories,
     required super.merchantRules,
+    super.recurringTransactions,
   });
 
   final Uint8List bytes;
@@ -42,7 +47,8 @@ class LocalBackupService {
 
   LocalBackupService._(this._isar, this._cipher, this._codec);
 
-  static const int snapshotVersion = 1;
+  static const int snapshotVersion = 2;
+  static const Set<int> supportedSnapshotVersions = <int>{1, 2};
 
   final Isar _isar;
   final SecureCipherService _cipher;
@@ -56,6 +62,10 @@ class LocalBackupService {
         .where()
         .findAll();
     final List<TransactionModel> transactions = await _isar.transactionModels
+        .where()
+        .findAll();
+    final List<RecurringTransactionModel> recurring = await _isar
+        .recurringTransactionModels
         .where()
         .findAll();
 
@@ -74,6 +84,23 @@ class LocalBackupService {
         'accountTail': await _cipher.decrypt(item.encryptedAccountTail),
         'smsFingerprint': item.smsFingerprint,
         'isManual': item.isManual,
+        'isRecurring': item.isRecurring,
+      });
+    }
+
+    final List<Map<String, Object?>> recurringPayload =
+        <Map<String, Object?>>[];
+    for (final RecurringTransactionModel item in recurring) {
+      recurringPayload.add(<String, Object?>{
+        'id': item.id,
+        'amount': item.amount,
+        'type': item.type.name,
+        'merchant': await _cipher.decrypt(item.encryptedMerchant),
+        'categoryId': item.categoryId,
+        'frequency': item.frequency.name,
+        'scheduleDay': item.scheduleDay,
+        'nextDueAt': item.nextDueAt.toUtc().toIso8601String(),
+        'isActive': item.isActive,
       });
     }
 
@@ -100,6 +127,7 @@ class LocalBackupService {
             },
           )
           .toList(growable: false),
+      'recurringTransactions': recurringPayload,
       'transactions': transactionPayload,
     };
 
@@ -118,6 +146,7 @@ class LocalBackupService {
       transactions: transactions.length,
       categories: categories.length,
       merchantRules: rules.length,
+      recurringTransactions: recurring.length,
     );
   }
 
@@ -129,7 +158,8 @@ class LocalBackupService {
       encryptedBytes: bytes,
       password: password,
     );
-    if (payload['snapshotVersion'] != snapshotVersion) {
+    final Object? rawVersion = payload['snapshotVersion'];
+    if (rawVersion is! int || !supportedSnapshotVersions.contains(rawVersion)) {
       throw const FormatException('Unsupported PiggyAI snapshot version');
     }
 
@@ -145,13 +175,16 @@ class LocalBackupService {
       payload['transactions'],
       'transactions',
     );
+    final List<Map<String, Object?>> recurringMaps = rawVersion >= 2
+        ? _mapList(payload['recurringTransactions'], 'recurringTransactions')
+        : const <Map<String, Object?>>[];
     if (categoryMaps.isEmpty) {
       throw const FormatException('Backup does not contain any categories');
     }
 
     final List<CategoryModel> categories = categoryMaps
-        .map((map) {
-          return CategoryModel(
+        .map(
+          (Map<String, Object?> map) => CategoryModel(
             id: _positiveInt(map['id'], 'category.id'),
             name: _requiredString(map['name'], 'category.name'),
             iconName: _requiredString(map['iconName'], 'category.iconName'),
@@ -160,10 +193,9 @@ class LocalBackupService {
               map['monthlyBudgetLimit'],
               'category.monthlyBudgetLimit',
             ),
-          );
-        })
+          ),
+        )
         .toList(growable: false);
-
     final Set<int> categoryIds = categories
         .map((CategoryModel item) => item.id)
         .toSet();
@@ -180,15 +212,11 @@ class LocalBackupService {
               'Backup contains duplicate merchant rule IDs',
             );
           }
-          final int categoryId = _positiveInt(
+          final int categoryId = _categoryReference(
             map['mappedCategoryId'],
+            categoryIds,
             'merchantRule.mappedCategoryId',
           );
-          if (!categoryIds.contains(categoryId)) {
-            throw const FormatException(
-              'Merchant rule references an unknown category',
-            );
-          }
           return MerchantRuleModel(
             id: id,
             merchantPattern: _requiredString(
@@ -200,6 +228,50 @@ class LocalBackupService {
         })
         .toList(growable: false);
 
+    final Set<int> recurringIds = <int>{};
+    final List<RecurringTransactionModel> recurring =
+        <RecurringTransactionModel>[];
+    for (final Map<String, Object?> map in recurringMaps) {
+      final int id = _positiveInt(map['id'], 'recurring.id');
+      if (!recurringIds.add(id)) {
+        throw const FormatException(
+          'Backup contains duplicate recurring transaction IDs',
+        );
+      }
+      final RecurringFrequency frequency = _recurringFrequency(
+        map['frequency'],
+      );
+      final int scheduleDay = _positiveInt(
+        map['scheduleDay'],
+        'recurring.scheduleDay',
+      );
+      final int maxScheduleDay = frequency == RecurringFrequency.weekly
+          ? 7
+          : 31;
+      if (scheduleDay > maxScheduleDay) {
+        throw const FormatException('Recurring schedule day is invalid');
+      }
+      recurring.add(
+        RecurringTransactionModel(
+          id: id,
+          amount: _positiveNumber(map['amount'], 'recurring.amount'),
+          type: _transactionType(map['type']),
+          encryptedMerchant: await _cipher.encrypt(
+            _requiredString(map['merchant'], 'recurring.merchant'),
+          ),
+          categoryId: _nullableCategoryReference(
+            map['categoryId'],
+            categoryIds,
+            'recurring.categoryId',
+          ),
+          frequency: frequency,
+          scheduleDay: scheduleDay,
+          nextDueAt: _dateTime(map['nextDueAt'], 'recurring.nextDueAt'),
+          isActive: _bool(map['isActive'], 'recurring.isActive'),
+        ),
+      );
+    }
+
     final Set<int> transactionIds = <int>{};
     final Set<String> fingerprints = <String>{};
     final List<TransactionModel> transactions = <TransactionModel>[];
@@ -208,12 +280,6 @@ class LocalBackupService {
       if (!transactionIds.add(id)) {
         throw const FormatException(
           'Backup contains duplicate transaction IDs',
-        );
-      }
-      final int? categoryId = _nullableInt(map['categoryId']);
-      if (categoryId != null && !categoryIds.contains(categoryId)) {
-        throw const FormatException(
-          'Transaction references an unknown category',
         );
       }
       final String? fingerprint = _nullableString(map['smsFingerprint']);
@@ -230,10 +296,12 @@ class LocalBackupService {
           encryptedMerchant: await _cipher.encrypt(
             _requiredString(map['merchant'], 'transaction.merchant'),
           ),
-          timestamp: DateTime.parse(
-            _requiredString(map['timestamp'], 'transaction.timestamp'),
-          ).toLocal(),
-          categoryId: categoryId,
+          timestamp: _dateTime(map['timestamp'], 'transaction.timestamp'),
+          categoryId: _nullableCategoryReference(
+            map['categoryId'],
+            categoryIds,
+            'transaction.categoryId',
+          ),
           status: _transactionStatus(map['status']),
           encryptedOriginalSmsText: await _cipher.encrypt(
             _nullableString(map['originalSmsText']) ?? '',
@@ -243,16 +311,19 @@ class LocalBackupService {
           ),
           smsFingerprint: fingerprint,
           isManual: _bool(map['isManual'], 'transaction.isManual'),
+          isRecurring: _optionalBool(map['isRecurring']),
         ),
       );
     }
 
     await _isar.writeTxn(() async {
       await _isar.transactionModels.clear();
+      await _isar.recurringTransactionModels.clear();
       await _isar.merchantRuleModels.clear();
       await _isar.categoryModels.clear();
       await _isar.categoryModels.putAll(categories);
       await _isar.merchantRuleModels.putAll(rules);
+      await _isar.recurringTransactionModels.putAll(recurring);
       await _isar.transactionModels.putAll(transactions);
     });
 
@@ -260,6 +331,7 @@ class LocalBackupService {
       transactions: transactions.length,
       categories: categories.length,
       merchantRules: rules.length,
+      recurringTransactions: recurring.length,
     );
   }
 
@@ -284,14 +356,19 @@ class LocalBackupService {
     throw FormatException('$name must be a positive integer');
   }
 
-  int? _nullableInt(Object? value) {
+  int _categoryReference(Object? value, Set<int> ids, String name) {
+    final int id = _positiveInt(value, name);
+    if (!ids.contains(id)) {
+      throw FormatException('$name references an unknown category');
+    }
+    return id;
+  }
+
+  int? _nullableCategoryReference(Object? value, Set<int> ids, String name) {
     if (value == null) {
       return null;
     }
-    if (value is int) {
-      return value;
-    }
-    throw const FormatException('Expected an integer or null');
+    return _categoryReference(value, ids, name);
   }
 
   double _number(Object? value, String name) {
@@ -324,6 +401,17 @@ class LocalBackupService {
     throw FormatException('$name must be true or false');
   }
 
+  bool _optionalBool(Object? value) {
+    if (value == null) {
+      return false;
+    }
+    return _bool(value, 'optional boolean');
+  }
+
+  DateTime _dateTime(Object? value, String name) {
+    return DateTime.parse(_requiredString(value, name)).toLocal();
+  }
+
   TransactionType _transactionType(Object? value) {
     final String name = _requiredString(value, 'transaction.type');
     for (final TransactionType type in TransactionType.values) {
@@ -342,6 +430,16 @@ class LocalBackupService {
       }
     }
     throw FormatException('Unknown transaction status: $name');
+  }
+
+  RecurringFrequency _recurringFrequency(Object? value) {
+    final String name = _requiredString(value, 'recurring.frequency');
+    for (final RecurringFrequency frequency in RecurringFrequency.values) {
+      if (frequency.name == name) {
+        return frequency;
+      }
+    }
+    throw FormatException('Unknown recurring frequency: $name');
   }
 
   String _requiredString(Object? value, String name) {

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
+import 'package:smart_expense_manager/core/widgets/playful_empty_state.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/presentation/manual_transaction_dialog.dart';
 
 enum _HistoryTypeFilter { all, debit, credit }
 
@@ -30,6 +33,37 @@ class _TransactionHistoryScreenState
     super.dispose();
   }
 
+  Future<void> _deleteTransaction(ExpenseTransaction transaction) async {
+    final bool confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text('Remove this transaction?'),
+              content: Text(
+                '${transaction.merchant} will be deleted only from this device.',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Keep it'),
+                ),
+                FilledButton.icon(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  icon: const Icon(Icons.delete_rounded),
+                  label: const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+    if (!confirmed) {
+      return;
+    }
+    await ref.read(transactionRepositoryProvider).delete(transaction.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final AsyncValue<List<ExpenseTransaction>> transactions = ref.watch(
@@ -45,14 +79,35 @@ class _TransactionHistoryScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'History',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Money moments',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      const Text('Tap any card to edit it locally.'),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppPalette.sunshine,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded),
+                ).animate().scale(
+                  begin: const Offset(0.8, 0.8),
+                  curve: Curves.easeOutBack,
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            const Text('Search and filter confirmed transactions locally.'),
             const SizedBox(height: 16),
             TextField(
               controller: _searchController,
@@ -135,30 +190,82 @@ class _TransactionHistoryScreenState
             Expanded(
               child: transactions.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (Object error, StackTrace stackTrace) => const Center(
-                  child: Text('Could not load local transaction history.'),
-                ),
+                error: (Object error, StackTrace stackTrace) =>
+                    const PlayfulEmptyState(
+                      icon: Icons.receipt_long_rounded,
+                      title: 'History is taking a tiny break',
+                      message:
+                          'Your financial data is still safe on this device.',
+                      accentColor: AppPalette.rose,
+                    ),
                 data: (List<ExpenseTransaction> items) {
                   final List<ExpenseTransaction> filtered = _filterTransactions(
                     items,
                     categories,
                   );
                   if (filtered.isEmpty) {
-                    return const _HistoryEmptyState();
+                    return PlayfulEmptyState(
+                      icon: Icons.search_rounded,
+                      title: 'Nothing matched yet',
+                      message:
+                          'Try another search, type, or date filter. Your next money moment may be hiding nearby.',
+                      actionLabel: 'Clear filters',
+                      onAction: () {
+                        _searchController.clear();
+                        setState(() {
+                          _typeFilter = _HistoryTypeFilter.all;
+                          _periodFilter = _HistoryPeriodFilter.currentMonth;
+                        });
+                      },
+                      accentColor: AppPalette.sky,
+                    );
                   }
+                  final double expenseTotal = filtered
+                      .where((ExpenseTransaction item) => item.isDebit)
+                      .fold(
+                        0,
+                        (double total, ExpenseTransaction item) =>
+                            total + item.amount,
+                      );
+                  final double incomeTotal = filtered
+                      .where((ExpenseTransaction item) => !item.isDebit)
+                      .fold(
+                        0,
+                        (double total, ExpenseTransaction item) =>
+                            total + item.amount,
+                      );
+
                   return ListView.separated(
                     padding: const EdgeInsets.only(bottom: 120),
-                    itemCount: filtered.length,
+                    itemCount: filtered.length + 1,
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (BuildContext context, int index) {
+                      if (index == 0) {
+                        return _HistorySummary(
+                          expenseTotal: expenseTotal,
+                          incomeTotal: incomeTotal,
+                          count: filtered.length,
+                          privacyMode: privacyMode,
+                        );
+                      }
+                      final ExpenseTransaction transaction =
+                          filtered[index - 1];
                       return _HistoryCard(
-                        transaction: filtered[index],
-                        category: _categoryFor(
-                          filtered[index].categoryId,
-                          categories,
-                        ),
-                        privacyMode: privacyMode,
-                      );
+                            transaction: transaction,
+                            category: _categoryFor(
+                              transaction.categoryId,
+                              categories,
+                            ),
+                            privacyMode: privacyMode,
+                            onEdit: () => showTransactionEditorDialog(
+                              context,
+                              transaction: transaction,
+                            ),
+                            onDelete: () => _deleteTransaction(transaction),
+                          )
+                          .animate()
+                          .fadeIn(delay: (index * 35).ms)
+                          .slideX(begin: 0.04, end: 0);
                     },
                   );
                 },
@@ -258,16 +365,120 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
+class _HistorySummary extends StatelessWidget {
+  const _HistorySummary({
+    required this.expenseTotal,
+    required this.incomeTotal,
+    required this.count,
+    required this.privacyMode,
+  });
+
+  final double expenseTotal;
+  final double incomeTotal;
+  final int count;
+  final bool privacyMode;
+
+  @override
+  Widget build(BuildContext context) {
+    String amount(double value) =>
+        privacyMode ? '$defaultCurrencySymbol ••••' : inrCurrency.format(value);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: AppPalette.heroGradient,
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: _SummaryValue(
+              label: 'Spent',
+              value: amount(expenseTotal),
+              icon: Icons.arrow_outward_rounded,
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 52,
+            color: Colors.white.withValues(alpha: 0.62),
+          ),
+          Expanded(
+            child: _SummaryValue(
+              label: 'Received',
+              value: amount(incomeTotal),
+              icon: Icons.call_received_rounded,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.66),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn().slideY(begin: 0.08, end: 0);
+  }
+}
+
+class _SummaryValue extends StatelessWidget {
+  const _SummaryValue({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(icon, size: 16),
+              const SizedBox(width: 5),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _HistoryCard extends StatelessWidget {
   const _HistoryCard({
     required this.transaction,
     required this.category,
     required this.privacyMode,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final ExpenseTransaction transaction;
   final CategoryModel? category;
   final bool privacyMode;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -275,84 +486,104 @@ class _HistoryCard extends StatelessWidget {
         ? AppPalette.sky
         : colorFromHex(category!.hexColor);
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: <Widget>[
-            CircleAvatar(
-              backgroundColor: accent,
-              child: Icon(
-                transaction.isDebit
-                    ? Icons.north_east_rounded
-                    : Icons.south_west_rounded,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onEdit,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(
+                  transaction.isDebit
+                      ? Icons.north_east_rounded
+                      : Icons.south_west_rounded,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      transaction.merchant,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${category?.name ?? 'Uncategorized'} · '
+                      '${transactionDateFormat.format(transaction.timestamp)}',
+                    ),
+                    if (transaction.accountTail.isNotEmpty)
+                      Text('Account •••• ${transaction.accountTail}'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   Text(
-                    transaction.merchant,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
+                    privacyMode
+                        ? '$defaultCurrencySymbol •••'
+                        : '${transaction.isDebit ? '-' : '+'}'
+                              '${inrCurrency.format(transaction.amount)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: transaction.isDebit
+                          ? Theme.of(context).colorScheme.error
+                          : AppPalette.mintDeep,
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${category?.name ?? 'Uncategorized'} · '
-                    '${transactionDateFormat.format(transaction.timestamp)}',
+                  PopupMenuButton<_HistoryAction>(
+                    tooltip: 'Transaction actions',
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.more_horiz_rounded, size: 20),
+                    onSelected: (_HistoryAction action) {
+                      switch (action) {
+                        case _HistoryAction.edit:
+                          onEdit();
+                        case _HistoryAction.delete:
+                          onDelete();
+                      }
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return const <PopupMenuEntry<_HistoryAction>>[
+                        PopupMenuItem<_HistoryAction>(
+                          value: _HistoryAction.edit,
+                          child: ListTile(
+                            leading: Icon(Icons.edit_rounded),
+                            title: Text('Edit'),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        PopupMenuItem<_HistoryAction>(
+                          value: _HistoryAction.delete,
+                          child: ListTile(
+                            leading: Icon(Icons.delete_outline_rounded),
+                            title: Text('Delete'),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ];
+                    },
                   ),
-                  if (transaction.accountTail.isNotEmpty)
-                    Text('Account •••• ${transaction.accountTail}'),
                 ],
               ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              privacyMode
-                  ? '₹ •••'
-                  : '${transaction.isDebit ? '-' : '+'}'
-                        '${inrCurrency.format(transaction.amount)}',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                color: transaction.isDebit
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _HistoryEmptyState extends StatelessWidget {
-  const _HistoryEmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(Icons.search_off_rounded, size: 68),
-            SizedBox(height: 14),
-            Text(
-              'No matching transactions',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-            ),
-            SizedBox(height: 6),
-            Text(
-              'Try another search, type, or date filter.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+enum _HistoryAction { edit, delete }

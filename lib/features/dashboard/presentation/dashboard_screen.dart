@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
+import 'package:smart_expense_manager/core/widgets/playful_empty_state.dart';
+import 'package:smart_expense_manager/features/dashboard/presentation/monthly_insight_card.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 
@@ -28,19 +30,24 @@ class DashboardScreen extends ConsumerWidget {
     return SafeArea(
       child: transactions.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object error, StackTrace stackTrace) => const _EmptyState(
+        error: (Object error, StackTrace stackTrace) => const PlayfulEmptyState(
           icon: Icons.error_outline_rounded,
-          title: 'Could not open local analytics',
-          message: 'Your data is still stored only on this device.',
+          title: 'Analytics took a tiny nap',
+          message:
+              'Your money data is still safe and stored only on this device.',
+          accentColor: AppPalette.rose,
         ),
         data: (List<ExpenseTransaction> items) {
           return categories.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (Object error, StackTrace stackTrace) => const _EmptyState(
-              icon: Icons.category_outlined,
-              title: 'Categories are unavailable',
-              message: 'Restart PiggyAI and try again.',
-            ),
+            error: (Object error, StackTrace stackTrace) =>
+                const PlayfulEmptyState(
+                  icon: Icons.category_outlined,
+                  title: 'Categories are hiding',
+                  message:
+                      'Restart PiggyAI and they should pop back into view.',
+                  accentColor: AppPalette.sky,
+                ),
             data: (List<CategoryModel> categoryItems) {
               return _DashboardBody(
                 transactions: items,
@@ -107,8 +114,9 @@ class _DashboardBody extends StatelessWidget {
       }
     }
 
-    String amount(double value) =>
-        privacyMode ? '₹ •••••' : inrCurrency.format(value);
+    String amount(double value) => privacyMode
+        ? '$defaultCurrencySymbol •••••'
+        : inrCurrency.format(value);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 120),
@@ -121,9 +129,7 @@ class _DashboardBody extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     'Hello, smart spender 👋',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 4),
                   const Text('Everything here is processed on your phone.'),
@@ -145,34 +151,59 @@ class _DashboardBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: AppPalette.lavender,
-            borderRadius: BorderRadius.circular(28),
+            gradient: AppPalette.heroGradient,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: AppPalette.lavenderDeep.withValues(alpha: 0.13),
+                blurRadius: 26,
+                offset: const Offset(0, 12),
+              ),
+            ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: <Widget>[
-              const Text(
-                'Spent this month',
-                style: TextStyle(fontWeight: FontWeight.w700),
+              Positioned(
+                right: -8,
+                top: -12,
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 72,
+                  color: Colors.white.withValues(alpha: 0.34),
+                ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                amount(spent),
-                style: Theme.of(
-                  context,
-                ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 14),
-              LinearProgressIndicator(
-                value: budget <= 0 ? 0 : math.min(spent / budget, 1),
-                minHeight: 12,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                budget <= 0
-                    ? 'Set category budgets in Settings.'
-                    : '${amount(math.max(budget - spent, 0))} left from ${amount(budget)}',
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    'Spent this month',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    amount(spent),
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: AppPalette.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  LinearProgressIndicator(
+                    value: budget <= 0 ? 0 : math.min(spent / budget, 1),
+                    minHeight: 12,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    budget <= 0
+                        ? 'Set category budgets in Settings.'
+                        : '${amount(math.max(budget - spent, 0))} left from ${amount(budget)}',
+                    style: const TextStyle(
+                      color: AppPalette.ink,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -198,6 +229,12 @@ class _DashboardBody extends StatelessWidget {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 14),
+        MonthlyInsightCard(
+          transactions: transactions,
+          categories: categories,
+          privacyMode: privacyMode,
         ),
         const SizedBox(height: 14),
         _ChartCard(
@@ -245,7 +282,15 @@ class _MetricCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(icon),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.62),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon),
+          ),
           const SizedBox(height: 12),
           Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 3),
@@ -275,12 +320,7 @@ class _ChartCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-            ),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             SizedBox(height: 190, child: child),
           ],
@@ -307,7 +347,9 @@ class _CategoryDonut extends StatelessWidget {
         .where((CategoryModel item) => (spending[item.id] ?? 0) > 0)
         .toList(growable: false);
     if (visible.isEmpty) {
-      return const Center(child: Text('Confirm expenses to see your donut.'));
+      return const Center(
+        child: Text('Confirm expenses to grow your colorful donut.'),
+      );
     }
     return Row(
       children: <Widget>[
@@ -403,45 +445,14 @@ class _CashFlowChart extends StatelessWidget {
             spots: spots,
             isCurved: true,
             barWidth: 5,
-            color: AppPalette.mint,
+            color: AppPalette.lavenderDeep,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: AppPalette.mint.withValues(alpha: 0.25),
+              color: AppPalette.lavender.withValues(alpha: 0.34),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(icon, size: 62),
-            const SizedBox(height: 14),
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center),
-          ],
-        ),
       ),
     );
   }

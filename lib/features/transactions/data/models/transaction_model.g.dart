@@ -44,24 +44,29 @@ const TransactionModelSchema = CollectionSchema(
       type: IsarType.string,
     ),
     r'isManual': PropertySchema(id: 6, name: r'isManual', type: IsarType.bool),
-    r'smsFingerprint': PropertySchema(
+    r'isRecurring': PropertySchema(
       id: 7,
+      name: r'isRecurring',
+      type: IsarType.bool,
+    ),
+    r'smsFingerprint': PropertySchema(
+      id: 8,
       name: r'smsFingerprint',
       type: IsarType.string,
     ),
     r'status': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TransactionModelstatusEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
     r'type': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactionModeltypeEnumValueMap,
@@ -128,10 +133,11 @@ void _transactionModelSerialize(
   writer.writeString(offsets[4], object.encryptedMerchant);
   writer.writeString(offsets[5], object.encryptedOriginalSmsText);
   writer.writeBool(offsets[6], object.isManual);
-  writer.writeString(offsets[7], object.smsFingerprint);
-  writer.writeByte(offsets[8], object.status.index);
-  writer.writeDateTime(offsets[9], object.timestamp);
-  writer.writeByte(offsets[10], object.type.index);
+  writer.writeBool(offsets[7], object.isRecurring);
+  writer.writeString(offsets[8], object.smsFingerprint);
+  writer.writeByte(offsets[9], object.status.index);
+  writer.writeDateTime(offsets[10], object.timestamp);
+  writer.writeByte(offsets[11], object.type.index);
 }
 
 TransactionModel _transactionModelDeserialize(
@@ -148,15 +154,16 @@ TransactionModel _transactionModelDeserialize(
     encryptedOriginalSmsText: reader.readStringOrNull(offsets[5]) ?? '',
     id: id,
     isManual: reader.readBoolOrNull(offsets[6]) ?? false,
-    smsFingerprint: reader.readStringOrNull(offsets[7]),
+    isRecurring: reader.readBoolOrNull(offsets[7]) ?? false,
+    smsFingerprint: reader.readStringOrNull(offsets[8]),
     status:
         _TransactionModelstatusValueEnumMap[reader.readByteOrNull(
-          offsets[8],
+          offsets[9],
         )] ??
         TransactionStatus.pending,
-    timestamp: reader.readDateTime(offsets[9]),
+    timestamp: reader.readDateTime(offsets[10]),
     type:
-        _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+        _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
         TransactionType.debit,
   );
   object.createdAt = reader.readDateTime(offsets[2]);
@@ -185,16 +192,18 @@ P _transactionModelDeserializeProp<P>(
     case 6:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
       return (_TransactionModelstatusValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
               TransactionStatus.pending)
           as P;
-    case 9:
-      return (reader.readDateTime(offset)) as P;
     case 10:
+      return (reader.readDateTime(offset)) as P;
+    case 11:
       return (_TransactionModeltypeValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
@@ -1155,6 +1164,15 @@ extension TransactionModelQueryFilter
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  isRecurringEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isRecurring', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
   smsFingerprintIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1586,6 +1604,20 @@ extension TransactionModelQuerySortBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByIsRecurring() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isRecurring', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByIsRecurringDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isRecurring', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   sortBySmsFingerprint() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'smsFingerprint', Sort.asc);
@@ -1755,6 +1787,20 @@ extension TransactionModelQuerySortThenBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByIsRecurring() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isRecurring', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByIsRecurringDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isRecurring', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   thenBySmsFingerprint() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'smsFingerprint', Sort.asc);
@@ -1871,6 +1917,13 @@ extension TransactionModelQueryWhereDistinct
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QDistinct>
+  distinctByIsRecurring() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isRecurring');
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QDistinct>
   distinctBySmsFingerprint({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(
@@ -1952,6 +2005,12 @@ extension TransactionModelQueryProperty
   QueryBuilder<TransactionModel, bool, QQueryOperations> isManualProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isManual');
+    });
+  }
+
+  QueryBuilder<TransactionModel, bool, QQueryOperations> isRecurringProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isRecurring');
     });
   }
 

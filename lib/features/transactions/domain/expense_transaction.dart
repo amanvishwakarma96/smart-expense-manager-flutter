@@ -14,6 +14,7 @@ class ExpenseTransaction {
     required this.originalSmsText,
     this.categoryId,
     this.isManual = false,
+    this.isRecurring = false,
   });
 
   final int id;
@@ -26,6 +27,7 @@ class ExpenseTransaction {
   final String accountTail;
   final String originalSmsText;
   final bool isManual;
+  final bool isRecurring;
 
   bool get isDebit => type == TransactionType.debit;
 }
