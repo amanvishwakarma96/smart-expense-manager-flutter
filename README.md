@@ -9,7 +9,8 @@ after confirmation.
 
 - No backend, account, cloud sync, advertising, analytics, or telemetry.
 - No Android `INTERNET` permission.
-- SMS and financial data never leave the device.
+- SMS and financial data never leave the device unless the user explicitly
+  creates and shares a password-protected backup.
 - Sensitive text is encrypted before persistence.
 - Original SMS text is erased after transaction confirmation.
 - Runtime Google Fonts downloads are explicitly disabled.
@@ -23,11 +24,27 @@ after confirmation.
 - Privacy-first onboarding with optional Android SMS activation.
 - Manual debit and credit entry on Android and iOS.
 - Android bank-SMS detection with a pending review queue.
+- Indian UPI, IMPS, NEFT, RTGS, ATM, card, refund, and reversal parsing rules.
 - Local merchant categorization rules and monthly category budgets.
+- Local budget-threshold notifications with privacy-safe notification text.
 - Searchable confirmed-transaction history with type and date filters.
 - Category spending and seven-day cash-flow charts.
 - Privacy amount masking and configurable biometric/device-lock timing.
+- Password-protected encrypted local backup export and restore.
 - Full local financial-data deletion with encryption-key removal.
+
+## Encrypted backup behavior
+
+- Backup creation happens only after explicit user action.
+- The user supplies a password of at least eight characters.
+- The snapshot is protected using PBKDF2-HMAC-SHA256 and AES-256-GCM.
+- The installation encryption key is never placed in the backup.
+- A restore validates the encrypted envelope and snapshot before replacing any
+  local database collections.
+- Sensitive fields are re-encrypted using the destination installation's key.
+- Temporary export files are deleted after the platform share flow completes.
+- A forgotten backup password cannot be recovered because no password or cloud
+  copy is stored.
 
 ## Stack
 
@@ -38,6 +55,8 @@ after confirmation.
 - `flutter_animate` and `fl_chart`
 - Android Keystore / iOS Keychain through `flutter_secure_storage`
 - AES-256-GCM field encryption with `cryptography`
+- Native file selection and share-sheet export for user-controlled backups
+- Local notifications for privacy-safe budget threshold alerts
 
 ## Local setup
 
@@ -67,9 +86,10 @@ flutter build apk --debug
 
 - **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
   transaction SMS detection, pending review, history search, budgets, local
-  rules, charts, privacy mode, and configurable app lock.
-- **iOS:** onboarding, manual entry, history search, budgets, local rules,
-  charts, privacy mode, and configurable app lock. Automatic SMS access is
-  intentionally unavailable.
+  alerts, encrypted backup/restore, rules, charts, privacy mode, and configurable
+  app lock.
+- **iOS:** onboarding, manual entry, history search, budgets, local alerts,
+  encrypted backup/restore, local rules, charts, privacy mode, and configurable
+  app lock. Automatic SMS access is intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.

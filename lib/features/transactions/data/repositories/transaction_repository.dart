@@ -3,16 +3,24 @@ import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 
 class TransactionRepository {
-  TransactionRepository(this._isar, this._cipher);
+  TransactionRepository(
+    Isar isar,
+    SecureCipherService cipher, {
+    BudgetAlertService? budgetAlertService,
+  }) : this._(isar, cipher, budgetAlertService);
+
+  TransactionRepository._(this._isar, this._cipher, this._budgetAlertService);
 
   final Isar _isar;
   final SecureCipherService _cipher;
+  final BudgetAlertService? _budgetAlertService;
 
   Stream<List<ExpenseTransaction>> watchPending() {
     return _isar.transactionModels
@@ -96,7 +104,11 @@ class TransactionRepository {
       status: TransactionStatus.confirmed,
       isManual: true,
     );
-    return _isar.writeTxn(() => _isar.transactionModels.put(model));
+    final int id = await _isar.writeTxn(
+      () => _isar.transactionModels.put(model),
+    );
+    await _budgetAlertService?.checkCategory(categoryId);
+    return id;
   }
 
   Future<void> confirm(int id, {int? categoryId}) async {
@@ -109,6 +121,7 @@ class TransactionRepository {
       ..categoryId = categoryId ?? model.categoryId
       ..encryptedOriginalSmsText = '';
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
+    await _budgetAlertService?.checkCategory(model.categoryId);
   }
 
   Future<void> updatePending({

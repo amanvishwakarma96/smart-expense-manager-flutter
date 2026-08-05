@@ -35,6 +35,77 @@ void main() {
       expect(result.merchantName, 'AMAN');
     });
 
+    test('parses VPA UPI debit with rupee slash notation', () {
+      final result = parser.parse(
+        sender: 'ICICIB',
+        body:
+            'Rs.799/- debited from A/c XX1122 and paid to VPA '
+            'swiggy@upi via UPI. Ref 918273.',
+      );
+
+      expect(result, isNotNull);
+      expect(result!.amount, 799);
+      expect(result.type, TransactionType.debit);
+      expect(result.accountTail, '1122');
+      expect(result.merchantName, 'swiggy@upi');
+    });
+
+    test('parses slash-delimited UPI merchant reference', () {
+      final result = parser.parse(
+        sender: 'AXISBK',
+        body: 'Rs.125 debited from A/c 1234. UPI/P2M/991122/TEA SHOP/Ref.',
+      );
+
+      expect(result, isNotNull);
+      expect(result!.type, TransactionType.debit);
+      expect(result.merchantName, 'TEA SHOP');
+    });
+
+    test('parses ATM cash withdrawal', () {
+      final result = parser.parse(
+        sender: 'KOTAKB',
+        body:
+            'INR 2,000 withdrawn from account no. 4321 at HDFC ATM '
+            'on 05-Aug. Available balance INR 8,500.',
+      );
+
+      expect(result, isNotNull);
+      expect(result!.amount, 2000);
+      expect(result.type, TransactionType.debit);
+      expect(result.accountTail, '4321');
+      expect(result.merchantName, 'HDFC ATM');
+    });
+
+    test('parses incoming NEFT transfer', () {
+      final result = parser.parse(
+        sender: 'YESBNK',
+        body:
+            'A/c XX9876 credited with INR 25,000 from ACME PRIVATE '
+            'LIMITED through NEFT.',
+      );
+
+      expect(result, isNotNull);
+      expect(result!.amount, 25000);
+      expect(result.type, TransactionType.credit);
+      expect(result.accountTail, '9876');
+      expect(result.merchantName, 'ACME PRIVATE LIMITED');
+    });
+
+    test('classifies card reversal as credit', () {
+      final result = parser.parse(
+        sender: 'BANK',
+        body:
+            'A purchase of INR 499 on card ending with 7788 was reversed '
+            'and credited as refund from AMAZON via CARD.',
+      );
+
+      expect(result, isNotNull);
+      expect(result!.amount, 499);
+      expect(result.type, TransactionType.credit);
+      expect(result.accountTail, '7788');
+      expect(result.merchantName, 'AMAZON');
+    });
+
     test('parses international card purchase', () {
       final result = parser.parse(
         sender: 'BANK',
@@ -60,6 +131,15 @@ void main() {
       final result = parser.parse(
         sender: 'BANK',
         body: 'Available balance in A/c XX7788 is INR 25,500.',
+      );
+
+      expect(result, isNull);
+    });
+
+    test('rejects declined transactions', () {
+      final result = parser.parse(
+        sender: 'BANK',
+        body: 'Transaction of INR 500 declined due to insufficient balance.',
       );
 
       expect(result, isNull);

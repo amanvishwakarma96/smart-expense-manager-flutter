@@ -1,0 +1,57 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:cross_file/cross_file.dart' as cross;
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
+
+class BackupFileService {
+  static const int _maximumBackupBytes = 25 * 1024 * 1024;
+  static const XTypeGroup _backupType = XTypeGroup(
+    label: 'PiggyAI encrypted backup',
+    extensions: <String>['piggybackup'],
+    mimeTypes: <String>['application/octet-stream'],
+    uniformTypeIdentifiers: <String>['public.data'],
+  );
+
+  Future<void> shareBackup(
+    BackupExportResult backup, {
+    Rect? sharePositionOrigin,
+  }) async {
+    final Directory temporaryDirectory = await getTemporaryDirectory();
+    final File file = File('${temporaryDirectory.path}/${backup.fileName}');
+    await file.writeAsBytes(backup.bytes, flush: true);
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          title: 'PiggyAI encrypted backup',
+          subject: 'PiggyAI encrypted backup',
+          text:
+              'Password-protected PiggyAI backup. Keep the password separate.',
+          files: <cross.XFile>[cross.XFile(file.path)],
+          sharePositionOrigin: sharePositionOrigin,
+        ),
+      );
+    } finally {
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+  }
+
+  Future<Uint8List?> pickBackup() async {
+    final cross.XFile? selected = await openFile(
+      acceptedTypeGroups: const <XTypeGroup>[_backupType],
+    );
+    if (selected == null) {
+      return null;
+    }
+    if (await selected.length() > _maximumBackupBytes) {
+      throw const FormatException('Backup file is larger than 25 MB');
+    }
+    return Uint8List.fromList(await selected.readAsBytes());
+  }
+}

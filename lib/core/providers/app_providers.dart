@@ -3,6 +3,9 @@ import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/app_lock_service.dart';
 import 'package:smart_expense_manager/core/security/onboarding_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/settings/services/backup_file_service.dart';
+import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
+import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/category_repository.dart';
@@ -19,11 +22,17 @@ final Provider<SecureCipherService> cipherProvider =
       throw StateError('cipherProvider must be overridden at startup');
     });
 
+final Provider<BudgetAlertService> budgetAlertServiceProvider =
+    Provider<BudgetAlertService>((Ref ref) {
+      return BudgetAlertService(isar: ref.watch(isarProvider));
+    });
+
 final Provider<TransactionRepository> transactionRepositoryProvider =
     Provider<TransactionRepository>((Ref ref) {
       return TransactionRepository(
         ref.watch(isarProvider),
         ref.watch(cipherProvider),
+        budgetAlertService: ref.watch(budgetAlertServiceProvider),
       );
     });
 
@@ -36,6 +45,17 @@ final Provider<MerchantRuleRepository> merchantRuleRepositoryProvider =
     Provider<MerchantRuleRepository>((Ref ref) {
       return MerchantRuleRepository(ref.watch(isarProvider));
     });
+
+final Provider<LocalBackupService> localBackupServiceProvider =
+    Provider<LocalBackupService>((Ref ref) {
+      return LocalBackupService(
+        isar: ref.watch(isarProvider),
+        cipher: ref.watch(cipherProvider),
+      );
+    });
+
+final Provider<BackupFileService> backupFileServiceProvider =
+    Provider<BackupFileService>((Ref ref) => BackupFileService());
 
 final Provider<SmsEngineCoordinator> smsEngineCoordinatorProvider =
     Provider<SmsEngineCoordinator>((Ref ref) {

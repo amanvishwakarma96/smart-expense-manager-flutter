@@ -99,4 +99,29 @@ void main() {
     final String method = source.substring(start, end);
     expect(method, contains("encryptedOriginalSmsText = ''"));
   });
+
+  test('backup export never extracts the installation encryption key', () {
+    final String serviceSource = File(
+      'lib/features/settings/services/local_backup_service.dart',
+    ).readAsStringSync();
+    final String codecSource = File(
+      'lib/features/settings/services/encrypted_backup_codec.dart',
+    ).readAsStringSync();
+
+    expect(serviceSource, isNot(contains('extractBytes')));
+    expect(serviceSource, isNot(contains('piggyai.aes256.key')));
+    expect(codecSource, contains('Pbkdf2'));
+    expect(codecSource, contains('AesGcm.with256bits'));
+  });
+
+  test('budget notification bodies do not read sensitive transaction text', () {
+    final String source = File(
+      'lib/features/settings/services/budget_alert_service.dart',
+    ).readAsStringSync();
+
+    expect(source, isNot(contains('encryptedMerchant')));
+    expect(source, isNot(contains('encryptedAccountTail')));
+    expect(source, isNot(contains('encryptedOriginalSmsText')));
+    expect(source, isNot(contains('originalSmsText')));
+  });
 }
