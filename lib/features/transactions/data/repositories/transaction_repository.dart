@@ -11,10 +11,16 @@ import 'package:smart_expense_manager/features/transactions/domain/expense_trans
 
 class TransactionRepository {
   TransactionRepository(
-    this._isar,
-    this._cipher, {
+    Isar isar,
+    SecureCipherService cipher, {
     BudgetAlertService? budgetAlertService,
-  }) : _budgetAlertService = budgetAlertService;
+  }) : this._(isar, cipher, budgetAlertService);
+
+  TransactionRepository._(
+    this._isar,
+    this._cipher,
+    this._budgetAlertService,
+  );
 
   final Isar _isar;
   final SecureCipherService _cipher;
