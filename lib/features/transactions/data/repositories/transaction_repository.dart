@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/goals/data/models/savings_goal_model.dart';
 import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
@@ -180,6 +181,7 @@ class TransactionRepository {
     return _isar.writeTxn(() async {
       await _isar.transactionModels.clear();
       await _isar.recurringTransactionModels.clear();
+      await _isar.savingsGoalModels.clear();
       await _isar.merchantRuleModels.clear();
       await _isar.categoryModels.clear();
     });

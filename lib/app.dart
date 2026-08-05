@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:smart_expense_manager/features/goals/presentation/goals_calendar_screen.dart';
 import 'package:smart_expense_manager/features/settings/presentation/onboarding_screen.dart';
 import 'package:smart_expense_manager/features/settings/presentation/settings_screen.dart';
 import 'package:smart_expense_manager/features/transactions/presentation/manual_transaction_dialog.dart';
@@ -233,6 +234,7 @@ class _HomeShellState extends State<HomeShell> {
     DashboardScreen(),
     PendingTransactionsScreen(),
     TransactionHistoryScreen(),
+    GoalsCalendarScreen(),
     SettingsScreen(),
   ];
 
@@ -240,11 +242,13 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showManualTransactionDialog(context),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add'),
-      ),
+      floatingActionButton: _index <= 2
+          ? FloatingActionButton.extended(
+              onPressed: () => showManualTransactionDialog(context),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Add'),
+            )
+          : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (int value) => setState(() => _index = value),
@@ -260,6 +264,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: Icon(Icons.receipt_long_rounded),
             label: 'History',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.savings_rounded),
+            label: 'Goals',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_rounded),

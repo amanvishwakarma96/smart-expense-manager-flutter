@@ -2,6 +2,38 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.5.0] - Unreleased
+
+### Added
+
+- Encrypted local savings goals with editable targets, current progress, optional
+  target dates, colors, and icons.
+- One-tap local goal contributions with five playful milestone stars.
+- A privacy-aware monthly cash-flow calendar built only from confirmed
+  transactions.
+- Daily transaction drill-down from calendar cells and month-level income,
+  spending, and net summaries.
+- A dedicated Goals destination with clear separation from transaction entry.
+- Savings-goal and Phase 6 offline/privacy regression tests.
+
+### Changed
+
+- Encrypted backup snapshots now use version 3 and include savings goals while
+  retaining restore compatibility with versions 1 and 2.
+- Full local-data deletion now clears savings goals together with transactions,
+  recurring schedules, rules, categories, and the installation key.
+- The transaction floating action button is hidden on Goals and Settings so
+  each destination keeps one obvious primary action.
+
+### Security
+
+- Goal names are encrypted before local persistence and decrypted only for
+  on-device display or explicit password-protected backup creation.
+- Cash-flow calendar calculations use only locally decrypted confirmed
+  transactions and respect privacy amount masking.
+- No backend, analytics, remote AI, cloud sync, or Android internet permission
+  was introduced.
+
 ## [0.4.0] - Unreleased
 
 ### Added
