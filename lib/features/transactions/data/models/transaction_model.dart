@@ -17,6 +17,7 @@ class TransactionModel {
     this.encryptedAccountTail = '',
     this.smsFingerprint,
     this.isManual = false,
+    this.isRecurring = false,
   }) : createdAt = DateTime.now();
 
   Id id;
@@ -39,5 +40,6 @@ class TransactionModel {
   String? smsFingerprint;
 
   bool isManual;
+  bool isRecurring;
   DateTime createdAt;
 }
