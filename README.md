@@ -17,7 +17,8 @@ after confirmation.
 - No Android `INTERNET` permission.
 - SMS and financial data never leave the device unless the user explicitly
   creates and shares a password-protected backup.
-- Sensitive text is encrypted before persistence.
+- Sensitive text, including merchant and savings-goal names, is encrypted before
+  persistence.
 - Original SMS text is erased after transaction confirmation.
 - Runtime Google Fonts downloads are explicitly disabled.
 - Android backup and device-transfer backup are disabled.
@@ -39,13 +40,36 @@ after confirmation.
 - Searchable confirmed-transaction history with type and date filters.
 - Monthly local insights including daily average, top category, and
   month-over-month spending movement.
+- Encrypted savings goals with contribution progress, optional dates, colors,
+  icons, and five playful milestone stars.
+- A monthly cash-flow calendar with privacy masking and daily confirmed-
+  transaction drill-down.
 - Category spending and seven-day cash-flow charts.
 - Animated pastel cards, tactile controls, colorful summaries, and friendly
   empty states.
 - Privacy amount masking and configurable biometric/device-lock timing.
 - Password-protected encrypted local backup export and restore, including
-  recurring schedules.
+  recurring schedules and savings goals.
 - Full local financial-data deletion with encryption-key removal.
+
+## Savings goals and rewards
+
+- Goal names are encrypted using the installation-specific key.
+- Users can set a target, record an existing balance, add contributions, choose
+  a target date, and select a playful color and icon.
+- Progress unlocks five local milestone stars at started, 25%, 50%, 75%, and
+  100% completion.
+- Goal amounts respect the global privacy-masking toggle.
+- Archived goals leave the active list but remain locally stored and included in
+  explicit encrypted backups.
+
+## Cash-flow calendar
+
+- Calendar cells are calculated only from confirmed local transactions.
+- Debit days, credit days, and mixed days use different pastel signals.
+- Tapping a populated day opens an on-device list of that day's transactions.
+- Monthly income, spending, and net totals respect privacy masking.
+- Pending transactions never appear until the user confirms them.
 
 ## Recurring transaction behavior
 
@@ -66,6 +90,8 @@ after confirmation.
 - A restore validates the encrypted envelope and snapshot before replacing any
   local database collections.
 - Sensitive fields are re-encrypted using the destination installation's key.
+- Snapshot version 3 includes recurring schedules and savings goals while
+  versions 1 and 2 remain restorable.
 - Temporary export files are deleted after the platform share flow completes.
 - A forgotten backup password cannot be recovered because no password or cloud
   copy is stored.
@@ -110,11 +136,12 @@ flutter build apk --debug
 
 - **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
   transaction SMS detection, pending review, recurring transactions, editable
-  history, budgets, local alerts, encrypted backup/restore, rules, insights,
-  charts, privacy mode, and configurable app lock.
+  history, savings goals, cash-flow calendar, budgets, local alerts, encrypted
+  backup/restore, rules, insights, charts, privacy mode, and configurable app
+  lock.
 - **iOS:** onboarding, manual entry, recurring transactions, editable history,
-  budgets, local alerts, encrypted backup/restore, local rules, insights,
-  charts, privacy mode, and configurable app lock. Automatic SMS access is
-  intentionally unavailable.
+  savings goals, cash-flow calendar, budgets, local alerts, encrypted
+  backup/restore, local rules, insights, charts, privacy mode, and configurable
+  app lock. Automatic SMS access is intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.
