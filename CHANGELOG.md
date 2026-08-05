@@ -2,6 +2,24 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.3.0] - Unreleased
+
+### Added
+
+- Password-protected encrypted backup export through the platform share sheet.
+- Encrypted backup restore with full validation and explicit local-data replacement confirmation.
+- Local category budget notifications at a configurable warning threshold and 100% usage.
+- Expanded Indian bank SMS parsing for UPI, IMPS, NEFT, RTGS, ATM withdrawals, card transactions, refunds, and reversals.
+- Backup encryption, budget-threshold, parser, and privacy-contract regression tests.
+
+### Security
+
+- Backups use a password-derived AES-256-GCM key and never export the installation encryption key.
+- Restored sensitive fields are re-encrypted with the destination device's secure installation key.
+- Backup files are accepted only after type, size, version, identity, reference, and payload validation.
+- Temporary export files are deleted after the user-controlled share operation.
+- Budget notifications never include merchant, account, balance, amount, or raw SMS details.
+
 ## [0.2.0] - Unreleased
 
 ### Added
