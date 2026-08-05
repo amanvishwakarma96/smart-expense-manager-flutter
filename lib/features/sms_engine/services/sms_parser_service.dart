@@ -3,16 +3,18 @@ import 'package:smart_expense_manager/features/transactions/domain/expense_trans
 
 class SmsParserService {
   static final RegExp _amountPrefix = RegExp(
-    r'(?:INR|Rs\.?|₹|USD|\$)\s*([\d,]+(?:\.\d{1,2})?)',
+    r'(?:INR|Rs\.?|₹|USD|\$)\s*[:\-]?\s*'
+    r'([\d,]+(?:\.\d{1,2})?)(?:/-)?',
     caseSensitive: false,
   );
   static final RegExp _amountSuffix = RegExp(
-    r'([\d,]+(?:\.\d{1,2})?)\s*(?:INR|USD)\b',
+    r'([\d,]+(?:\.\d{1,2})?)(?:/-)?\s*(?:INR|USD)\b',
     caseSensitive: false,
   );
   static final RegExp _accountTail = RegExp(
-    r'(?:a/c|acct|account|card)(?:\s*(?:no\.?|number|ending|xx|x)?)?'
-    r'[\s:*x-]*([0-9]{3,4})\b',
+    r'(?:a/c|acct|account|card)'
+    r'(?:\s*(?:no\.?|number|ending(?:\s+(?:in|with))?|xx|x)?)?'
+    r'[\s:*x#-]*([0-9]{3,4})\b',
     caseSensitive: false,
   );
 
@@ -21,10 +23,13 @@ class SmsParserService {
     'spent',
     'purchase',
     'withdrawn',
+    'withdrawal',
     'paid',
     'sent',
     'dr.',
     'debit card',
+    'transferred from',
+    'cash withdrawal',
   ];
 
   static const List<String> _creditSignals = <String>[
@@ -33,7 +38,10 @@ class SmsParserService {
     'deposited',
     'refund',
     'reversed',
+    'reversal',
     'cr.',
+    'cash deposit',
+    'money added',
   ];
 
   ParsedTransaction? parse({
@@ -80,7 +88,8 @@ class SmsParserService {
     final String lower = text.toLowerCase();
     if (lower.contains('otp') ||
         lower.contains('one time password') ||
-        lower.contains('verification code')) {
+        lower.contains('verification code') ||
+        lower.contains('do not share this code')) {
       return false;
     }
     final bool hasAmount =
@@ -146,20 +155,39 @@ class SmsParserService {
     final List<RegExp> patterns = <RegExp>[
       RegExp(
         r"\bfrom\s+([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
-        r"\s+via\s+(?:UPI|IMPS|NEFT)\b",
+        r"\s+(?:via|through)\s+(?:UPI|IMPS|NEFT|RTGS)\b",
         caseSensitive: false,
       ),
       RegExp(
-        r"(?:at|to|from)\s+([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
-        r"(?=\s+(?:on|via|using|ref|txn|avl|available|upi|imps|neft)|[.,]|$)",
+        r"\b(?:paid|sent|transferred)\s+to\s+"
+        r"(?:VPA\s+)?([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
+        r"(?=\s+(?:via|through|using|on|ref|txn|upi)|[.,]|$)",
         caseSensitive: false,
       ),
       RegExp(
-        r'(?:UPI|VPA)[:\s-]+([A-Za-z0-9._-]+@[A-Za-z0-9.-]+)',
+        r"\bto\s+(?!account\b|a/c\b|acct\b|card\b)"
+        r"(?:VPA\s+)?([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
+        r"(?=\s+(?:via|through|using|on|ref|txn|upi|imps|neft)|[.,]|$)",
         caseSensitive: false,
       ),
       RegExp(
-        r"(?:merchant|payee)[:\s-]+([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48})",
+        r"\b(?:at|merchant|payee|towards)[:\s-]+"
+        r"([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
+        r"(?=\s+(?:on|via|using|ref|txn|avl|available)|[.,]|$)",
+        caseSensitive: false,
+      ),
+      RegExp(
+        r'\b(?:UPI|VPA)[:\s-]+([A-Za-z0-9._-]+@[A-Za-z0-9.-]+)',
+        caseSensitive: false,
+      ),
+      RegExp(
+        r'\bUPI/(?:P2[PM]/)?(?:\d+/)?'
+        r"([A-Za-z][A-Za-z0-9 .&@'_-]{1,48})(?=/|[.,]|$)",
+        caseSensitive: false,
+      ),
+      RegExp(
+        r"\b(?:info|remarks)[:\s-]+"
+        r"([A-Za-z][A-Za-z0-9 .&@'_-]{1,48})(?=[.,]|$)",
         caseSensitive: false,
       ),
     ];
@@ -171,12 +199,29 @@ class SmsParserService {
       }
     }
 
+    final String lower = text.toLowerCase();
+    if (lower.contains('atm') || lower.contains('cash withdrawal')) {
+      return 'ATM cash withdrawal';
+    }
+    if (lower.contains('upi')) {
+      return 'UPI transaction';
+    }
+    if (lower.contains('imps') ||
+        lower.contains('neft') ||
+        lower.contains('rtgs')) {
+      return 'Bank transfer';
+    }
+    if (lower.contains('card')) {
+      return 'Card transaction';
+    }
+
     final String senderValue = sender?.trim() ?? '';
     return senderValue.isEmpty ? 'Bank transaction' : senderValue;
   }
 
   String _cleanMerchant(String value) {
     return value
+        .replaceFirst(RegExp(r'^VPA\s+', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .replaceAll(RegExp(r'[-:,.]+$'), '')
         .trim();
@@ -195,7 +240,7 @@ class SmsParserService {
       score += 0.1;
     }
     if (RegExp(
-      r'\b(?:UPI|IMPS|NEFT|card|a/c)\b',
+      r'\b(?:UPI|IMPS|NEFT|RTGS|ATM|card|a/c)\b',
       caseSensitive: false,
     ).hasMatch(text)) {
       score += 0.1;
