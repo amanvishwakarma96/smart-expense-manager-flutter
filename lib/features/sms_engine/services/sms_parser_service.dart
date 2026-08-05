@@ -103,6 +103,12 @@ class SmsParserService {
 
   TransactionType? _detectType(String text) {
     final String lower = text.toLowerCase();
+    if (lower.contains('refund') ||
+        lower.contains('reversed') ||
+        lower.contains('reversal')) {
+      return TransactionType.credit;
+    }
+
     final bool debit = _debitSignals.any(lower.contains);
     final bool credit = _creditSignals.any(lower.contains);
 
@@ -155,7 +161,7 @@ class SmsParserService {
     final List<RegExp> patterns = <RegExp>[
       RegExp(
         r"\bfrom\s+([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
-        r"\s+(?:via|through)\s+(?:UPI|IMPS|NEFT|RTGS)\b",
+        r"\s+(?:via|through)\s+(?:UPI|IMPS|NEFT|RTGS|CARD)\b",
         caseSensitive: false,
       ),
       RegExp(
@@ -167,7 +173,7 @@ class SmsParserService {
       RegExp(
         r"\bto\s+(?!account\b|a/c\b|acct\b|card\b)"
         r"(?:VPA\s+)?([A-Za-z0-9][A-Za-z0-9 .&@'_-]{1,48}?)"
-        r"(?=\s+(?:via|through|using|on|ref|txn|upi|imps|neft)|[.,]|$)",
+        r"(?=\s+(?:via|through|using|on|ref|txn|upi|imps|neft|rtgs)|[.,]|$)",
         caseSensitive: false,
       ),
       RegExp(
