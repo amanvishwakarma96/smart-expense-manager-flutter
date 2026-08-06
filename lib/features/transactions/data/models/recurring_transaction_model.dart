@@ -16,6 +16,8 @@ class RecurringTransactionModel {
     this.scheduleDay = 1,
     required this.nextDueAt,
     this.isActive = true,
+    this.reminderEnabled = false,
+    this.reminderDaysBefore = 1,
   });
 
   Id id;
@@ -33,5 +35,7 @@ class RecurringTransactionModel {
   int scheduleDay;
   DateTime nextDueAt;
   bool isActive;
+  bool reminderEnabled;
+  int reminderDaysBefore;
   DateTime createdAt = DateTime.now();
 }
