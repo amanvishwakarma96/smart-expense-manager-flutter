@@ -4,6 +4,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/goals/data/models/savings_goal_model.dart';
+import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
@@ -16,13 +17,20 @@ class TransactionRepository {
     Isar isar,
     SecureCipherService cipher, {
     BudgetAlertService? budgetAlertService,
-  }) : this._(isar, cipher, budgetAlertService);
+    BillReminderService? reminderService,
+  }) : this._(isar, cipher, budgetAlertService, reminderService);
 
-  TransactionRepository._(this._isar, this._cipher, this._budgetAlertService);
+  TransactionRepository._(
+    this._isar,
+    this._cipher,
+    this._budgetAlertService,
+    this._reminderService,
+  );
 
   final Isar _isar;
   final SecureCipherService _cipher;
   final BudgetAlertService? _budgetAlertService;
+  final BillReminderService? _reminderService;
 
   Stream<List<ExpenseTransaction>> watchPending() {
     return _isar.transactionModels
@@ -177,14 +185,22 @@ class TransactionRepository {
     });
   }
 
-  Future<void> clearAll() {
-    return _isar.writeTxn(() async {
+  Future<void> clearAll() async {
+    final List<int> recurringIds = (await _isar.recurringTransactionModels
+            .where()
+            .findAll())
+        .map((RecurringTransactionModel item) => item.id)
+        .toList(growable: false);
+    await _isar.writeTxn(() async {
       await _isar.transactionModels.clear();
       await _isar.recurringTransactionModels.clear();
       await _isar.savingsGoalModels.clear();
       await _isar.merchantRuleModels.clear();
       await _isar.categoryModels.clear();
     });
+    for (final int id in recurringIds) {
+      await _reminderService?.cancelForTemplate(id);
+    }
   }
 
   Future<String> fingerprintFor(String value) async {
