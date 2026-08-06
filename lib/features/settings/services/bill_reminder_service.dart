@@ -16,7 +16,7 @@ class BillReminderService {
 
   BillReminderService._(this._isar, this._notifications);
 
-  static const List<int> supportedLeadDays = <int>[0, 1, 3, 7];
+  static const List<int> supportedLeadDays = <int>[1, 3, 7];
   static const int _notificationIdBase = 700000;
 
   final Isar _isar;
