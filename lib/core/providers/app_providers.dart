@@ -6,6 +6,7 @@ import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/goals/data/repositories/savings_goal_repository.dart';
 import 'package:smart_expense_manager/features/goals/domain/savings_goal.dart';
 import 'package:smart_expense_manager/features/settings/services/backup_file_service.dart';
+import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
 import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
@@ -32,6 +33,11 @@ final Provider<BudgetAlertService> budgetAlertServiceProvider =
       return BudgetAlertService(isar: ref.watch(isarProvider));
     });
 
+final Provider<BillReminderService> billReminderServiceProvider =
+    Provider<BillReminderService>((Ref ref) {
+      return BillReminderService(isar: ref.watch(isarProvider));
+    });
+
 final Provider<TransactionRepository> transactionRepositoryProvider =
     Provider<TransactionRepository>((Ref ref) {
       return TransactionRepository(
@@ -47,6 +53,7 @@ recurringTransactionRepositoryProvider =
       return RecurringTransactionRepository(
         ref.watch(isarProvider),
         ref.watch(cipherProvider),
+        reminderService: ref.watch(billReminderServiceProvider),
       );
     });
 
