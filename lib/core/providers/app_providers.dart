@@ -80,6 +80,7 @@ final Provider<LocalBackupService> localBackupServiceProvider =
       return LocalBackupService(
         isar: ref.watch(isarProvider),
         cipher: ref.watch(cipherProvider),
+        reminderService: ref.watch(billReminderServiceProvider),
       );
     });
 
