@@ -220,7 +220,9 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
               title: const Text('Replace local financial data?'),
               content: const Text(
                 'Restoring permanently replaces the current transactions, '
-                'categories, budgets, and merchant rules on this device.',
+                'recurring items, reminder preferences, categories, budgets, '
+                'merchant rules, and savings goals on this device. Obsolete '
+                'scheduled reminders will be cancelled.',
               ),
               actions: <Widget>[
                 TextButton(
@@ -268,8 +270,9 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Export only when you choose. Backups are protected by your '
-              'password and contain no installation encryption key.',
+              'Export only when you choose. Backups protect transactions, '
+              'recurring schedules, reminder preferences, rules, and goals '
+              'without including the installation encryption key.',
             ),
             const SizedBox(height: 14),
             if (_busy)
