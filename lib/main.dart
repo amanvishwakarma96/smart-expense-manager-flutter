@@ -8,6 +8,7 @@ import 'package:smart_expense_manager/app.dart';
 import 'package:smart_expense_manager/core/database/app_database.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/category_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/merchant_rule_repository.dart';
@@ -31,18 +32,32 @@ Future<void> main() async {
     transactionRepository: transactions,
     merchantRuleRepository: MerchantRuleRepository(isar),
   );
+  final BillReminderService billReminders = BillReminderService(isar: isar);
+  final RecurringTransactionRepository recurring =
+      RecurringTransactionRepository(
+        isar,
+        cipher,
+        reminderService: billReminders,
+      );
   unawaited(smsEngine.drainNativeQueue());
-  unawaited(
-    RecurringTransactionRepository(isar, cipher).generateDueTransactions(),
-  );
+  unawaited(_prepareRecurringItems(recurring, billReminders));
 
   runApp(
     ProviderScope(
-      overrides: [
+      overrides: <Override>[
         isarProvider.overrideWithValue(isar),
         cipherProvider.overrideWithValue(cipher),
+        billReminderServiceProvider.overrideWithValue(billReminders),
       ],
       child: const PiggyAiApp(),
     ),
   );
+}
+
+Future<void> _prepareRecurringItems(
+  RecurringTransactionRepository recurring,
+  BillReminderService reminders,
+) async {
+  await recurring.generateDueTransactions();
+  await reminders.syncAll();
 }
