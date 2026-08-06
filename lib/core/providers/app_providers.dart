@@ -44,6 +44,7 @@ final Provider<TransactionRepository> transactionRepositoryProvider =
         ref.watch(isarProvider),
         ref.watch(cipherProvider),
         budgetAlertService: ref.watch(budgetAlertServiceProvider),
+        reminderService: ref.watch(billReminderServiceProvider),
       );
     });
 
