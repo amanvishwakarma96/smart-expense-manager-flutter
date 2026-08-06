@@ -57,7 +57,7 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('privacyMode'));
-    expect(source, contains("'$defaultCurrencySymbol •••••'"));
+    expect(source, contains("'\$defaultCurrencySymbol •••••'"));
     expect(source, contains('_amount(plan.upcomingBillTotal)'));
     expect(source, contains('_amount(bill.amount)'));
   });
