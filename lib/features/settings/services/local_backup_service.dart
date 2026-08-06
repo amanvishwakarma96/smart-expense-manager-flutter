@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/goals/data/models/savings_goal_model.dart';
+import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/settings/services/encrypted_backup_codec.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
@@ -47,16 +48,28 @@ class LocalBackupService {
     required Isar isar,
     required SecureCipherService cipher,
     EncryptedBackupCodec? codec,
-  }) : this._(isar, cipher, codec ?? EncryptedBackupCodec());
+    BillReminderService? reminderService,
+  }) : this._(
+         isar,
+         cipher,
+         codec ?? EncryptedBackupCodec(),
+         reminderService,
+       );
 
-  LocalBackupService._(this._isar, this._cipher, this._codec);
+  LocalBackupService._(
+    this._isar,
+    this._cipher,
+    this._codec,
+    this._reminderService,
+  );
 
-  static const int snapshotVersion = 3;
-  static const Set<int> supportedSnapshotVersions = <int>{1, 2, 3};
+  static const int snapshotVersion = 4;
+  static const Set<int> supportedSnapshotVersions = <int>{1, 2, 3, 4};
 
   final Isar _isar;
   final SecureCipherService _cipher;
   final EncryptedBackupCodec _codec;
+  final BillReminderService? _reminderService;
 
   Future<BackupExportResult> createEncryptedBackup(String password) async {
     final List<CategoryModel> categories = await _isar.categoryModels
@@ -108,6 +121,8 @@ class LocalBackupService {
         'scheduleDay': item.scheduleDay,
         'nextDueAt': item.nextDueAt.toUtc().toIso8601String(),
         'isActive': item.isActive,
+        'reminderEnabled': item.reminderEnabled,
+        'reminderDaysBefore': item.reminderDaysBefore,
       });
     }
 
@@ -279,6 +294,12 @@ class LocalBackupService {
       if (scheduleDay > maxScheduleDay) {
         throw const FormatException('Recurring schedule day is invalid');
       }
+      final bool reminderEnabled = rawVersion >= 4
+          ? _bool(map['reminderEnabled'], 'recurring.reminderEnabled')
+          : false;
+      final int reminderDaysBefore = rawVersion >= 4
+          ? _reminderLeadDays(map['reminderDaysBefore'])
+          : 1;
       recurring.add(
         RecurringTransactionModel(
           id: id,
@@ -296,6 +317,8 @@ class LocalBackupService {
           scheduleDay: scheduleDay,
           nextDueAt: _dateTime(map['nextDueAt'], 'recurring.nextDueAt'),
           isActive: _bool(map['isActive'], 'recurring.isActive'),
+          reminderEnabled: reminderEnabled,
+          reminderDaysBefore: reminderDaysBefore,
         ),
       );
     }
@@ -386,6 +409,12 @@ class LocalBackupService {
       );
     }
 
+    final List<int> previousRecurringIds = (await _isar
+            .recurringTransactionModels
+            .where()
+            .findAll())
+        .map((RecurringTransactionModel item) => item.id)
+        .toList(growable: false);
     await _isar.writeTxn(() async {
       await _isar.transactionModels.clear();
       await _isar.recurringTransactionModels.clear();
@@ -398,6 +427,11 @@ class LocalBackupService {
       await _isar.savingsGoalModels.putAll(goals);
       await _isar.transactionModels.putAll(transactions);
     });
+
+    for (final int id in previousRecurringIds) {
+      await _reminderService?.cancelForTemplate(id);
+    }
+    await _reminderService?.syncAll();
 
     return BackupSnapshotSummary(
       transactions: transactions.length,
@@ -479,6 +513,14 @@ class LocalBackupService {
       return false;
     }
     return _bool(value, 'optional boolean');
+  }
+
+  int _reminderLeadDays(Object? value) {
+    if (value is! int ||
+        !BillReminderService.supportedLeadDays.contains(value)) {
+      throw const FormatException('Recurring reminder lead time is invalid');
+    }
+    return value;
   }
 
   DateTime _dateTime(Object? value, String name) {
