@@ -44,7 +44,7 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
-      overrides: <Override>[
+      overrides: [
         isarProvider.overrideWithValue(isar),
         cipherProvider.overrideWithValue(cipher),
         billReminderServiceProvider.overrideWithValue(billReminders),
