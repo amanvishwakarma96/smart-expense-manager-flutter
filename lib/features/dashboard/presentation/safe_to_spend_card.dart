@@ -40,11 +40,7 @@ class SafeToSpendCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: <Color>[
-            AppPalette.mint,
-            AppPalette.sky,
-            AppPalette.lemon,
-          ],
+          colors: <Color>[AppPalette.mint, AppPalette.sky, AppPalette.lemon],
         ),
         borderRadius: BorderRadius.circular(30),
       ),

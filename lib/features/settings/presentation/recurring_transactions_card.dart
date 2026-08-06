@@ -198,11 +198,14 @@ class RecurringTransactionsCard extends ConsumerWidget {
                                       ),
                                       if (item.reminderEnabled && item.isDebit)
                                         Padding(
-                                          padding: const EdgeInsets.only(top: 5),
+                                          padding: const EdgeInsets.only(
+                                            top: 5,
+                                          ),
                                           child: Row(
                                             children: <Widget>[
                                               const Icon(
-                                                Icons.notifications_active_rounded,
+                                                Icons
+                                                    .notifications_active_rounded,
                                                 size: 15,
                                               ),
                                               const SizedBox(width: 4),

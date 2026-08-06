@@ -186,11 +186,10 @@ class TransactionRepository {
   }
 
   Future<void> clearAll() async {
-    final List<int> recurringIds = (await _isar.recurringTransactionModels
-            .where()
-            .findAll())
-        .map((RecurringTransactionModel item) => item.id)
-        .toList(growable: false);
+    final List<int> recurringIds =
+        (await _isar.recurringTransactionModels.where().findAll())
+            .map((RecurringTransactionModel item) => item.id)
+            .toList(growable: false);
     await _isar.writeTxn(() async {
       await _isar.transactionModels.clear();
       await _isar.recurringTransactionModels.clear();

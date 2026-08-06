@@ -49,12 +49,7 @@ class LocalBackupService {
     required SecureCipherService cipher,
     EncryptedBackupCodec? codec,
     BillReminderService? reminderService,
-  }) : this._(
-         isar,
-         cipher,
-         codec ?? EncryptedBackupCodec(),
-         reminderService,
-       );
+  }) : this._(isar, cipher, codec ?? EncryptedBackupCodec(), reminderService);
 
   LocalBackupService._(
     this._isar,
@@ -409,12 +404,10 @@ class LocalBackupService {
       );
     }
 
-    final List<int> previousRecurringIds = (await _isar
-            .recurringTransactionModels
-            .where()
-            .findAll())
-        .map((RecurringTransactionModel item) => item.id)
-        .toList(growable: false);
+    final List<int> previousRecurringIds =
+        (await _isar.recurringTransactionModels.where().findAll())
+            .map((RecurringTransactionModel item) => item.id)
+            .toList(growable: false);
     await _isar.writeTxn(() async {
       await _isar.transactionModels.clear();
       await _isar.recurringTransactionModels.clear();
