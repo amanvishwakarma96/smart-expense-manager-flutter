@@ -86,6 +86,10 @@ class WeeklyChallengeRepository {
     });
   }
 
+  Future<void> clearAll() {
+    return _isar.writeTxn(() => _isar.weeklyChallengeModels.clear());
+  }
+
   Future<int> finalizeExpired({DateTime? now}) async {
     final DateTime current = now ?? DateTime.now();
     final List<WeeklyChallengeModel> challenges = await _isar
