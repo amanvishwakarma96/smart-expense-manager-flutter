@@ -123,12 +123,13 @@ WeeklyChallengeProgress evaluateWeeklyChallenge({
   }
 
   final int targetDays = math.max(challenge.targetDays, 1).toInt();
+  final int remainingDays = math.max(7 - elapsedDays, 0).toInt();
   return WeeklyChallengeProgress(
     progress: (noSpendDays / targetDays).clamp(0, 1).toDouble(),
     spent: spent,
     noSpendDays: noSpendDays,
     elapsedDays: elapsedDays,
-    onTrack: noSpendDays >= math.min(targetDays, elapsedDays),
+    onTrack: noSpendDays + remainingDays >= targetDays,
   );
 }
 
