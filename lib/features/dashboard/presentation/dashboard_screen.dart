@@ -8,6 +8,7 @@ import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/core/widgets/playful_empty_state.dart';
+import 'package:smart_expense_manager/features/challenges/presentation/weekly_money_challenge_card.dart';
 import 'package:smart_expense_manager/features/dashboard/presentation/monthly_insight_card.dart';
 import 'package:smart_expense_manager/features/dashboard/presentation/safe_to_spend_card.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
@@ -245,6 +246,8 @@ class _DashboardBody extends StatelessWidget {
           categories: categories,
           privacyMode: privacyMode,
         ),
+        const SizedBox(height: 14),
+        const WeeklyMoneyChallengeCard(),
         const SizedBox(height: 14),
         MonthlyInsightCard(
           transactions: transactions,
