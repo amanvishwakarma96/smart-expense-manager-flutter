@@ -12,9 +12,8 @@ class WeeklyChallengeModel {
     this.status = WeeklyChallengeStatus.active,
     this.targetAmount = 0,
     this.targetDays = 0,
-    DateTime? createdAt,
     this.finalizedAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+  });
 
   Id id;
 
@@ -28,6 +27,6 @@ class WeeklyChallengeModel {
 
   double targetAmount;
   int targetDays;
-  DateTime createdAt;
+  DateTime createdAt = DateTime.now();
   DateTime? finalizedAt;
 }
