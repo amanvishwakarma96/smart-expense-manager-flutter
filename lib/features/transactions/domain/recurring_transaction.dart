@@ -12,6 +12,8 @@ class RecurringTransaction {
     required this.nextDueAt,
     required this.isActive,
     this.categoryId,
+    this.reminderEnabled = false,
+    this.reminderDaysBefore = 1,
   });
 
   final int id;
@@ -22,6 +24,8 @@ class RecurringTransaction {
   final RecurringFrequency frequency;
   final DateTime nextDueAt;
   final bool isActive;
+  final bool reminderEnabled;
+  final int reminderDaysBefore;
 
   bool get isDebit => type == TransactionType.debit;
 }

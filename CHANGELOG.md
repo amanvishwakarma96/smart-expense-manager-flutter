@@ -2,6 +2,38 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.7.0] - Unreleased
+
+### Added
+
+- Optional local reminders 1, 3, or 7 days before recurring expenses.
+- Device-timezone reminder scheduling with reboot and app-replacement recovery.
+- A playful safe-to-spend dashboard card that reserves upcoming scheduled bills.
+- Upcoming-payment summaries with monthly and per-day spending guidance.
+- Reminder timing, safe-to-spend, backup, privacy, and offline regression tests.
+
+### Changed
+
+- Recurring expense editing now includes explicit reminder opt-in and lead-time
+  controls.
+- Encrypted backup snapshots now use version 4 and include recurring reminder
+  preferences while retaining restore compatibility with versions 1 through 3.
+- Full local deletion and backup replacement cancel obsolete scheduled
+  notifications.
+- The dashboard now separates conservative safe-to-spend planning from the
+  longer-range 30-day forecast.
+
+### Security
+
+- Bill reminder notifications never contain merchant, amount, account, balance,
+  category, or raw SMS content.
+- Reminders use inexact local scheduling and do not require exact-alarm access.
+- Notification permission is requested only after explicit reminder opt-in.
+- Safe-to-spend calculations never assume future income, never modify records,
+  and run entirely on-device.
+- No backend, cloud sync, remote AI, analytics, telemetry, or Android internet
+  permission was introduced.
+
 ## [0.6.0] - Unreleased
 
 ### Added

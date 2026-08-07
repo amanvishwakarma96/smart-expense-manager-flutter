@@ -9,8 +9,10 @@ import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/core/widgets/playful_empty_state.dart';
 import 'package:smart_expense_manager/features/dashboard/presentation/monthly_insight_card.dart';
+import 'package:smart_expense_manager/features/dashboard/presentation/safe_to_spend_card.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -23,6 +25,9 @@ class DashboardScreen extends ConsumerWidget {
     final AsyncValue<List<CategoryModel>> categories = ref.watch(
       categoriesProvider,
     );
+    final List<RecurringTransaction> recurring =
+        ref.watch(recurringTransactionsProvider).value ??
+        const <RecurringTransaction>[];
     final int pendingCount =
         ref.watch(pendingTransactionsProvider).value?.length ?? 0;
     final bool privacyMode = ref.watch(privacyModeProvider);
@@ -51,6 +56,7 @@ class DashboardScreen extends ConsumerWidget {
             data: (List<CategoryModel> categoryItems) {
               return _DashboardBody(
                 transactions: items,
+                recurring: recurring,
                 categories: categoryItems,
                 pendingCount: pendingCount,
                 privacyMode: privacyMode,
@@ -69,6 +75,7 @@ class DashboardScreen extends ConsumerWidget {
 class _DashboardBody extends StatelessWidget {
   const _DashboardBody({
     required this.transactions,
+    required this.recurring,
     required this.categories,
     required this.pendingCount,
     required this.privacyMode,
@@ -76,6 +83,7 @@ class _DashboardBody extends StatelessWidget {
   });
 
   final List<ExpenseTransaction> transactions;
+  final List<RecurringTransaction> recurring;
   final List<CategoryModel> categories;
   final int pendingCount;
   final bool privacyMode;
@@ -229,6 +237,13 @@ class _DashboardBody extends StatelessWidget {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 14),
+        SafeToSpendCard(
+          transactions: transactions,
+          recurring: recurring,
+          categories: categories,
+          privacyMode: privacyMode,
         ),
         const SizedBox(height: 14),
         MonthlyInsightCard(

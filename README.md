@@ -34,6 +34,8 @@ after confirmation.
 - Indian UPI, IMPS, NEFT, RTGS, ATM, card, refund, and reversal parsing rules.
 - Weekly and monthly recurring expenses or income that always enter review
   before they affect budgets.
+- Optional local reminders 1, 3, or 7 days before recurring expenses.
+- A conservative safe-to-spend plan that reserves upcoming scheduled bills.
 - Editable confirmed transaction history with local deletion controls.
 - Custom colorful categories with editable monthly INR budgets.
 - Full local merchant-rule creation, editing, deletion, and specific-first
@@ -53,8 +55,38 @@ after confirmation.
   empty states.
 - Privacy amount masking and configurable biometric/device-lock timing.
 - Password-protected encrypted local backup export and restore, including
-  recurring schedules and savings goals.
-- Full local financial-data deletion with encryption-key removal.
+  recurring schedules, reminder preferences, and savings goals.
+- Full local financial-data deletion with reminder cancellation and
+  encryption-key removal.
+
+## Bill reminders
+
+- Reminders are optional and available only for recurring expenses.
+- The user explicitly enables each reminder and chooses 1, 3, or 7 days before
+  the due date.
+- Reminders are scheduled for approximately 9:00 AM in the device timezone.
+- PiggyAI uses inexact local scheduling and does not request exact-alarm access.
+- Notification permission is requested only when the user saves an enabled
+  reminder.
+- Lock-screen notification text never contains the merchant, amount, account,
+  balance, category, or raw SMS content.
+- Pausing or deleting a recurring item cancels its reminder. Startup, app
+  replacement, and device reboot restore eligible reminders.
+
+## Safe-to-spend planning
+
+- The dashboard reserves every active recurring debit due before month-end.
+- The estimate uses confirmed current-month income, confirmed spending, and
+  remaining category budgets.
+- When both income and budgets are available, PiggyAI uses the lower remaining
+  amount after scheduled bills.
+- Future or recurring income is never assumed.
+- The card shows the remaining monthly amount, a daily guide, and the nearest
+  upcoming payments.
+- Privacy mode masks the safe amount, daily amount, bill reserve, and individual
+  upcoming values.
+- The calculation is guidance only and never changes transactions, budgets,
+  recurring items, or goals.
 
 ## Local spending forecast
 
@@ -107,7 +139,8 @@ after confirmation.
   confirmed automatically.
 - Month-end schedules safely clamp to the final available day of shorter
   months.
-- Users can edit, pause, resume, or delete recurring templates from Settings.
+- Users can edit, pause, resume, delete, or optionally remind themselves about
+  recurring expenses from Settings.
 
 ## Encrypted backup behavior
 
@@ -118,8 +151,10 @@ after confirmation.
 - A restore validates the encrypted envelope and snapshot before replacing any
   local database collections.
 - Sensitive fields are re-encrypted using the destination installation's key.
-- Snapshot version 3 includes recurring schedules and savings goals while
-  versions 1 and 2 remain restorable.
+- Snapshot version 4 includes recurring schedules, reminder preferences, and
+  savings goals, while versions 1, 2, and 3 remain restorable.
+- Restoring or deleting data cancels obsolete scheduled reminders and rebuilds
+  only the reminders represented by the resulting local data.
 - Temporary export files are deleted after the platform share flow completes.
 - A forgotten backup password cannot be recovered because no password or cloud
   copy is stored.
@@ -134,7 +169,7 @@ after confirmation.
 - Android Keystore / iOS Keychain through `flutter_secure_storage`
 - AES-256-GCM field encryption with `cryptography`
 - Native file selection and share-sheet export for user-controlled backups
-- Local notifications for privacy-safe budget threshold alerts
+- Local notifications with device-timezone scheduling for privacy-safe alerts
 
 ## Local setup
 
@@ -163,14 +198,15 @@ flutter build apk --debug
 ## Platform behavior
 
 - **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
-  transaction SMS detection, pending review, recurring transactions, editable
-  history, custom categories, merchant rules, local forecast, savings goals,
-  cash-flow calendar, budgets, local alerts, encrypted backup/restore, insights,
-  charts, privacy mode, and configurable app lock.
-- **iOS:** onboarding, manual entry, recurring transactions, editable history,
-  custom categories, merchant rules, local forecast, savings goals, cash-flow
-  calendar, budgets, local alerts, encrypted backup/restore, insights, charts,
-  privacy mode, and configurable app lock. Automatic SMS access is intentionally
-  unavailable.
+  transaction SMS detection, pending review, recurring transactions, local bill
+  reminders, safe-to-spend planning, editable history, custom categories,
+  merchant rules, local forecast, savings goals, cash-flow calendar, budgets,
+  local alerts, encrypted backup/restore, insights, charts, privacy mode, and
+  configurable app lock.
+- **iOS:** onboarding, manual entry, recurring transactions, local bill
+  reminders, safe-to-spend planning, editable history, custom categories,
+  merchant rules, local forecast, savings goals, cash-flow calendar, budgets,
+  local alerts, encrypted backup/restore, insights, charts, privacy mode, and
+  configurable app lock. Automatic SMS access is intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.

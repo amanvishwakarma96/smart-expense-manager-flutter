@@ -27,15 +27,16 @@ void main() {
     expect(source, contains('privacyModeProvider'));
   });
 
-  test('encrypted backup version three includes savings goals', () {
+  test('encrypted backups continue to include savings goals', () {
     final String source = File(
       'lib/features/settings/services/local_backup_service.dart',
     ).readAsStringSync();
 
-    expect(source, contains('snapshotVersion = 3'));
-    expect(source, contains('supportedSnapshotVersions = <int>{1, 2, 3}'));
+    expect(source, contains('snapshotVersion = 4'));
+    expect(source, contains('supportedSnapshotVersions = <int>{1, 2, 3, 4}'));
     expect(source, contains("'savingsGoals': goalPayload"));
     expect(source, contains('savingsGoalModels.putAll(goals)'));
+    expect(source, contains('rawVersion >= 3'));
   });
 
   test('full local deletion clears savings goals', () {

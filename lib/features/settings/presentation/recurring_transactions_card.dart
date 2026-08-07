@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
+import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
@@ -36,7 +37,7 @@ class RecurringTransactionsCard extends ConsumerWidget {
             return AlertDialog(
               title: const Text('Delete recurring item?'),
               content: Text(
-                '${transaction.merchant} will stop creating future review entries.',
+                '${transaction.merchant} will stop creating future review entries and reminders.',
               ),
               actions: <Widget>[
                 TextButton(
@@ -94,7 +95,9 @@ class RecurringTransactionsCard extends ConsumerWidget {
                         'Recurring money moments',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
-                      const Text('Weekly or monthly, always reviewed first.'),
+                      const Text(
+                        'Weekly or monthly, with optional private reminders.',
+                      ),
                     ],
                   ),
                 ),
@@ -193,6 +196,31 @@ class RecurringTransactionsCard extends ConsumerWidget {
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
+                                      if (item.reminderEnabled && item.isDebit)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 5,
+                                          ),
+                                          child: Row(
+                                            children: <Widget>[
+                                              const Icon(
+                                                Icons
+                                                    .notifications_active_rounded,
+                                                size: 15,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                _reminderLabel(
+                                                  item.reminderDaysBefore,
+                                                ),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 ),
@@ -253,6 +281,14 @@ class RecurringTransactionsCard extends ConsumerWidget {
       RecurringFrequency.monthly => 'Monthly',
     };
   }
+
+  static String _reminderLabel(int daysBefore) {
+    return switch (daysBefore) {
+      0 => 'Reminder on due day',
+      1 => 'Reminder 1 day before',
+      _ => 'Reminder $daysBefore days before',
+    };
+  }
 }
 
 class _RecurringEditorSheet extends ConsumerStatefulWidget {
@@ -272,6 +308,8 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
   late TransactionType _type;
   late RecurringFrequency _frequency;
   late DateTime _nextDueAt;
+  late bool _reminderEnabled;
+  late int _reminderDaysBefore;
   int? _categoryId;
   bool _saving = false;
 
@@ -287,6 +325,8 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
     _frequency = item?.frequency ?? RecurringFrequency.monthly;
     _nextDueAt = item?.nextDueAt ?? DateTime.now();
     _categoryId = item?.categoryId;
+    _reminderEnabled = item?.reminderEnabled ?? false;
+    _reminderDaysBefore = item?.reminderDaysBefore ?? 1;
   }
 
   @override
@@ -315,6 +355,26 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
       return;
     }
     setState(() => _saving = true);
+
+    bool reminderEnabled = _type == TransactionType.debit && _reminderEnabled;
+    if (reminderEnabled) {
+      final bool permitted = await ref
+          .read(billReminderServiceProvider)
+          .requestPermission();
+      if (!permitted) {
+        reminderEnabled = false;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Notification permission was not granted. The item was saved without a reminder.',
+              ),
+            ),
+          );
+        }
+      }
+    }
+
     await ref
         .read(recurringTransactionRepositoryProvider)
         .save(
@@ -326,6 +386,8 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
           nextDueAt: _nextDueAt,
           categoryId: _categoryId,
           isActive: widget.transaction?.isActive ?? true,
+          reminderEnabled: reminderEnabled,
+          reminderDaysBefore: _reminderDaysBefore,
         );
     if (mounted) {
       Navigator.of(context).pop();
@@ -394,7 +456,12 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
                 ],
                 selected: <TransactionType>{_type},
                 onSelectionChanged: (Set<TransactionType> selected) {
-                  setState(() => _type = selected.first);
+                  setState(() {
+                    _type = selected.first;
+                    if (_type == TransactionType.credit) {
+                      _reminderEnabled = false;
+                    }
+                  });
                 },
               ),
               const SizedBox(height: 12),
@@ -478,6 +545,53 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
                   child: Text(transactionDayFormat.format(_nextDueAt)),
                 ),
               ),
+              if (_type == TransactionType.debit) ...<Widget>[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppPalette.lemon,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Private bill reminder'),
+                    subtitle: const Text(
+                      'Notification text never includes the name or amount.',
+                    ),
+                    value: _reminderEnabled,
+                    onChanged: (bool value) {
+                      setState(() => _reminderEnabled = value);
+                    },
+                  ),
+                ),
+                if (_reminderEnabled) ...<Widget>[
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    initialValue: _reminderDaysBefore,
+                    decoration: const InputDecoration(
+                      labelText: 'Remind me',
+                      prefixIcon: Icon(Icons.notifications_active_rounded),
+                    ),
+                    items: BillReminderService.supportedLeadDays
+                        .map((int days) {
+                          return DropdownMenuItem<int>(
+                            value: days,
+                            child: Text(_leadTimeLabel(days)),
+                          );
+                        })
+                        .toList(growable: false),
+                    onChanged: (int? value) {
+                      if (value != null) {
+                        setState(() => _reminderDaysBefore = value);
+                      }
+                    },
+                  ),
+                ],
+              ],
               const SizedBox(height: 18),
               FilledButton.icon(
                 onPressed: _saving ? null : _save,
@@ -498,6 +612,14 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
         ),
       ),
     );
+  }
+
+  static String _leadTimeLabel(int days) {
+    return switch (days) {
+      0 => 'On the due day at 9:00 AM',
+      1 => '1 day before at 9:00 AM',
+      _ => '$days days before at 9:00 AM',
+    };
   }
 }
 

@@ -2,21 +2,30 @@ import 'dart:math' as math;
 
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/recurring_transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
 
 class RecurringTransactionRepository {
-  RecurringTransactionRepository(Isar isar, SecureCipherService cipher)
-    : this._(isar, cipher);
+  RecurringTransactionRepository(
+    Isar isar,
+    SecureCipherService cipher, {
+    BillReminderService? reminderService,
+  }) : this._(isar, cipher, reminderService);
 
-  RecurringTransactionRepository._(this._isar, this._cipher);
+  RecurringTransactionRepository._(
+    this._isar,
+    this._cipher,
+    this._reminderService,
+  );
 
   static const int maxGeneratedOccurrencesPerTemplate = 24;
 
   final Isar _isar;
   final SecureCipherService _cipher;
+  final BillReminderService? _reminderService;
 
   static DateTime nextOccurrence({
     required DateTime current,
@@ -67,7 +76,16 @@ class RecurringTransactionRepository {
     required DateTime nextDueAt,
     int? categoryId,
     bool isActive = true,
+    bool reminderEnabled = false,
+    int reminderDaysBefore = 1,
   }) async {
+    if (!BillReminderService.supportedLeadDays.contains(reminderDaysBefore)) {
+      throw ArgumentError.value(
+        reminderDaysBefore,
+        'reminderDaysBefore',
+        'Unsupported reminder lead time',
+      );
+    }
     final RecurringTransactionModel model = id == null
         ? RecurringTransactionModel(nextDueAt: nextDueAt)
         : await _isar.recurringTransactionModels.get(id) ??
@@ -82,8 +100,14 @@ class RecurringTransactionRepository {
           ? nextDueAt.weekday
           : nextDueAt.day
       ..nextDueAt = nextDueAt
-      ..isActive = isActive;
-    return _isar.writeTxn(() => _isar.recurringTransactionModels.put(model));
+      ..isActive = isActive
+      ..reminderEnabled = type == TransactionType.debit && reminderEnabled
+      ..reminderDaysBefore = reminderDaysBefore;
+    final int savedId = await _isar.writeTxn(
+      () => _isar.recurringTransactionModels.put(model),
+    );
+    await _reminderService?.syncTemplate(savedId);
+    return savedId;
   }
 
   Future<void> setActive(int id, bool isActive) async {
@@ -95,9 +119,11 @@ class RecurringTransactionRepository {
     }
     model.isActive = isActive;
     await _isar.writeTxn(() => _isar.recurringTransactionModels.put(model));
+    await _reminderService?.syncTemplate(id);
   }
 
   Future<void> delete(int id) async {
+    await _reminderService?.cancelForTemplate(id);
     await _isar.writeTxn(() => _isar.recurringTransactionModels.delete(id));
   }
 
@@ -146,6 +172,9 @@ class RecurringTransactionRepository {
       await _isar.transactionModels.putAll(generated);
       await _isar.recurringTransactionModels.putAll(changed);
     });
+    for (final RecurringTransactionModel template in changed) {
+      await _reminderService?.syncTemplate(template.id, now: current);
+    }
     return generated.length;
   }
 
@@ -161,6 +190,8 @@ class RecurringTransactionRepository {
       frequency: model.frequency,
       nextDueAt: model.nextDueAt,
       isActive: model.isActive,
+      reminderEnabled: model.reminderEnabled,
+      reminderDaysBefore: model.reminderDaysBefore,
     );
   }
 }
