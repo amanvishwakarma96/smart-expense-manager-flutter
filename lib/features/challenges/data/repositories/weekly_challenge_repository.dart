@@ -10,13 +10,12 @@ class WeeklyChallengeRepository {
   final Isar _isar;
 
   Stream<List<WeeklyChallenge>> watchAll() {
-    return _isar.weeklyChallengeModels
-        .where()
-        .watch(fireImmediately: true)
-        .map((List<WeeklyChallengeModel> models) {
-          models.sort((a, b) => b.weekStart.compareTo(a.weekStart));
-          return models.map(_toDomain).toList(growable: false);
-        });
+    return _isar.weeklyChallengeModels.where().watch(fireImmediately: true).map(
+      (List<WeeklyChallengeModel> models) {
+        models.sort((a, b) => b.weekStart.compareTo(a.weekStart));
+        return models.map(_toDomain).toList(growable: false);
+      },
+    );
   }
 
   Future<int> saveCurrent({
@@ -96,10 +95,12 @@ class WeeklyChallengeRepository {
         .weeklyChallengeModels
         .where()
         .findAll();
-    final List<WeeklyChallengeModel> expired = challenges.where((item) {
-      return item.status == WeeklyChallengeStatus.active &&
-          !item.weekStart.add(const Duration(days: 7)).isAfter(current);
-    }).toList(growable: false);
+    final List<WeeklyChallengeModel> expired = challenges
+        .where((item) {
+          return item.status == WeeklyChallengeStatus.active &&
+              !item.weekStart.add(const Duration(days: 7)).isAfter(current);
+        })
+        .toList(growable: false);
     if (expired.isEmpty) {
       return 0;
     }

@@ -10,10 +10,7 @@ import 'package:smart_expense_manager/features/transactions/domain/expense_trans
 class WeeklyMoneyChallengeCard extends ConsumerWidget {
   const WeeklyMoneyChallengeCard({super.key});
 
-  Future<void> _openEditor(
-    BuildContext context, {
-    WeeklyChallenge? challenge,
-  }) {
+  Future<void> _openEditor(BuildContext context, {WeeklyChallenge? challenge}) {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -39,7 +36,9 @@ class WeeklyMoneyChallengeCard extends ConsumerWidget {
         break;
       }
     }
-    final ChallengeRewardSummary rewards = summarizeChallengeRewards(challenges);
+    final ChallengeRewardSummary rewards = summarizeChallengeRewards(
+      challenges,
+    );
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -191,8 +190,7 @@ class _ActiveChallenge extends ConsumerWidget {
       challenge: challenge,
       transactions: transactions,
     );
-    final bool spendingCap =
-        challenge.type == WeeklyChallengeType.spendingCap;
+    final bool spendingCap = challenge.type == WeeklyChallengeType.spendingCap;
     final String headline = spendingCap
         ? 'Stay under ${_money(challenge.targetAmount)} this week'
         : 'Collect ${challenge.targetDays} no-spend day${challenge.targetDays == 1 ? '' : 's'}';
@@ -311,8 +309,7 @@ class _ChallengeEditorSheet extends ConsumerStatefulWidget {
       _ChallengeEditorSheetState();
 }
 
-class _ChallengeEditorSheetState
-    extends ConsumerState<_ChallengeEditorSheet> {
+class _ChallengeEditorSheetState extends ConsumerState<_ChallengeEditorSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _amountController;
   late WeeklyChallengeType _type;
@@ -344,7 +341,9 @@ class _ChallengeEditorSheetState
       return;
     }
     setState(() => _saving = true);
-    await ref.read(weeklyChallengeRepositoryProvider).saveCurrent(
+    await ref
+        .read(weeklyChallengeRepositoryProvider)
+        .saveCurrent(
           type: _type,
           targetAmount: double.tryParse(_amountController.text.trim()) ?? 0,
           targetDays: _targetDays,

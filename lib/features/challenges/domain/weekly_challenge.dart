@@ -76,11 +76,13 @@ WeeklyChallengeProgress evaluateWeeklyChallenge({
   final DateTime evaluationEnd = current.isBefore(challenge.weekEnd)
       ? current
       : challenge.weekEnd.subtract(const Duration(microseconds: 1));
-  final List<ExpenseTransaction> debits = transactions.where((item) {
-    return item.isDebit &&
-        !item.timestamp.isBefore(challenge.weekStart) &&
-        item.timestamp.isBefore(challenge.weekEnd);
-  }).toList(growable: false);
+  final List<ExpenseTransaction> debits = transactions
+      .where((item) {
+        return item.isDebit &&
+            !item.timestamp.isBefore(challenge.weekStart) &&
+            item.timestamp.isBefore(challenge.weekEnd);
+      })
+      .toList(growable: false);
   final double spent = debits.fold(
     0,
     (double total, ExpenseTransaction item) => total + item.amount,
@@ -136,10 +138,11 @@ WeeklyChallengeProgress evaluateWeeklyChallenge({
 ChallengeRewardSummary summarizeChallengeRewards(
   List<WeeklyChallenge> challenges,
 ) {
-  final List<WeeklyChallenge> completed = challenges
-      .where((item) => item.status != WeeklyChallengeStatus.active)
-      .toList()
-    ..sort((a, b) => b.weekStart.compareTo(a.weekStart));
+  final List<WeeklyChallenge> completed =
+      challenges
+          .where((item) => item.status != WeeklyChallengeStatus.active)
+          .toList()
+        ..sort((a, b) => b.weekStart.compareTo(a.weekStart));
   final int totalWins = completed
       .where((item) => item.status == WeeklyChallengeStatus.won)
       .length;

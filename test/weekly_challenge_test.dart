@@ -17,10 +17,7 @@ void main() {
   }
 
   test('challenge week starts on Monday', () {
-    expect(
-      startOfChallengeWeek(DateTime(2026, 8, 7)),
-      DateTime(2026, 8, 3),
-    );
+    expect(startOfChallengeWeek(DateTime(2026, 8, 7)), DateTime(2026, 8, 3));
   });
 
   test('spending cap tracks confirmed debit spend', () {
@@ -59,9 +56,7 @@ void main() {
     );
     final WeeklyChallengeProgress progress = evaluateWeeklyChallenge(
       challenge: challenge,
-      transactions: <ExpenseTransaction>[
-        debit(100, DateTime(2026, 8, 4, 10)),
-      ],
+      transactions: <ExpenseTransaction>[debit(100, DateTime(2026, 8, 4, 10))],
       now: DateTime(2026, 8, 5, 20),
     );
 
