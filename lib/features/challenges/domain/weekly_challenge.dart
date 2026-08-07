@@ -87,15 +87,17 @@ WeeklyChallengeProgress evaluateWeeklyChallenge({
   );
   final int elapsedDays = evaluationEnd.isBefore(challenge.weekStart)
       ? 0
-      : math.min(
-          7,
-          DateTime(
-                evaluationEnd.year,
-                evaluationEnd.month,
-                evaluationEnd.day,
-              ).difference(challenge.weekStart).inDays +
-              1,
-        );
+      : math
+            .min(
+              7,
+              DateTime(
+                    evaluationEnd.year,
+                    evaluationEnd.month,
+                    evaluationEnd.day,
+                  ).difference(challenge.weekStart).inDays +
+                  1,
+            )
+            .toInt();
   int noSpendDays = 0;
   for (int offset = 0; offset < elapsedDays; offset += 1) {
     final DateTime day = challenge.weekStart.add(Duration(days: offset));
@@ -110,7 +112,7 @@ WeeklyChallengeProgress evaluateWeeklyChallenge({
   }
 
   if (challenge.type == WeeklyChallengeType.spendingCap) {
-    final double target = math.max(challenge.targetAmount, 0.01);
+    final double target = math.max(challenge.targetAmount, 0.01).toDouble();
     return WeeklyChallengeProgress(
       progress: (spent / target).clamp(0, 1).toDouble(),
       spent: spent,
@@ -120,7 +122,7 @@ WeeklyChallengeProgress evaluateWeeklyChallenge({
     );
   }
 
-  final int targetDays = math.max(challenge.targetDays, 1);
+  final int targetDays = math.max(challenge.targetDays, 1).toInt();
   return WeeklyChallengeProgress(
     progress: (noSpendDays / targetDays).clamp(0, 1).toDouble(),
     spent: spent,
