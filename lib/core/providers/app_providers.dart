@@ -87,9 +87,9 @@ final Provider<MerchantRuleRepository> merchantRuleRepositoryProvider =
 final Provider<LocalBackupService> localBackupServiceProvider =
     Provider<LocalBackupService>((Ref ref) {
       return ChallengeAwareBackupService(
+        ref.watch(weeklyChallengeRepositoryProvider),
         isar: ref.watch(isarProvider),
         cipher: ref.watch(cipherProvider),
-        challenges: ref.watch(weeklyChallengeRepositoryProvider),
         reminderService: ref.watch(billReminderServiceProvider),
       );
     });
