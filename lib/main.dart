@@ -8,6 +8,7 @@ import 'package:smart_expense_manager/app.dart';
 import 'package:smart_expense_manager/core/database/app_database.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
+import 'package:smart_expense_manager/features/challenges/data/repositories/weekly_challenge_repository.dart';
 import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/category_repository.dart';
@@ -41,6 +42,7 @@ Future<void> main() async {
       );
   unawaited(smsEngine.drainNativeQueue());
   unawaited(_prepareRecurringItems(recurring, billReminders));
+  unawaited(WeeklyChallengeRepository(isar).finalizeExpired());
 
   runApp(
     ProviderScope(

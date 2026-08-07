@@ -2,6 +2,38 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.8.0] - Unreleased
+
+### Added
+
+- Fully local weekly money quests with either an INR spending cap or one to
+  seven no-spend days.
+- Monday-to-Sunday progress calculated from confirmed debit transactions only.
+- Consecutive successful-week streaks and local reward badges for the first win,
+  a three-week streak, five wins, and ten wins.
+- A colorful dashboard quest card with live progress, edit/skip controls,
+  encouraging guidance, and privacy-aware amount masking.
+- Weekly challenge progress, streak, privacy, delete-all, and offline regression
+  tests.
+
+### Changed
+
+- Expired weekly quests are finalized locally when PiggyAI starts.
+- Full local-data deletion now clears motivational challenge history.
+- Financial backup restore resets challenge history so old streak results are
+  never evaluated against replaced transaction data.
+- Weekly challenge behavior and privacy rules are documented separately under
+  `docs/weekly-money-quests.md`.
+
+### Security
+
+- Weekly quests never modify transactions, budgets, recurring items, or savings
+  goals and never block spending.
+- Challenge history remains on-device and is intentionally excluded from
+  financial backup exports.
+- No backend, cloud sync, remote AI, analytics, telemetry, advertising, or
+  Android internet permission was introduced.
+
 ## [0.7.0] - Unreleased
 
 ### Added

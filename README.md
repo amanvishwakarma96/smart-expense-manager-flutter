@@ -36,6 +36,8 @@ after confirmation.
   before they affect budgets.
 - Optional local reminders 1, 3, or 7 days before recurring expenses.
 - A conservative safe-to-spend plan that reserves upcoming scheduled bills.
+- Playful weekly money quests with live progress, streaks, and local reward
+  badges.
 - Editable confirmed transaction history with local deletion controls.
 - Custom colorful categories with editable monthly INR budgets.
 - Full local merchant-rule creation, editing, deletion, and specific-first
@@ -87,6 +89,22 @@ after confirmation.
   upcoming values.
 - The calculation is guidance only and never changes transactions, budgets,
   recurring items, or goals.
+
+## Weekly money quests
+
+- A quest covers one local Monday-to-Sunday week and uses confirmed debit
+  transactions only.
+- Users can choose a weekly INR spending cap or a target of one to seven
+  no-spend days.
+- The dashboard shows live progress and encouraging guidance; a quest never
+  blocks spending or changes financial records.
+- Completed quests can build a consecutive-week streak and unlock local badges
+  for the first win, a three-week streak, five wins, and ten wins.
+- Spending-cap values obey the global privacy-masking toggle.
+- Quest history remains local motivational metadata and is intentionally not
+  exported in financial backups.
+- Restoring a financial backup resets quest history so old streaks are never
+  evaluated against replaced transaction data.
 
 ## Local spending forecast
 
@@ -155,6 +173,8 @@ after confirmation.
   savings goals, while versions 1, 2, and 3 remain restorable.
 - Restoring or deleting data cancels obsolete scheduled reminders and rebuilds
   only the reminders represented by the resulting local data.
+- Weekly quest history is excluded from financial backup files and is reset
+  after restore so motivational results cannot become inconsistent.
 - Temporary export files are deleted after the platform share flow completes.
 - A forgotten backup password cannot be recovered because no password or cloud
   copy is stored.
@@ -199,14 +219,15 @@ flutter build apk --debug
 
 - **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
   transaction SMS detection, pending review, recurring transactions, local bill
-  reminders, safe-to-spend planning, editable history, custom categories,
-  merchant rules, local forecast, savings goals, cash-flow calendar, budgets,
-  local alerts, encrypted backup/restore, insights, charts, privacy mode, and
-  configurable app lock.
+  reminders, safe-to-spend planning, weekly money quests, editable history,
+  custom categories, merchant rules, local forecast, savings goals, cash-flow
+  calendar, budgets, local alerts, encrypted backup/restore, insights, charts,
+  privacy mode, and configurable app lock.
 - **iOS:** onboarding, manual entry, recurring transactions, local bill
-  reminders, safe-to-spend planning, editable history, custom categories,
-  merchant rules, local forecast, savings goals, cash-flow calendar, budgets,
-  local alerts, encrypted backup/restore, insights, charts, privacy mode, and
-  configurable app lock. Automatic SMS access is intentionally unavailable.
+  reminders, safe-to-spend planning, weekly money quests, editable history,
+  custom categories, merchant rules, local forecast, savings goals, cash-flow
+  calendar, budgets, local alerts, encrypted backup/restore, insights, charts,
+  privacy mode, and configurable app lock. Automatic SMS access is intentionally
+  unavailable.
 
 The app must remain usable in airplane mode after installation.
