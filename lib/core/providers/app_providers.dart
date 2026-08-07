@@ -5,6 +5,7 @@ import 'package:smart_expense_manager/core/security/onboarding_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/challenges/data/repositories/weekly_challenge_repository.dart';
 import 'package:smart_expense_manager/features/challenges/domain/weekly_challenge.dart';
+import 'package:smart_expense_manager/features/challenges/services/challenge_aware_backup_service.dart';
 import 'package:smart_expense_manager/features/goals/data/repositories/savings_goal_repository.dart';
 import 'package:smart_expense_manager/features/goals/domain/savings_goal.dart';
 import 'package:smart_expense_manager/features/settings/services/backup_file_service.dart';
@@ -85,9 +86,10 @@ final Provider<MerchantRuleRepository> merchantRuleRepositoryProvider =
 
 final Provider<LocalBackupService> localBackupServiceProvider =
     Provider<LocalBackupService>((Ref ref) {
-      return LocalBackupService(
+      return ChallengeAwareBackupService(
         isar: ref.watch(isarProvider),
         cipher: ref.watch(cipherProvider),
+        challenges: ref.watch(weeklyChallengeRepositoryProvider),
         reminderService: ref.watch(billReminderServiceProvider),
       );
     });
