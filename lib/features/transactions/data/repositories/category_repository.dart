@@ -33,15 +33,24 @@ class CategoryRepository {
   }
 
   Future<void> seedDefaults() async {
-    if (await _isar.categoryModels.count() > 0) {
-      return;
-    }
+    final List<CategoryModel> existing = await _isar.categoryModels
+        .where()
+        .findAll();
+    final Set<String> existingNames = existing
+        .map((CategoryModel item) => item.name.trim().toLowerCase())
+        .toSet();
 
     final List<CategoryModel> defaults = <CategoryModel>[
       CategoryModel(
         name: 'Food',
         iconName: 'utensils',
         hexColor: 'FFB7A1',
+        monthlyBudgetLimit: 6000,
+      ),
+      CategoryModel(
+        name: 'Groceries',
+        iconName: 'basket',
+        hexColor: 'FFE4A3',
         monthlyBudgetLimit: 6000,
       ),
       CategoryModel(
@@ -69,6 +78,47 @@ class CategoryRepository {
         monthlyBudgetLimit: 3000,
       ),
       CategoryModel(
+        name: 'Housing',
+        iconName: 'home',
+        hexColor: 'F8C8B8',
+      ),
+      CategoryModel(
+        name: 'Entertainment',
+        iconName: 'movie',
+        hexColor: 'E8C7FF',
+        monthlyBudgetLimit: 3000,
+      ),
+      CategoryModel(
+        name: 'Travel',
+        iconName: 'flight',
+        hexColor: 'B7DDF6',
+      ),
+      CategoryModel(
+        name: 'Education',
+        iconName: 'school',
+        hexColor: 'D6E8A8',
+      ),
+      CategoryModel(
+        name: 'Investments',
+        iconName: 'trending-up',
+        hexColor: 'B9E2D0',
+      ),
+      CategoryModel(
+        name: 'Loans & EMI',
+        iconName: 'account-balance',
+        hexColor: 'FFD0B5',
+      ),
+      CategoryModel(
+        name: 'Transfers',
+        iconName: 'swap-horiz',
+        hexColor: 'D7DCE5',
+      ),
+      CategoryModel(
+        name: 'Income',
+        iconName: 'payments',
+        hexColor: 'BEE7C5',
+      ),
+      CategoryModel(
         name: 'Other',
         iconName: 'circle',
         hexColor: 'D7DCE5',
@@ -76,7 +126,13 @@ class CategoryRepository {
       ),
     ];
 
-    await _isar.writeTxn(() => _isar.categoryModels.putAll(defaults));
+    final List<CategoryModel> missing = defaults.where((CategoryModel item) {
+      return !existingNames.contains(item.name.toLowerCase());
+    }).toList(growable: false);
+    if (missing.isEmpty) {
+      return;
+    }
+    await _isar.writeTxn(() => _isar.categoryModels.putAll(missing));
   }
 
   Future<int> save({
