@@ -102,6 +102,7 @@ final Provider<SmsEngineCoordinator> smsEngineCoordinatorProvider =
       return SmsEngineCoordinator(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         merchantRuleRepository: ref.watch(merchantRuleRepositoryProvider),
+        categoryRepository: ref.watch(categoryRepositoryProvider),
       );
     });
 
