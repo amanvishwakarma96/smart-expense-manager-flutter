@@ -132,6 +132,9 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
   }
 
   Future<void> _handleResume() async {
+    unawaited(
+      ref.read(smsEngineCoordinatorProvider).startAutomaticProcessing(),
+    );
     final service = ref.read(appLockServiceProvider);
     final bool enabled = await service.isEnabled();
     final int timeout = await service.getTimeoutMinutes();
