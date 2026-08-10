@@ -32,14 +32,14 @@ class MonthlyInsightCard extends ConsumerWidget {
     final DateTime previousMonth = DateTime(now.year, now.month - 1);
     final List<ExpenseTransaction> current = transactions
         .where((ExpenseTransaction item) {
-          return item.isDebit &&
+          return item.countsAsSpending &&
               item.timestamp.year == now.year &&
               item.timestamp.month == now.month;
         })
         .toList(growable: false);
     final List<ExpenseTransaction> previous = transactions
         .where((ExpenseTransaction item) {
-          return item.isDebit &&
+          return item.countsAsSpending &&
               item.timestamp.year == previousMonth.year &&
               item.timestamp.month == previousMonth.month;
         })
@@ -55,7 +55,9 @@ class MonthlyInsightCard extends ConsumerWidget {
     );
     final double dailyAverage = currentSpent / math.max(now.day, 1);
     final Map<int, double> categorySpend = <int, double>{};
-    for (final ExpenseTransaction item in current) {
+    for (final ExpenseTransaction item in current.where(
+      (ExpenseTransaction item) => item.countsAgainstBudget,
+    )) {
       if (item.categoryId != null) {
         categorySpend.update(
           item.categoryId!,
@@ -110,7 +112,7 @@ class MonthlyInsightCard extends ConsumerWidget {
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const Text(
-                            'Tiny local insights, zero cloud snooping.',
+                            'Transfers and borrowed money stay out of spending/income insights.',
                           ),
                         ],
                       ),
