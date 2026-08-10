@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/features/settings/domain/backup_reminder_state.dart';
+import 'package:smart_expense_manager/features/settings/services/backup_inspection_service.dart';
 import 'package:smart_expense_manager/features/settings/services/backup_reminder_service.dart';
 import 'package:smart_expense_manager/features/settings/services/encrypted_backup_codec.dart';
 import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
@@ -19,6 +20,7 @@ class BackupSettingsCard extends ConsumerStatefulWidget {
 
 class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
   final BackupReminderService _reminderService = BackupReminderService();
+  final BackupInspectionService _inspectionService = BackupInspectionService();
   BackupReminderState _reminderState = const BackupReminderState();
   bool _reminderLoaded = false;
   bool _busy = false;
@@ -112,7 +114,39 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
     if (password == null || !mounted) {
       return;
     }
-    final bool replace = await _confirmReplacement();
+
+    setState(() => _busy = true);
+    BackupInspection inspection;
+    try {
+      inspection = await _inspectionService.inspect(
+        bytes: bytes,
+        password: password,
+      );
+    } on BackupPasswordException {
+      if (mounted) {
+        _message('Incorrect password or damaged backup file.');
+      }
+      return;
+    } on FormatException catch (error) {
+      if (mounted) {
+        _message(error.message.toString());
+      }
+      return;
+    } on Object {
+      if (mounted) {
+        _message('Could not inspect this PiggyAI backup.');
+      }
+      return;
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+    final bool replace = await _confirmReplacement(inspection);
     if (!replace || !mounted) {
       return;
     }
@@ -200,6 +234,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
                         labelText: 'Backup password',
                         errorText: errorText,
                         suffixIcon: IconButton(
+                          tooltip: obscure ? 'Show password' : 'Hide password',
                           onPressed: () {
                             setDialogState(() => obscure = !obscure);
                           },
@@ -245,22 +280,49 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
     return result;
   }
 
-  Future<bool> _confirmReplacement() async {
+  Future<bool> _confirmReplacement(BackupInspection inspection) async {
+    final DateTime localDate = inspection.createdAt.toLocal();
+    final String backupDate =
+        '${localDate.day.toString().padLeft(2, '0')}/'
+        '${localDate.month.toString().padLeft(2, '0')}/${localDate.year}';
+
     return await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) {
             return AlertDialog(
-              title: const Text('Replace local financial data?'),
-              content: const Text(
-                'Restoring permanently replaces the current transactions, '
-                'recurring items, reminder preferences, categories, budgets, '
-                'merchant rules, and savings goals on this device. Obsolete '
-                'scheduled reminders will be cancelled.',
+              title: const Text('Review backup before replacing data'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Backup created $backupDate • snapshot v${inspection.snapshotVersion}',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 12),
+                    _summaryLine('Transactions', inspection.transactions),
+                    _summaryLine('Categories', inspection.categories),
+                    _summaryLine('Merchant rules', inspection.merchantRules),
+                    _summaryLine(
+                      'Recurring items',
+                      inspection.recurringTransactions,
+                    ),
+                    _summaryLine('Savings goals', inspection.savingsGoals),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Continuing permanently replaces the current transactions, '
+                      'recurring items, reminder preferences, categories, budgets, '
+                      'merchant rules, and savings goals on this device. Obsolete '
+                      'scheduled reminders will be cancelled.',
+                    ),
+                  ],
+                ),
               ),
               actions: <Widget>[
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancel'),
+                  child: const Text('Keep current data'),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -271,6 +333,18 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
           },
         ) ??
         false;
+  }
+
+  Widget _summaryLine(String label, int count) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: <Widget>[
+          Expanded(child: Text(label)),
+          Text('$count', style: const TextStyle(fontWeight: FontWeight.w900)),
+        ],
+      ),
+    );
   }
 
   Rect? _shareOrigin(BuildContext context) {
@@ -377,7 +451,9 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
             ],
             const SizedBox(height: 14),
             if (_busy)
-              const LinearProgressIndicator()
+              const LinearProgressIndicator(
+                semanticsLabel: 'Processing encrypted backup',
+              )
             else ...<Widget>[
               Builder(
                 builder: (BuildContext shareContext) {
