@@ -75,6 +75,7 @@ class TransactionRepository {
   Future<int> addSmsTransaction({
     required double amount,
     required TransactionType type,
+    TransactionPurpose? purpose,
     required String merchant,
     required DateTime timestamp,
     required String accountTail,
@@ -86,9 +87,12 @@ class TransactionRepository {
       return -1;
     }
 
+    final TransactionPurpose resolvedPurpose =
+        purpose ?? defaultTransactionPurpose(type);
     final TransactionModel model = TransactionModel(
       amount: amount,
       type: type,
+      purposeCode: resolvedPurpose.name,
       encryptedMerchant: await _cipher.encrypt(merchant),
       timestamp: timestamp,
       categoryId: categoryId,
@@ -102,13 +106,17 @@ class TransactionRepository {
   Future<int> addManualTransaction({
     required double amount,
     required TransactionType type,
+    TransactionPurpose? purpose,
     required String merchant,
     required DateTime timestamp,
     int? categoryId,
   }) async {
+    final TransactionPurpose resolvedPurpose =
+        purpose ?? defaultTransactionPurpose(type);
     final TransactionModel model = TransactionModel(
       amount: amount,
       type: type,
+      purposeCode: resolvedPurpose.name,
       encryptedMerchant: await _cipher.encrypt(merchant),
       timestamp: timestamp,
       categoryId: categoryId,
@@ -118,7 +126,9 @@ class TransactionRepository {
     final int id = await _isar.writeTxn(
       () => _isar.transactionModels.put(model),
     );
-    await _budgetAlertService?.checkCategory(categoryId);
+    if (resolvedPurpose.countsAgainstBudget) {
+      await _budgetAlertService?.checkCategory(categoryId);
+    }
     return id;
   }
 
@@ -127,12 +137,19 @@ class TransactionRepository {
     if (model == null) {
       return;
     }
+    final TransactionPurpose purpose = transactionPurposeFromCode(
+      model.purposeCode,
+      model.type,
+    );
     model
       ..status = TransactionStatus.confirmed
+      ..purposeCode = purpose.name
       ..categoryId = categoryId ?? model.categoryId
       ..encryptedOriginalSmsText = '';
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
-    await _budgetAlertService?.checkCategory(model.categoryId);
+    if (purpose.countsAgainstBudget) {
+      await _budgetAlertService?.checkCategory(model.categoryId);
+    }
   }
 
   Future<void> updatePending({
@@ -140,15 +157,19 @@ class TransactionRepository {
     required double amount,
     required String merchant,
     required TransactionType type,
+    TransactionPurpose? purpose,
     int? categoryId,
   }) async {
     final TransactionModel? model = await _isar.transactionModels.get(id);
     if (model == null) {
       return;
     }
+    final TransactionPurpose resolvedPurpose =
+        purpose ?? transactionPurposeFromCode(model.purposeCode, type);
     model
       ..amount = amount
       ..type = type
+      ..purposeCode = resolvedPurpose.name
       ..categoryId = categoryId
       ..encryptedMerchant = await _cipher.encrypt(merchant);
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
@@ -159,6 +180,7 @@ class TransactionRepository {
     required double amount,
     required String merchant,
     required TransactionType type,
+    TransactionPurpose? purpose,
     required DateTime timestamp,
     int? categoryId,
   }) async {
@@ -167,15 +189,25 @@ class TransactionRepository {
       return;
     }
     final int? previousCategoryId = model.categoryId;
+    final TransactionPurpose previousPurpose = transactionPurposeFromCode(
+      model.purposeCode,
+      model.type,
+    );
+    final TransactionPurpose resolvedPurpose =
+        purpose ?? transactionPurposeFromCode(model.purposeCode, type);
     model
       ..amount = amount
       ..type = type
+      ..purposeCode = resolvedPurpose.name
       ..timestamp = timestamp
       ..categoryId = categoryId
       ..encryptedMerchant = await _cipher.encrypt(merchant);
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
-    await _budgetAlertService?.checkCategory(previousCategoryId);
-    if (categoryId != previousCategoryId) {
+    if (previousPurpose.countsAgainstBudget) {
+      await _budgetAlertService?.checkCategory(previousCategoryId);
+    }
+    if (resolvedPurpose.countsAgainstBudget &&
+        (categoryId != previousCategoryId || !previousPurpose.countsAgainstBudget)) {
       await _budgetAlertService?.checkCategory(categoryId);
     }
   }
@@ -216,6 +248,7 @@ class TransactionRepository {
       id: model.id,
       amount: model.amount,
       type: model.type,
+      purpose: transactionPurposeFromCode(model.purposeCode, model.type),
       merchant: await _cipher.decrypt(model.encryptedMerchant),
       timestamp: model.timestamp,
       categoryId: model.categoryId,
