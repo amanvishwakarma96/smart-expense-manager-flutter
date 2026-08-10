@@ -9,6 +9,7 @@ class TransactionModel {
     this.id = Isar.autoIncrement,
     this.amount = 0,
     this.type = TransactionType.debit,
+    this.purposeCode = '',
     this.encryptedMerchant = '',
     required this.timestamp,
     this.categoryId,
@@ -26,6 +27,7 @@ class TransactionModel {
   @enumerated
   TransactionType type;
 
+  String purposeCode;
   String encryptedMerchant;
   DateTime timestamp;
   int? categoryId;
