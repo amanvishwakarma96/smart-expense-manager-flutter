@@ -103,9 +103,13 @@ class BudgetAlertService {
         .findAll();
     final double spent = models
         .where((TransactionModel item) {
+          final TransactionPurpose purpose = transactionPurposeFromCode(
+            item.purposeCode,
+            item.type,
+          );
           return item.categoryId == categoryId &&
               item.status == TransactionStatus.confirmed &&
-              item.type == TransactionType.debit &&
+              purpose.countsAgainstBudget &&
               item.timestamp.year == current.year &&
               item.timestamp.month == current.month;
         })
