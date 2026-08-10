@@ -51,6 +51,7 @@ Future<void> main() async {
         isarProvider.overrideWithValue(isar),
         cipherProvider.overrideWithValue(cipher),
         billReminderServiceProvider.overrideWithValue(billReminders),
+        smsEngineCoordinatorProvider.overrideWithValue(smsEngine),
       ],
       child: const PiggyAiApp(),
     ),
