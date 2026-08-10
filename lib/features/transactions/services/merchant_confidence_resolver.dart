@@ -13,26 +13,24 @@ class MerchantConfidenceResolver {
     if (normalized.isEmpty) {
       return null;
     }
-    final List<LearnedMerchantMapping> matches = mappings
-        .where((LearnedMerchantMapping item) {
-          return _normalize(item.merchant) == normalized;
-        })
-        .toList(growable: false)
-      ..sort((LearnedMerchantMapping a, LearnedMerchantMapping b) {
-        final int confidence = b.confidence.compareTo(a.confidence);
-        if (confidence != 0) {
-          return confidence;
-        }
-        final int recent = b.updatedAt.compareTo(a.updatedAt);
-        return recent != 0 ? recent : a.id.compareTo(b.id);
-      });
+    final List<LearnedMerchantMapping> matches =
+        mappings
+            .where((LearnedMerchantMapping item) {
+              return _normalize(item.merchant) == normalized;
+            })
+            .toList(growable: false)
+          ..sort((LearnedMerchantMapping a, LearnedMerchantMapping b) {
+            final int confidence = b.confidence.compareTo(a.confidence);
+            if (confidence != 0) {
+              return confidence;
+            }
+            final int recent = b.updatedAt.compareTo(a.updatedAt);
+            return recent != 0 ? recent : a.id.compareTo(b.id);
+          });
     return matches.isEmpty ? null : matches.first.categoryId;
   }
 
   String _normalize(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'\s+'), ' ');
+    return value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
   }
 }

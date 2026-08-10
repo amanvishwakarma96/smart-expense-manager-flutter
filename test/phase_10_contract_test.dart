@@ -16,19 +16,22 @@ void main() {
     expect(source, isNot(contains('.learnCategory(')));
   });
 
-  test('pending review surfaces direction purpose and learns after confirmation', () {
-    final String source = File(
-      'lib/features/transactions/presentation/'
-      'pending_transactions_screen.dart',
-    ).readAsStringSync();
+  test(
+    'pending review surfaces direction purpose and learns after confirmation',
+    () {
+      final String source = File(
+        'lib/features/transactions/presentation/'
+        'pending_transactions_screen.dart',
+      ).readAsStringSync();
 
-    expect(source, contains('TransactionSemanticChips'));
-    expect(source, contains("label: Text('Debit')"));
-    expect(source, contains("label: Text('Credit')"));
-    expect(source, contains('learned only after confirmation'));
-    expect(source, contains('categoryManuallyAssigned'));
-    expect(source, isNot(contains('.learnCategory(')));
-  });
+      expect(source, contains('TransactionSemanticChips'));
+      expect(source, contains("label: Text('Debit')"));
+      expect(source, contains("label: Text('Credit')"));
+      expect(source, contains('learned only after confirmation'));
+      expect(source, contains('categoryManuallyAssigned'));
+      expect(source, isNot(contains('.learnCategory(')));
+    },
+  );
 
   test(
     'running Android app is notified when native SMS queue receives data',

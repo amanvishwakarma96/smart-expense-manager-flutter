@@ -32,29 +32,38 @@ class DuplicateTransactionDetector {
       return null;
     }
 
-    final List<DuplicateTransactionCandidate> matches = existing.where((item) {
-      if (item.accountTail.trim().isEmpty ||
-          item.accountTail.trim() != normalizedAccount) {
-        return false;
-      }
-      if ((item.amount - amount).abs() > amountTolerance) {
-        return false;
-      }
-      if (!_merchantsMatch(item.merchant, merchant)) {
-        return false;
-      }
-      final int delta = item.timestamp
-          .difference(timestamp)
-          .inMilliseconds
-          .abs();
-      return delta <= timeWindow.inMilliseconds;
-    }).toList(growable: false)
-      ..sort((a, b) {
-        final int aDelta = a.timestamp.difference(timestamp).inMilliseconds.abs();
-        final int bDelta = b.timestamp.difference(timestamp).inMilliseconds.abs();
-        final int timeComparison = aDelta.compareTo(bDelta);
-        return timeComparison != 0 ? timeComparison : a.id.compareTo(b.id);
-      });
+    final List<DuplicateTransactionCandidate> matches =
+        existing
+            .where((item) {
+              if (item.accountTail.trim().isEmpty ||
+                  item.accountTail.trim() != normalizedAccount) {
+                return false;
+              }
+              if ((item.amount - amount).abs() > amountTolerance) {
+                return false;
+              }
+              if (!_merchantsMatch(item.merchant, merchant)) {
+                return false;
+              }
+              final int delta = item.timestamp
+                  .difference(timestamp)
+                  .inMilliseconds
+                  .abs();
+              return delta <= timeWindow.inMilliseconds;
+            })
+            .toList(growable: false)
+          ..sort((a, b) {
+            final int aDelta = a.timestamp
+                .difference(timestamp)
+                .inMilliseconds
+                .abs();
+            final int bDelta = b.timestamp
+                .difference(timestamp)
+                .inMilliseconds
+                .abs();
+            final int timeComparison = aDelta.compareTo(bDelta);
+            return timeComparison != 0 ? timeComparison : a.id.compareTo(b.id);
+          });
 
     return matches.isEmpty ? null : matches.first.id;
   }
@@ -91,9 +100,8 @@ class DuplicateTransactionDetector {
       final List<int> current = List<int>.filled(right.length + 1, 0);
       current[0] = i;
       for (int j = 1; j <= right.length; j += 1) {
-        final int substitutionCost = left.codeUnitAt(i - 1) == right.codeUnitAt(j - 1)
-            ? 0
-            : 1;
+        final int substitutionCost =
+            left.codeUnitAt(i - 1) == right.codeUnitAt(j - 1) ? 0 : 1;
         final int deletion = previous[j] + 1;
         final int insertion = current[j - 1] + 1;
         final int substitution = previous[j - 1] + substitutionCost;

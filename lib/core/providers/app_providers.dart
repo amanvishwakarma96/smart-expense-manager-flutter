@@ -153,10 +153,11 @@ final StreamProvider<List<MerchantRuleModel>> merchantRulesProvider =
     });
 
 final StreamProvider<List<LearnedMerchantMapping>>
-learnedMerchantMappingsProvider =
-    StreamProvider<List<LearnedMerchantMapping>>((Ref ref) {
-      return ref.watch(merchantRuleRepositoryProvider).watchLearnedMappings();
-    });
+learnedMerchantMappingsProvider = StreamProvider<List<LearnedMerchantMapping>>((
+  Ref ref,
+) {
+  return ref.watch(merchantRuleRepositoryProvider).watchLearnedMappings();
+});
 
 class PrivacyModeController extends Notifier<bool> {
   @override

@@ -59,8 +59,7 @@ class MerchantRuleRepository {
   }
 
   Future<List<LearnedMerchantMapping>> getLearnedMappings() async {
-    final List<MerchantLearningModel> items = await _isar
-        .merchantLearningModels
+    final List<MerchantLearningModel> items = await _isar.merchantLearningModels
         .where()
         .findAll();
     return _toLearnedMappings(items);

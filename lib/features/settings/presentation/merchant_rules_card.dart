@@ -135,12 +135,16 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
               title: Text('Edit ${mapping.merchant.toUpperCase()}'),
               content: DropdownButtonFormField<int>(
                 initialValue: categoryId,
-                decoration: const InputDecoration(labelText: 'Learned category'),
+                decoration: const InputDecoration(
+                  labelText: 'Learned category',
+                ),
                 items: categories
-                    .map((CategoryModel category) => DropdownMenuItem<int>(
-                          value: category.id,
-                          child: Text(category.name),
-                        ))
+                    .map(
+                      (CategoryModel category) => DropdownMenuItem<int>(
+                        value: category.id,
+                        child: Text(category.name),
+                      ),
+                    )
                     .toList(growable: false),
                 onChanged: (int? value) {
                   if (value != null) {
@@ -324,39 +328,41 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
                 }
                 return Column(
                   children: items
-                      .map((MerchantRuleModel rule) => ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const CircleAvatar(
-                              child: Icon(Icons.bolt_rounded),
-                            ),
-                            title: Text(rule.merchantPattern.toUpperCase()),
-                            subtitle: Text(
-                              '→ ${categoryNames[rule.mappedCategoryId] ?? 'Missing category'}',
-                            ),
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (String action) {
-                                if (action == 'edit') {
-                                  _edit(
-                                    categories.value ?? const <CategoryModel>[],
-                                    rule: rule,
-                                  );
-                                } else if (action == 'delete') {
-                                  _delete(rule);
-                                }
-                              },
-                              itemBuilder: (BuildContext context) =>
-                                  const <PopupMenuEntry<String>>[
-                                    PopupMenuItem<String>(
-                                      value: 'edit',
-                                      child: Text('Edit'),
-                                    ),
-                                    PopupMenuItem<String>(
-                                      value: 'delete',
-                                      child: Text('Delete'),
-                                    ),
-                                  ],
-                            ),
-                          ))
+                      .map(
+                        (MerchantRuleModel rule) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.bolt_rounded),
+                          ),
+                          title: Text(rule.merchantPattern.toUpperCase()),
+                          subtitle: Text(
+                            '→ ${categoryNames[rule.mappedCategoryId] ?? 'Missing category'}',
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (String action) {
+                              if (action == 'edit') {
+                                _edit(
+                                  categories.value ?? const <CategoryModel>[],
+                                  rule: rule,
+                                );
+                              } else if (action == 'delete') {
+                                _delete(rule);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                const <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'edit',
+                                    child: Text('Edit'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  ),
+                                ],
+                          ),
+                        ),
+                      )
                       .toList(growable: false),
                 );
               },
@@ -383,39 +389,41 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
                 }
                 return Column(
                   children: items
-                      .map((LearnedMerchantMapping mapping) => ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const CircleAvatar(
-                              child: Icon(Icons.psychology_alt_rounded),
-                            ),
-                            title: Text(mapping.merchant.toUpperCase()),
-                            subtitle: Text(
-                              '${categoryNames[mapping.categoryId] ?? 'Missing category'} · confidence ${mapping.confidence}',
-                            ),
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (String action) {
-                                if (action == 'edit') {
-                                  _editLearned(
-                                    mapping,
-                                    categories.value ?? const <CategoryModel>[],
-                                  );
-                                } else if (action == 'clear') {
-                                  _deleteLearned(mapping);
-                                }
-                              },
-                              itemBuilder: (BuildContext context) =>
-                                  const <PopupMenuEntry<String>>[
-                                    PopupMenuItem<String>(
-                                      value: 'edit',
-                                      child: Text('Edit category'),
-                                    ),
-                                    PopupMenuItem<String>(
-                                      value: 'clear',
-                                      child: Text('Clear learned mapping'),
-                                    ),
-                                  ],
-                            ),
-                          ))
+                      .map(
+                        (LearnedMerchantMapping mapping) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.psychology_alt_rounded),
+                          ),
+                          title: Text(mapping.merchant.toUpperCase()),
+                          subtitle: Text(
+                            '${categoryNames[mapping.categoryId] ?? 'Missing category'} · confidence ${mapping.confidence}',
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (String action) {
+                              if (action == 'edit') {
+                                _editLearned(
+                                  mapping,
+                                  categories.value ?? const <CategoryModel>[],
+                                );
+                              } else if (action == 'clear') {
+                                _deleteLearned(mapping);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                const <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'edit',
+                                    child: Text('Edit category'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'clear',
+                                    child: Text('Clear learned mapping'),
+                                  ),
+                                ],
+                          ),
+                        ),
+                      )
                       .toList(growable: false),
                 );
               },
