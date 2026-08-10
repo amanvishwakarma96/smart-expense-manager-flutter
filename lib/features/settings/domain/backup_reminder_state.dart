@@ -1,8 +1,5 @@
 class BackupReminderState {
-  const BackupReminderState({
-    this.lastSuccessfulBackupAt,
-    this.snoozedUntil,
-  });
+  const BackupReminderState({this.lastSuccessfulBackupAt, this.snoozedUntil});
 
   final DateTime? lastSuccessfulBackupAt;
   final DateTime? snoozedUntil;

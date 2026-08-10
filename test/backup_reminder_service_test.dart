@@ -6,24 +6,27 @@ void main() {
   const BackupReminderPolicy policy = BackupReminderPolicy();
   final DateTime now = DateTime(2026, 8, 10, 12);
 
-  test('no backup ever triggers once at least one confirmed transaction exists', () {
-    expect(
-      policy.shouldRemind(
-        confirmedTransactionCount: 1,
-        now: now,
-        state: const BackupReminderState(),
-      ),
-      isTrue,
-    );
-    expect(
-      policy.shouldRemind(
-        confirmedTransactionCount: 0,
-        now: now,
-        state: const BackupReminderState(),
-      ),
-      isFalse,
-    );
-  });
+  test(
+    'no backup ever triggers once at least one confirmed transaction exists',
+    () {
+      expect(
+        policy.shouldRemind(
+          confirmedTransactionCount: 1,
+          now: now,
+          state: const BackupReminderState(),
+        ),
+        isTrue,
+      );
+      expect(
+        policy.shouldRemind(
+          confirmedTransactionCount: 0,
+          now: now,
+          state: const BackupReminderState(),
+        ),
+        isFalse,
+      );
+    },
+  );
 
   test('recent backup suppresses reminder until the 30-day boundary', () {
     expect(

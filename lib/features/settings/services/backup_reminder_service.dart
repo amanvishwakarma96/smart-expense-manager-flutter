@@ -32,7 +32,7 @@ class BackupReminderPolicy {
 
 class BackupReminderService {
   BackupReminderService({BackupReminderPolicy? policy})
-      : policy = policy ?? const BackupReminderPolicy();
+    : policy = policy ?? const BackupReminderPolicy();
 
   final BackupReminderPolicy policy;
 

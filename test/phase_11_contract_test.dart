@@ -81,21 +81,24 @@ void main() {
     expect(editor, contains('Nothing is created until you press Save'));
   });
 
-  test('backup reminder stores only plain local timestamps and never blocks export', () {
-    final String service = File(
-      'lib/features/settings/services/backup_reminder_service.dart',
-    ).readAsStringSync();
-    final String card = File(
-      'lib/features/settings/presentation/backup_settings_card.dart',
-    ).readAsStringSync();
+  test(
+    'backup reminder stores only plain local timestamps and never blocks export',
+    () {
+      final String service = File(
+        'lib/features/settings/services/backup_reminder_service.dart',
+      ).readAsStringSync();
+      final String card = File(
+        'lib/features/settings/presentation/backup_settings_card.dart',
+      ).readAsStringSync();
 
-    expect(service, contains("'piggyai_backup_reminder.json'"));
-    expect(service, contains("'lastSuccessfulBackupAt'"));
-    expect(service, contains("'snoozedUntil'"));
-    expect(service, isNot(contains('SecureCipherService')));
-    expect(service, isNot(contains('encryptedMerchant')));
-    expect(card, contains('recordSuccessfulBackup'));
-    expect(card, contains("Don't remind me for 90 days"));
-    expect(card, contains('confirmedTransactionsProvider'));
-  });
+      expect(service, contains("'piggyai_backup_reminder.json'"));
+      expect(service, contains("'lastSuccessfulBackupAt'"));
+      expect(service, contains("'snoozedUntil'"));
+      expect(service, isNot(contains('SecureCipherService')));
+      expect(service, isNot(contains('encryptedMerchant')));
+      expect(card, contains('recordSuccessfulBackup'));
+      expect(card, contains("Don't remind me for 90 days"));
+      expect(card, contains('confirmedTransactionsProvider'));
+    },
+  );
 }
