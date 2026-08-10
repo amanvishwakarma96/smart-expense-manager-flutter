@@ -1,0 +1,1 @@
+Phase 10 focuses on automatic local transaction processing, Debit/Credit plus purpose semantics, learned categories, and Quick Challenge stability. See `docs/phase-10-transaction-stability.md` for the behavioral contract.
