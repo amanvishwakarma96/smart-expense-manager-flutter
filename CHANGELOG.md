@@ -2,6 +2,33 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.10.0] - Unreleased
+
+### Added
+
+- Shared semantic loading/error presentation components for accessible app-state feedback.
+- Read-only encrypted-backup inspection that shows the backup date, snapshot version, and collection counts before destructive restore confirmation.
+- Phase 12 accessibility, restore-boundary, release-signing, version, and source-artifact regression tests.
+- Production-readiness documentation covering accessibility, restore safety, and Android release boundaries.
+
+### Changed
+
+- App-lock and reset states are scroll-safe for large system text, and bottom navigation gains extra height at larger text scales.
+- Playful empty-state motion now respects the platform reduce-motion setting while decorative visuals stay out of the semantics tree.
+- Buttons and icon buttons use padded touch targets suitable for accessibility.
+- Restore now follows select → password → read-only inspection → explicit replacement confirmation → deep validation/write.
+- Android app metadata is aligned to `0.10.0+10`.
+- CI blocks tracked `dist/` artifacts and includes the app version in signed APK/AAB artifact names.
+- APK/AAB build binaries previously tracked under `dist/` are removed from the repository tip.
+
+### Security
+
+- Backup inspection decrypts only in memory, has no Isar dependency, and performs no financial writes.
+- Pull-request jobs still receive no release keystore; signed release artifacts remain limited to non-PR runs.
+- Release packaging rejects an APK signed with the Android debug certificate and verifies the Play AAB before upload.
+- Signed APK/AAB artifacts include SHA-256 checksums and remain outside source control.
+- No backend, HTTP client, cloud sync, remote AI, analytics, telemetry, advertising, or Android internet permission was introduced.
+
 ## [0.9.0] - Unreleased
 
 ### Added
