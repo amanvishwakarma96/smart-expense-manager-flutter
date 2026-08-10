@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -18,11 +19,20 @@ class NativeSmsQueueService {
   static const MethodChannel _channel = MethodChannel(
     'com.smartspend.app/sms_queue',
   );
+  static final StreamController<void> _queuedEvents =
+      StreamController<void>.broadcast();
+  static bool _handlerInstalled = false;
+
+  Stream<void> get queuedEvents {
+    _ensureHandler();
+    return _queuedEvents.stream;
+  }
 
   Future<List<QueuedSms>> drain() async {
     if (!Platform.isAndroid) {
       return const <QueuedSms>[];
     }
+    _ensureHandler();
 
     final List<dynamic>? payload = await _channel.invokeListMethod<dynamic>(
       'drainPendingSms',
@@ -44,5 +54,17 @@ class NativeSmsQueueService {
           );
         })
         .toList(growable: false);
+  }
+
+  void _ensureHandler() {
+    if (!Platform.isAndroid || _handlerInstalled) {
+      return;
+    }
+    _handlerInstalled = true;
+    _channel.setMethodCallHandler((MethodCall call) async {
+      if (call.method == 'smsQueued') {
+        _queuedEvents.add(null);
+      }
+    });
   }
 }
