@@ -44,6 +44,46 @@ class SmsParserService {
     'money added',
   ];
 
+  static const List<String> _incomeSignals = <String>[
+    'salary',
+    'payroll',
+    'stipend',
+    'pension',
+    'dividend',
+    'interest credited',
+    'interest payment',
+    'cashback',
+    'cash back',
+    'reward credited',
+    'bonus credited',
+  ];
+
+  static const List<String> _loanReceivedSignals = <String>[
+    'loan disbursed',
+    'loan amount credited',
+    'loan credited',
+    'loan proceeds',
+    'personal loan credited',
+  ];
+
+  static const List<String> _loanRepaymentSignals = <String>[
+    'emi',
+    'loan repayment',
+    'loan instalment',
+    'loan installment',
+    'loan recovery',
+  ];
+
+  static const List<String> _investmentSignals = <String>[
+    'mutual fund',
+    'sip',
+    'investment',
+    'zerodha',
+    'groww',
+    'upstox',
+    'demat',
+  ];
+
   ParsedTransaction? parse({
     required String body,
     String? sender,
@@ -66,6 +106,11 @@ class SmsParserService {
 
     final String merchant = _extractMerchant(compact, sender: sender);
     final String accountTail = _extractAccountTail(compact);
+    final TransactionPurpose purpose = _detectPurpose(
+      compact,
+      type: type,
+      merchant: merchant,
+    );
     final double confidence = _confidence(
       merchant: merchant,
       accountTail: accountTail,
@@ -75,6 +120,7 @@ class SmsParserService {
     return ParsedTransaction(
       amount: amount,
       type: type,
+      purpose: purpose,
       merchantName: merchant,
       accountTail: accountTail,
       timestamp: receivedAt ?? DateTime.now(),
@@ -133,6 +179,74 @@ class SmsParserService {
     return debitIndex < creditIndex
         ? TransactionType.debit
         : TransactionType.credit;
+  }
+
+  TransactionPurpose _detectPurpose(
+    String text, {
+    required TransactionType type,
+    required String merchant,
+  }) {
+    final String lower = text.toLowerCase();
+    final String merchantLower = merchant.toLowerCase();
+
+    if (type == TransactionType.credit &&
+        (lower.contains('refund') ||
+            lower.contains('reversed') ||
+            lower.contains('reversal'))) {
+      return TransactionPurpose.refund;
+    }
+    if (type == TransactionType.debit &&
+        (lower.contains('cash withdrawal') || lower.contains('withdrawn at atm'))) {
+      return TransactionPurpose.cashWithdrawal;
+    }
+    if (type == TransactionType.credit && lower.contains('cash deposit')) {
+      return TransactionPurpose.cashDeposit;
+    }
+    if (type == TransactionType.credit &&
+        _loanReceivedSignals.any(lower.contains)) {
+      return TransactionPurpose.loanReceived;
+    }
+    if (type == TransactionType.credit &&
+        (lower.contains('borrowed') || lower.contains('borrow from'))) {
+      return TransactionPurpose.borrowed;
+    }
+    if (type == TransactionType.debit &&
+        (lower.contains('lent to') || lower.contains('loaned to'))) {
+      return TransactionPurpose.lent;
+    }
+    if (type == TransactionType.debit &&
+        _loanRepaymentSignals.any(lower.contains)) {
+      return TransactionPurpose.loanRepayment;
+    }
+    if (type == TransactionType.debit &&
+        (_investmentSignals.any(lower.contains) ||
+            _investmentSignals.any(merchantLower.contains))) {
+      return TransactionPurpose.investment;
+    }
+    if (type == TransactionType.credit && _incomeSignals.any(lower.contains)) {
+      return TransactionPurpose.income;
+    }
+
+    final bool explicitTransfer =
+        lower.contains('fund transfer') ||
+        lower.contains('transferred to') ||
+        lower.contains('transferred from') ||
+        lower.contains('self transfer') ||
+        lower.contains('own account transfer');
+    if (explicitTransfer) {
+      return TransactionPurpose.transfer;
+    }
+
+    if (type == TransactionType.credit &&
+        (lower.contains('received from') ||
+            RegExp(r'\b(?:UPI|IMPS|NEFT|RTGS)\b', caseSensitive: false)
+                .hasMatch(text))) {
+      return TransactionPurpose.transfer;
+    }
+
+    return type == TransactionType.debit
+        ? TransactionPurpose.expense
+        : TransactionPurpose.other;
   }
 
   int _firstSignalIndex(String text, List<String> signals) {
