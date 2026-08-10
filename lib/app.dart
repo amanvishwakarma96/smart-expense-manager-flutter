@@ -309,15 +309,15 @@ class _ResetCompleteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(32),
+            padding: const EdgeInsets.all(32),
             child: Semantics(
               container: true,
               liveRegion: true,
-              child: Column(
+              child: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   ExcludeSemantics(
