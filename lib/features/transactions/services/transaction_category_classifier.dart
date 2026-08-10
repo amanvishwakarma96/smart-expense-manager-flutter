@@ -23,8 +23,8 @@ class TransactionCategoryClassifier {
   }
 
   String? inferCategoryName(ParsedTransaction transaction) {
-    final String text = '${transaction.merchantName} ${transaction.originalText}'
-        .toLowerCase();
+    final String text =
+        '${transaction.merchantName} ${transaction.originalText}'.toLowerCase();
 
     switch (transaction.purpose) {
       case TransactionPurpose.income:

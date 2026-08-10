@@ -196,7 +196,8 @@ class SmsParserService {
       return TransactionPurpose.refund;
     }
     if (type == TransactionType.debit &&
-        (lower.contains('cash withdrawal') || lower.contains('withdrawn at atm'))) {
+        (lower.contains('cash withdrawal') ||
+            lower.contains('withdrawn at atm'))) {
       return TransactionPurpose.cashWithdrawal;
     }
     if (type == TransactionType.credit && lower.contains('cash deposit')) {
@@ -239,8 +240,10 @@ class SmsParserService {
 
     if (type == TransactionType.credit &&
         (lower.contains('received from') ||
-            RegExp(r'\b(?:UPI|IMPS|NEFT|RTGS)\b', caseSensitive: false)
-                .hasMatch(text))) {
+            RegExp(
+              r'\b(?:UPI|IMPS|NEFT|RTGS)\b',
+              caseSensitive: false,
+            ).hasMatch(text))) {
       return TransactionPurpose.transfer;
     }
 

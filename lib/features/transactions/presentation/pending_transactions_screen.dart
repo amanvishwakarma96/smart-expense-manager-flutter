@@ -178,10 +178,7 @@ class PendingTransactionsScreen extends ConsumerWidget {
     if (edit.categoryId != null) {
       learned = await ref
           .read(merchantRuleRepositoryProvider)
-          .learnCategory(
-            merchant: edit.merchant,
-            categoryId: edit.categoryId!,
-          );
+          .learnCategory(merchant: edit.merchant, categoryId: edit.categoryId!);
     }
     if (learned && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

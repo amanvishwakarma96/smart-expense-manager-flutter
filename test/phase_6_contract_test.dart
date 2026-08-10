@@ -33,7 +33,10 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('snapshotVersion = 5'));
-    expect(source, contains('supportedSnapshotVersions = <int>{1, 2, 3, 4, 5}'));
+    expect(
+      source,
+      contains('supportedSnapshotVersions = <int>{1, 2, 3, 4, 5}'),
+    );
     expect(source, contains("'savingsGoals': goalPayload"));
     expect(source, contains('savingsGoalModels.putAll(goals)'));
     expect(source, contains('rawVersion >= 3'));

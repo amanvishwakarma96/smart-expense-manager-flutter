@@ -91,10 +91,7 @@ class LocalBackupService {
         'id': item.id,
         'amount': item.amount,
         'type': item.type.name,
-        'purpose': transactionPurposeFromCode(
-          item.purposeCode,
-          item.type,
-        ).name,
+        'purpose': transactionPurposeFromCode(item.purposeCode, item.type).name,
         'merchant': await _cipher.decrypt(item.encryptedMerchant),
         'timestamp': item.timestamp.toUtc().toIso8601String(),
         'categoryId': item.categoryId,
@@ -114,10 +111,7 @@ class LocalBackupService {
         'id': item.id,
         'amount': item.amount,
         'type': item.type.name,
-        'purpose': transactionPurposeFromCode(
-          item.purposeCode,
-          item.type,
-        ).name,
+        'purpose': transactionPurposeFromCode(item.purposeCode, item.type).name,
         'merchant': await _cipher.decrypt(item.encryptedMerchant),
         'categoryId': item.categoryId,
         'frequency': item.frequency.name,

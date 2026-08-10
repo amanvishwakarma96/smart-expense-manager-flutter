@@ -210,8 +210,7 @@ class _TransactionHistoryScreenState
                     return PlayfulEmptyState(
                       icon: Icons.search_rounded,
                       title: 'Nothing matched yet',
-                      message:
-                          'Try another search, direction, or date filter.',
+                      message: 'Try another search, direction, or date filter.',
                       actionLabel: 'Clear filters',
                       onAction: () {
                         _searchController.clear();

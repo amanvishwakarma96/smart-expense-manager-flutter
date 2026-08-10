@@ -28,27 +28,30 @@ void main() {
     expect(source, contains('learnCategory'));
   });
 
-  test('running Android app is notified when native SMS queue receives data', () {
-    final String receiver = File(
-      'android/app/src/main/kotlin/com/smartspend/app/SmsReceiver.kt',
-    ).readAsStringSync();
-    final String activity = File(
-      'android/app/src/main/kotlin/com/smartspend/app/MainActivity.kt',
-    ).readAsStringSync();
-    final String dartQueue = File(
-      'lib/features/sms_engine/services/native_sms_queue_service.dart',
-    ).readAsStringSync();
-    final String coordinator = File(
-      'lib/features/sms_engine/services/sms_engine_coordinator.dart',
-    ).readAsStringSync();
+  test(
+    'running Android app is notified when native SMS queue receives data',
+    () {
+      final String receiver = File(
+        'android/app/src/main/kotlin/com/smartspend/app/SmsReceiver.kt',
+      ).readAsStringSync();
+      final String activity = File(
+        'android/app/src/main/kotlin/com/smartspend/app/MainActivity.kt',
+      ).readAsStringSync();
+      final String dartQueue = File(
+        'lib/features/sms_engine/services/native_sms_queue_service.dart',
+      ).readAsStringSync();
+      final String coordinator = File(
+        'lib/features/sms_engine/services/sms_engine_coordinator.dart',
+      ).readAsStringSync();
 
-    expect(receiver, contains('com.smartspend.app.SMS_QUEUED'));
-    expect(activity, contains('com.smartspend.app.SMS_QUEUED'));
-    expect(activity, contains('invokeMethod("smsQueued", null)'));
-    expect(dartQueue, contains("call.method == 'smsQueued'"));
-    expect(coordinator, contains('startAutomaticProcessing'));
-    expect(coordinator, contains('_nativeQueue.queuedEvents.listen'));
-  });
+      expect(receiver, contains('com.smartspend.app.SMS_QUEUED'));
+      expect(activity, contains('com.smartspend.app.SMS_QUEUED'));
+      expect(activity, contains('invokeMethod("smsQueued", null)'));
+      expect(dartQueue, contains("call.method == 'smsQueued'"));
+      expect(coordinator, contains('startAutomaticProcessing'));
+      expect(coordinator, contains('_nativeQueue.queuedEvents.listen'));
+    },
+  );
 
   test('quick challenge creation no longer dereferences null challenge', () {
     final String source = File(
@@ -56,7 +59,10 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('widget.challenge?.targetDays ?? 0'));
-    expect(source, contains('existingTargetDays <= 0 ? 2 : existingTargetDays'));
+    expect(
+      source,
+      contains('existingTargetDays <= 0 ? 2 : existingTargetDays'),
+    );
     expect(source, isNot(contains('widget.challenge!.targetDays')));
   });
 
@@ -66,7 +72,10 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('snapshotVersion = 5'));
-    expect(source, contains('supportedSnapshotVersions = <int>{1, 2, 3, 4, 5}'));
+    expect(
+      source,
+      contains('supportedSnapshotVersions = <int>{1, 2, 3, 4, 5}'),
+    );
     expect(source, contains("'purpose': transactionPurposeFromCode"));
     expect(source, contains('rawVersion >= 5'));
     expect(source, contains('defaultTransactionPurpose(type)'));

@@ -90,7 +90,8 @@ class _CategoryManagementCardState
                       decoration: const InputDecoration(
                         labelText: 'Monthly budget',
                         prefixText: '$defaultCurrencySymbol ',
-                        helperText: 'Use 0 for non-budget categories such as Income or Transfers.',
+                        helperText:
+                            'Use 0 for non-budget categories such as Income or Transfers.',
                       ),
                     ),
                     const SizedBox(height: 16),

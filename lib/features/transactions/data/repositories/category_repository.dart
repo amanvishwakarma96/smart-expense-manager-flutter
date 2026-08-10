@@ -77,27 +77,15 @@ class CategoryRepository {
         hexColor: 'FFCAD4',
         monthlyBudgetLimit: 3000,
       ),
-      CategoryModel(
-        name: 'Housing',
-        iconName: 'home',
-        hexColor: 'F8C8B8',
-      ),
+      CategoryModel(name: 'Housing', iconName: 'home', hexColor: 'F8C8B8'),
       CategoryModel(
         name: 'Entertainment',
         iconName: 'movie',
         hexColor: 'E8C7FF',
         monthlyBudgetLimit: 3000,
       ),
-      CategoryModel(
-        name: 'Travel',
-        iconName: 'flight',
-        hexColor: 'B7DDF6',
-      ),
-      CategoryModel(
-        name: 'Education',
-        iconName: 'school',
-        hexColor: 'D6E8A8',
-      ),
+      CategoryModel(name: 'Travel', iconName: 'flight', hexColor: 'B7DDF6'),
+      CategoryModel(name: 'Education', iconName: 'school', hexColor: 'D6E8A8'),
       CategoryModel(
         name: 'Investments',
         iconName: 'trending-up',
@@ -113,11 +101,7 @@ class CategoryRepository {
         iconName: 'swap-horiz',
         hexColor: 'D7DCE5',
       ),
-      CategoryModel(
-        name: 'Income',
-        iconName: 'payments',
-        hexColor: 'BEE7C5',
-      ),
+      CategoryModel(name: 'Income', iconName: 'payments', hexColor: 'BEE7C5'),
       CategoryModel(
         name: 'Other',
         iconName: 'circle',
@@ -126,9 +110,11 @@ class CategoryRepository {
       ),
     ];
 
-    final List<CategoryModel> missing = defaults.where((CategoryModel item) {
-      return !existingNames.contains(item.name.toLowerCase());
-    }).toList(growable: false);
+    final List<CategoryModel> missing = defaults
+        .where((CategoryModel item) {
+          return !existingNames.contains(item.name.toLowerCase());
+        })
+        .toList(growable: false);
     if (missing.isEmpty) {
       return;
     }

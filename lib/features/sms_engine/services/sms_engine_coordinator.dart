@@ -147,7 +147,8 @@ class SmsEngineCoordinator {
       final int? learnedCategoryId = await _rules.matchCategory(
         parsed.merchantName,
       );
-      final int? categoryId = learnedCategoryId ??
+      final int? categoryId =
+          learnedCategoryId ??
           _categoryClassifier.inferCategoryId(
             categories: categories,
             transaction: parsed,

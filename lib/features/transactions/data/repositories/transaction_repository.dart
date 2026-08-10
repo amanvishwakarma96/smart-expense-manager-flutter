@@ -207,7 +207,8 @@ class TransactionRepository {
       await _budgetAlertService?.checkCategory(previousCategoryId);
     }
     if (resolvedPurpose.countsAgainstBudget &&
-        (categoryId != previousCategoryId || !previousPurpose.countsAgainstBudget)) {
+        (categoryId != previousCategoryId ||
+            !previousPurpose.countsAgainstBudget)) {
       await _budgetAlertService?.checkCategory(categoryId);
     }
   }

@@ -69,7 +69,8 @@ void main() {
 
   test('refund credit is a refund rather than income', () {
     final parsed = parser.parse(
-      body: 'Refund of INR 799 credited to A/c XX1234 for card purchase reversal.',
+      body:
+          'Refund of INR 799 credited to A/c XX1234 for card purchase reversal.',
       sender: 'BANK',
     );
 
