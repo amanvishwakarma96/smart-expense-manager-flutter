@@ -18,6 +18,7 @@ class TransactionModel {
     this.encryptedAccountTail = '',
     this.smsFingerprint,
     this.possibleDuplicateOf,
+    this.categoryManuallyAssigned = false,
     this.isManual = false,
     this.isRecurring = false,
   }) : createdAt = DateTime.now();
@@ -43,6 +44,7 @@ class TransactionModel {
   String? smsFingerprint;
 
   int? possibleDuplicateOf;
+  bool categoryManuallyAssigned;
   bool isManual;
   bool isRecurring;
   DateTime createdAt;

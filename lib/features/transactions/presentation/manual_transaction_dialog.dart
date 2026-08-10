@@ -130,11 +130,6 @@ class _TransactionEditorSheetState
         categoryId: _categoryId,
       );
     }
-    if (_categoryId != null) {
-      await ref
-          .read(merchantRuleRepositoryProvider)
-          .learnCategory(merchant: merchant, categoryId: _categoryId!);
-    }
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -279,7 +274,7 @@ class _TransactionEditorSheetState
                       labelText: 'Category',
                       prefixIcon: Icon(Icons.category_rounded),
                       helperText:
-                          'PiggyAI remembers this merchant/category for future SMS matches.',
+                          'Confirmed category choices build local merchant confidence.',
                     ),
                     items: items
                         .map((CategoryModel item) {

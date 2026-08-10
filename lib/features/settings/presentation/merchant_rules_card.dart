@@ -4,6 +4,7 @@ import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
+import 'package:smart_expense_manager/features/transactions/domain/learned_merchant_mapping.dart';
 
 class MerchantRulesCard extends ConsumerStatefulWidget {
   const MerchantRulesCard({super.key});
@@ -114,6 +115,65 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
     }
   }
 
+  Future<void> _editLearned(
+    LearnedMerchantMapping mapping,
+    List<CategoryModel> categories,
+  ) async {
+    if (categories.isEmpty) {
+      return;
+    }
+    int categoryId = mapping.categoryId;
+    if (!categories.any((CategoryModel item) => item.id == categoryId)) {
+      categoryId = categories.first.id;
+    }
+    final int? selected = await showDialog<int>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              title: Text('Edit ${mapping.merchant.toUpperCase()}'),
+              content: DropdownButtonFormField<int>(
+                initialValue: categoryId,
+                decoration: const InputDecoration(labelText: 'Learned category'),
+                items: categories
+                    .map((CategoryModel category) => DropdownMenuItem<int>(
+                          value: category.id,
+                          child: Text(category.name),
+                        ))
+                    .toList(growable: false),
+                onChanged: (int? value) {
+                  if (value != null) {
+                    setDialogState(() => categoryId = value);
+                  }
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(categoryId),
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (selected == null) {
+      return;
+    }
+    await ref
+        .read(merchantRuleRepositoryProvider)
+        .editLearnedMapping(id: mapping.id, categoryId: selected);
+    if (mounted) {
+      _message('Learned mapping updated locally.');
+    }
+  }
+
   Future<void> _delete(MerchantRuleModel rule) async {
     final bool confirmed =
         await showDialog<bool>(
@@ -148,6 +208,39 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
     }
   }
 
+  Future<void> _deleteLearned(LearnedMerchantMapping mapping) async {
+    final bool confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (BuildContext dialogContext) => AlertDialog(
+            title: const Text('Clear learned mapping?'),
+            content: Text(
+              'PiggyAI will forget the learned category confidence for ${mapping.merchant.toUpperCase()}.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Keep'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) {
+      return;
+    }
+    await ref
+        .read(merchantRuleRepositoryProvider)
+        .deleteLearnedMapping(mapping.id);
+    if (mounted) {
+      _message('Learned mapping cleared.');
+    }
+  }
+
   void _message(String message) {
     ScaffoldMessenger.of(
       context,
@@ -162,6 +255,14 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
     final AsyncValue<List<MerchantRuleModel>> rules = ref.watch(
       merchantRulesProvider,
     );
+    final AsyncValue<List<LearnedMerchantMapping>> learned = ref.watch(
+      learnedMerchantMappingsProvider,
+    );
+    final Map<int, String> categoryNames = <int, String>{
+      for (final CategoryModel category
+          in categories.value ?? const <CategoryModel>[])
+        category.id: category.name,
+    };
 
     return Card(
       child: Padding(
@@ -217,53 +318,104 @@ class _MerchantRulesCardState extends ConsumerState<MerchantRulesCard> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
-                      'No rules yet. Add one to teach PiggyAI your favorite '
-                      'merchant-category matches.',
+                      'No explicit rules yet. Add one when you want a direct merchant match.',
                     ),
                   );
                 }
-                final Map<int, String> categoryNames = <int, String>{
-                  for (final CategoryModel category
-                      in categories.value ?? const <CategoryModel>[])
-                    category.id: category.name,
-                };
                 return Column(
                   children: items
-                      .map((MerchantRuleModel rule) {
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const CircleAvatar(
-                            child: Icon(Icons.bolt_rounded),
-                          ),
-                          title: Text(rule.merchantPattern.toUpperCase()),
-                          subtitle: Text(
-                            '→ ${categoryNames[rule.mappedCategoryId] ?? 'Missing category'}',
-                          ),
-                          trailing: PopupMenuButton<String>(
-                            onSelected: (String action) {
-                              if (action == 'edit') {
-                                _edit(
-                                  categories.value ?? const <CategoryModel>[],
-                                  rule: rule,
-                                );
-                              } else if (action == 'delete') {
-                                _delete(rule);
-                              }
-                            },
-                            itemBuilder: (BuildContext context) =>
-                                const <PopupMenuEntry<String>>[
-                                  PopupMenuItem<String>(
-                                    value: 'edit',
-                                    child: Text('Edit'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'delete',
-                                    child: Text('Delete'),
-                                  ),
-                                ],
-                          ),
-                        );
-                      })
+                      .map((MerchantRuleModel rule) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const CircleAvatar(
+                              child: Icon(Icons.bolt_rounded),
+                            ),
+                            title: Text(rule.merchantPattern.toUpperCase()),
+                            subtitle: Text(
+                              '→ ${categoryNames[rule.mappedCategoryId] ?? 'Missing category'}',
+                            ),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (String action) {
+                                if (action == 'edit') {
+                                  _edit(
+                                    categories.value ?? const <CategoryModel>[],
+                                    rule: rule,
+                                  );
+                                } else if (action == 'delete') {
+                                  _delete(rule);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) =>
+                                  const <PopupMenuEntry<String>>[
+                                    PopupMenuItem<String>(
+                                      value: 'edit',
+                                      child: Text('Edit'),
+                                    ),
+                                    PopupMenuItem<String>(
+                                      value: 'delete',
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                            ),
+                          ))
+                      .toList(growable: false),
+                );
+              },
+            ),
+            const Divider(height: 28),
+            const Text(
+              'Learned from confirmations',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Only confirmed manual category corrections increase confidence. Merchant text is encrypted on-device.',
+            ),
+            const SizedBox(height: 10),
+            learned.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (Object error, StackTrace stackTrace) =>
+                  const Text('Could not load learned mappings.'),
+              data: (List<LearnedMerchantMapping> items) {
+                if (items.isEmpty) {
+                  return const Text(
+                    'No learned mappings yet. Correct a category and confirm the transaction to teach PiggyAI.',
+                  );
+                }
+                return Column(
+                  children: items
+                      .map((LearnedMerchantMapping mapping) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const CircleAvatar(
+                              child: Icon(Icons.psychology_alt_rounded),
+                            ),
+                            title: Text(mapping.merchant.toUpperCase()),
+                            subtitle: Text(
+                              '${categoryNames[mapping.categoryId] ?? 'Missing category'} · confidence ${mapping.confidence}',
+                            ),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (String action) {
+                                if (action == 'edit') {
+                                  _editLearned(
+                                    mapping,
+                                    categories.value ?? const <CategoryModel>[],
+                                  );
+                                } else if (action == 'clear') {
+                                  _deleteLearned(mapping);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) =>
+                                  const <PopupMenuEntry<String>>[
+                                    PopupMenuItem<String>(
+                                      value: 'edit',
+                                      child: Text('Edit category'),
+                                    ),
+                                    PopupMenuItem<String>(
+                                      value: 'clear',
+                                      child: Text('Clear learned mapping'),
+                                    ),
+                                  ],
+                            ),
+                          ))
                       .toList(growable: false),
                 );
               },

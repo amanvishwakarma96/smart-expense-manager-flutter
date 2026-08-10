@@ -20,6 +20,7 @@ import 'package:smart_expense_manager/features/transactions/data/repositories/me
 import 'package:smart_expense_manager/features/transactions/data/repositories/recurring_transaction_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/transaction_repository.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/domain/learned_merchant_mapping.dart';
 import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
 
 final Provider<Isar> isarProvider = Provider<Isar>((Ref ref) {
@@ -41,6 +42,14 @@ final Provider<BillReminderService> billReminderServiceProvider =
       return BillReminderService(isar: ref.watch(isarProvider));
     });
 
+final Provider<MerchantRuleRepository> merchantRuleRepositoryProvider =
+    Provider<MerchantRuleRepository>((Ref ref) {
+      return MerchantRuleRepository(
+        ref.watch(isarProvider),
+        ref.watch(cipherProvider),
+      );
+    });
+
 final Provider<TransactionRepository> transactionRepositoryProvider =
     Provider<TransactionRepository>((Ref ref) {
       return TransactionRepository(
@@ -48,6 +57,7 @@ final Provider<TransactionRepository> transactionRepositoryProvider =
         ref.watch(cipherProvider),
         budgetAlertService: ref.watch(budgetAlertServiceProvider),
         reminderService: ref.watch(billReminderServiceProvider),
+        merchantRuleRepository: ref.watch(merchantRuleRepositoryProvider),
       );
     });
 
@@ -77,11 +87,6 @@ final Provider<SavingsGoalRepository> savingsGoalRepositoryProvider =
 final Provider<CategoryRepository> categoryRepositoryProvider =
     Provider<CategoryRepository>((Ref ref) {
       return CategoryRepository(ref.watch(isarProvider));
-    });
-
-final Provider<MerchantRuleRepository> merchantRuleRepositoryProvider =
-    Provider<MerchantRuleRepository>((Ref ref) {
-      return MerchantRuleRepository(ref.watch(isarProvider));
     });
 
 final Provider<LocalBackupService> localBackupServiceProvider =
@@ -145,6 +150,12 @@ final StreamProvider<List<CategoryModel>> categoriesProvider =
 final StreamProvider<List<MerchantRuleModel>> merchantRulesProvider =
     StreamProvider<List<MerchantRuleModel>>((Ref ref) {
       return ref.watch(merchantRuleRepositoryProvider).watchAll();
+    });
+
+final StreamProvider<List<LearnedMerchantMapping>>
+learnedMerchantMappingsProvider =
+    StreamProvider<List<LearnedMerchantMapping>>((Ref ref) {
+      return ref.watch(merchantRuleRepositoryProvider).watchLearnedMappings();
     });
 
 class PrivacyModeController extends Notifier<bool> {

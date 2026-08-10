@@ -37,7 +37,7 @@ class PendingTransactionsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             const Text(
-              'PiggyAI parses direction, purpose and category locally. Tap to correct; corrections teach future matches.',
+              'PiggyAI parses direction, purpose and category locally. Tap to correct; confirmed corrections teach future matches.',
             ),
             const SizedBox(height: 18),
             Expanded(
@@ -163,6 +163,11 @@ class PendingTransactionsScreen extends ConsumerWidget {
     if (edit == null) {
       return;
     }
+    final bool shouldLearnAfterConfirmation =
+        edit.categoryId != null &&
+        (edit.categoryId != transaction.categoryId ||
+            edit.merchant.trim().toLowerCase() !=
+                transaction.merchant.trim().toLowerCase());
     await ref
         .read(transactionRepositoryProvider)
         .updatePending(
@@ -172,19 +177,14 @@ class PendingTransactionsScreen extends ConsumerWidget {
           type: edit.type,
           purpose: edit.purpose,
           categoryId: edit.categoryId,
+          categoryManuallyAssigned: shouldLearnAfterConfirmation,
         );
 
-    bool learned = false;
-    if (edit.categoryId != null) {
-      learned = await ref
-          .read(merchantRuleRepositoryProvider)
-          .learnCategory(merchant: edit.merchant, categoryId: edit.categoryId!);
-    }
-    if (learned && context.mounted) {
+    if (shouldLearnAfterConfirmation && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Category remembered. Future matching transactions will use it automatically.',
+            'Category correction saved. PiggyAI will learn it after you confirm this transaction.',
           ),
         ),
       );
@@ -496,7 +496,8 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
               initialValue: _categoryId,
               decoration: const InputDecoration(
                 labelText: 'Category',
-                helperText: 'Your correction is remembered for this merchant.',
+                helperText:
+                    'Your correction is learned only after confirmation.',
               ),
               items: widget.categories
                   .map((CategoryModel category) {

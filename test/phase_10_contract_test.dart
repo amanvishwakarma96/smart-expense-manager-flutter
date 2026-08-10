@@ -12,10 +12,11 @@ void main() {
     expect(source, contains("label: Text('Credit')"));
     expect(source, contains('TransactionPurposeField'));
     expect(source, contains('purpose: _purpose'));
-    expect(source, contains('learnCategory'));
+    expect(source, contains('merchant confidence'));
+    expect(source, isNot(contains('.learnCategory(')));
   });
 
-  test('pending review surfaces direction purpose and learns categories', () {
+  test('pending review surfaces direction purpose and learns after confirmation', () {
     final String source = File(
       'lib/features/transactions/presentation/'
       'pending_transactions_screen.dart',
@@ -24,8 +25,9 @@ void main() {
     expect(source, contains('TransactionSemanticChips'));
     expect(source, contains("label: Text('Debit')"));
     expect(source, contains("label: Text('Credit')"));
-    expect(source, contains('Category remembered'));
-    expect(source, contains('learnCategory'));
+    expect(source, contains('learned only after confirmation'));
+    expect(source, contains('categoryManuallyAssigned'));
+    expect(source, isNot(contains('.learnCategory(')));
   });
 
   test(

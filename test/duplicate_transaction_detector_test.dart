@@ -75,7 +75,9 @@ void main() {
         amount: 499,
         merchant: 'SWIGGY',
         accountTail: '7788',
-        timestamp: baseTime.add(const Duration(minutes: 5, milliseconds: 1)),
+        timestamp: baseTime.add(
+          const Duration(minutes: 5, milliseconds: 1),
+        ),
         existing: <DuplicateTransactionCandidate>[candidate()],
       ),
       isNull,

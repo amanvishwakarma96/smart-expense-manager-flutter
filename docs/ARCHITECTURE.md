@@ -23,11 +23,11 @@ lib/
 2. Native Kotlin performs a coarse keyword and amount filter.
 3. The message is encrypted with an Android Keystore AES-GCM key and queued in private `SharedPreferences`.
 4. Flutter drains the queue through a method channel.
-5. Dart performs detailed parsing and applies local merchant rules.
+5. Dart performs detailed parsing, checks explicit merchant rules, then checks encrypted merchant→category confidence learned only from confirmed manual corrections before falling back to deterministic local category inference.
 6. Before a new SMS-derived record is queued, local duplicate analysis compares account tail, amount, merchant similarity, and a five-minute timestamp window against pending and confirmed records.
-7. Sensitive text fields are encrypted again with an installation-specific key stored through `flutter_secure_storage`.
+7. Sensitive text fields are encrypted again with an installation-specific key stored through `flutter_secure_storage`; learned merchant text uses this same field-encryption service.
 8. Isar stores the pending transaction locally, including an optional numeric `possibleDuplicateOf` reference when the detector finds a likely match.
-9. The user confirms, edits, categorizes, or discards the transaction; duplicate warnings never remove or confirm a financial record automatically.
-10. Riverpod streams refresh dashboard and budget views.
+9. The user confirms, edits, categorizes, or discards the transaction. A manually corrected category increases its encrypted merchant mapping confidence only after confirmation; duplicate warnings never remove or confirm a record automatically.
+10. Riverpod streams refresh dashboard, settings, and budget views.
 
 No step sends SMS or financial data over a network.

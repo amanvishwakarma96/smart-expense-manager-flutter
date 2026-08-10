@@ -34,4 +34,28 @@ void main() {
     expect(source, isNot(contains('package:dio/')));
     expect(source, isNot(contains('HttpClient(')));
   });
+
+  test('learned merchant confidence is encrypted and confirmation-gated', () {
+    final String model = File(
+      'lib/features/transactions/data/models/merchant_learning_model.dart',
+    ).readAsStringSync();
+    final String repository = File(
+      'lib/features/transactions/data/repositories/merchant_rule_repository.dart',
+    ).readAsStringSync();
+    final String transactions = File(
+      'lib/features/transactions/data/repositories/transaction_repository.dart',
+    ).readAsStringSync();
+    final String settings = File(
+      'lib/features/settings/presentation/merchant_rules_card.dart',
+    ).readAsStringSync();
+
+    expect(model, contains('String encryptedMerchant;'));
+    expect(model, isNot(contains('String merchant;')));
+    expect(repository, contains('recordConfirmedCategory'));
+    expect(repository, contains('highestConfidenceCategory'));
+    expect(repository, contains('await _cipher.encrypt(pattern)'));
+    expect(transactions, contains('categoryManuallyAssigned'));
+    expect(settings, contains('Learned from confirmations'));
+    expect(settings, contains('Clear learned mapping'));
+  });
 }

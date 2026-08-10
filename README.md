@@ -33,6 +33,8 @@ after confirmation.
 - Android bank-SMS detection with a pending review queue.
 - Local possible-duplicate detection that warns in Review without silently
   dropping or confirming either transaction.
+- Confidence-based merchant/category learning from confirmed corrections, with
+  encrypted merchant text and editable/clearable learned mappings in Settings.
 - Indian UPI, IMPS, NEFT, RTGS, ATM, card, refund, and reversal parsing rules.
 - Weekly and monthly recurring expenses or income that always enter review
   before they affect budgets.
@@ -124,13 +126,16 @@ after confirmation.
 ## Categories and merchant rules
 
 - Users can create or edit category names, icons, colors, and monthly budgets.
-- A category cannot be deleted while a transaction, recurring item, or merchant
-  rule references it, and PiggyAI always keeps at least one category.
+- A category cannot be deleted while a transaction, recurring item, explicit
+  merchant rule, or learned merchant mapping references it.
 - Merchant rules can be added, edited, and deleted from Settings.
-- Longer merchant patterns are checked before broader patterns so specific rules
-  win, for example `amazon prime` before `amazon`.
-- Categories and merchant rules remain local and are already included in
-  explicit encrypted backups.
+- Longer explicit merchant patterns are checked before broader patterns so
+  specific rules win, for example `amazon prime` before `amazon`.
+- Confirmed manual category corrections build a separate local confidence score;
+  among learned mappings for the same merchant, the highest-confidence category
+  is pre-selected for future pending transactions.
+- Learned merchant text is AES-GCM encrypted at rest and each learned mapping can
+  be edited or cleared from Settings.
 
 ## Savings goals and rewards
 
