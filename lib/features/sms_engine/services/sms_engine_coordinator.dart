@@ -55,6 +55,7 @@ class SmsEngineCoordinator {
 
   Future<void> startAutomaticProcessing() async {
     await _safeDrain();
+    await _refreshRecentInboxIfGranted();
     _queueSubscription ??= _nativeQueue.queuedEvents.listen((_) {
       unawaited(_safeDrain());
     });
@@ -87,6 +88,17 @@ class SmsEngineCoordinator {
       added: summary.added,
       permission: result.permission,
     );
+  }
+
+  Future<void> _refreshRecentInboxIfGranted() async {
+    try {
+      final SmsImportResult result = await _inbox.importRecentIfGranted();
+      if (result.permission == SmsPermissionResult.granted) {
+        await _ingest(result.messages);
+      }
+    } catch (_) {
+      // Startup refresh is best-effort; manual scan stays available in Settings.
+    }
   }
 
   Future<void> _safeDrain() async {
