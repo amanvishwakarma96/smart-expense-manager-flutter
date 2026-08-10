@@ -5,7 +5,7 @@ import 'package:smart_expense_manager/features/transactions/domain/expense_trans
 import 'package:smart_expense_manager/features/transactions/services/transaction_category_classifier.dart';
 
 void main() {
-  const SmsParserService parser = SmsParserService();
+  final SmsParserService parser = SmsParserService();
   const TransactionCategoryClassifier classifier =
       TransactionCategoryClassifier();
 
