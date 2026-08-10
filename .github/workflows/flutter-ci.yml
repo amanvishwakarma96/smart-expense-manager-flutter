@@ -56,6 +56,10 @@ jobs:
       - name: Test
         run: flutter test
 
+      - name: Verify generated sources are committed
+        if: github.event_name != 'pull_request'
+        run: git diff --exit-code
+
       - name: Build Android debug APK
         run: flutter build apk --debug
 
@@ -133,10 +137,6 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           compression-level: 0
-
-      - name: Verify main has no generated changes
-        if: github.event_name != 'pull_request'
-        run: git diff --exit-code
 
       - name: Commit generated and formatted files
         if: >-
