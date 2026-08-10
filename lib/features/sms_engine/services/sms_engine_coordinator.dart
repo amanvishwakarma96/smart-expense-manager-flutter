@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:smart_expense_manager/features/sms_engine/services/native_sms_queue_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_inbox_import_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_parser_service.dart';
@@ -47,6 +49,22 @@ class SmsEngineCoordinator {
   final NativeSmsQueueService _nativeQueue;
   final TransactionCategoryClassifier _categoryClassifier;
 
+  StreamSubscription<void>? _queueSubscription;
+  bool _draining = false;
+  bool _drainRequested = false;
+
+  Future<void> startAutomaticProcessing() async {
+    await _safeDrain();
+    _queueSubscription ??= _nativeQueue.queuedEvents.listen((_) {
+      unawaited(_safeDrain());
+    });
+  }
+
+  Future<void> dispose() async {
+    await _queueSubscription?.cancel();
+    _queueSubscription = null;
+  }
+
   Future<SmsScanSummary> drainNativeQueue() async {
     final List<QueuedSms> queued = await _nativeQueue.drain();
     return _ingest(queued);
@@ -69,6 +87,30 @@ class SmsEngineCoordinator {
       added: summary.added,
       permission: result.permission,
     );
+  }
+
+  Future<void> _safeDrain() async {
+    try {
+      await _drainSerially();
+    } catch (_) {
+      // The encrypted native queue remains available for the next drain attempt.
+    }
+  }
+
+  Future<void> _drainSerially() async {
+    if (_draining) {
+      _drainRequested = true;
+      return;
+    }
+    _draining = true;
+    try {
+      do {
+        _drainRequested = false;
+        await drainNativeQueue();
+      } while (_drainRequested);
+    } finally {
+      _draining = false;
+    }
   }
 
   Future<SmsScanSummary> _ingest(List<QueuedSms> messages) async {
