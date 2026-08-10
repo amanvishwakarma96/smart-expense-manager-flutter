@@ -101,10 +101,10 @@ class _DashboardBody extends StatelessWidget {
         .toList(growable: false);
 
     final double spent = thisMonth
-        .where((ExpenseTransaction item) => item.isDebit)
+        .where((ExpenseTransaction item) => item.countsAsSpending)
         .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
     final double income = thisMonth
-        .where((ExpenseTransaction item) => !item.isDebit)
+        .where((ExpenseTransaction item) => item.countsAsIncome)
         .fold(0, (double sum, ExpenseTransaction item) => sum + item.amount);
     final double budget = categories.fold(
       0,
@@ -112,7 +112,7 @@ class _DashboardBody extends StatelessWidget {
     );
     final Map<int, double> categorySpend = <int, double>{};
     for (final ExpenseTransaction item in thisMonth.where(
-      (ExpenseTransaction item) => item.isDebit,
+      (ExpenseTransaction item) => item.countsAgainstBudget,
     )) {
       if (item.categoryId != null) {
         categorySpend.update(
@@ -440,7 +440,7 @@ class _CashFlowChart extends StatelessWidget {
       ).subtract(Duration(days: 6 - index));
       final double spent = transactions
           .where((ExpenseTransaction item) {
-            return item.isDebit &&
+            return item.countsAsSpending &&
                 item.timestamp.year == date.year &&
                 item.timestamp.month == date.month &&
                 item.timestamp.day == date.day;
