@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
+import 'package:smart_expense_manager/core/widgets/app_state_view.dart';
 import 'package:smart_expense_manager/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:smart_expense_manager/features/goals/presentation/goals_calendar_screen.dart';
 import 'package:smart_expense_manager/features/settings/presentation/onboarding_screen.dart';
@@ -59,7 +60,9 @@ class _OnboardingGateState extends ConsumerState<_OnboardingGate> {
   @override
   Widget build(BuildContext context) {
     if (_completed == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: AppLoadingState(label: 'Preparing your private workspace'),
+      );
     }
     if (!_completed!) {
       return OnboardingScreen(
@@ -181,41 +184,50 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: AppLoadingState(label: 'Checking app lock'));
     }
     if (!_lockEnabled || _unlocked) {
       return widget.child;
     }
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const Icon(Icons.lock_rounded, size: 68),
-              const SizedBox(height: 18),
-              Text(
-                'PiggyAI is locked',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: Semantics(
+              container: true,
+              label: 'PiggyAI is locked',
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const ExcludeSemantics(
+                    child: Icon(Icons.lock_rounded, size: 68),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'PiggyAI is locked',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _timeoutMinutes == 0
+                        ? 'PiggyAI locks whenever it leaves the foreground.'
+                        : 'PiggyAI locked after $_timeoutMinutes minute'
+                              '${_timeoutMinutes == 1 ? '' : 's'} in the background.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 22),
+                  FilledButton.icon(
+                    onPressed: _authenticate,
+                    icon: const Icon(Icons.fingerprint_rounded),
+                    label: const Text('Unlock'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                _timeoutMinutes == 0
-                    ? 'PiggyAI locks whenever it leaves the foreground.'
-                    : 'PiggyAI locked after $_timeoutMinutes minute'
-                          '${_timeoutMinutes == 1 ? '' : 's'} in the background.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 22),
-              FilledButton.icon(
-                onPressed: _authenticate,
-                icon: const Icon(Icons.fingerprint_rounded),
-                label: const Text('Unlock'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -243,6 +255,13 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final double textScale = MediaQuery.textScalerOf(context).scale(1);
+    final double navigationHeight = textScale > 1.5
+        ? 96
+        : textScale > 1.2
+        ? 86
+        : 76;
+
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
       floatingActionButton: _index <= 2
@@ -253,6 +272,7 @@ class _HomeShellState extends State<HomeShell> {
             )
           : null,
       bottomNavigationBar: NavigationBar(
+        height: navigationHeight,
         selectedIndex: _index,
         onDestinationSelected: (int value) => setState(() => _index = value),
         destinations: const <NavigationDestination>[
@@ -287,26 +307,34 @@ class _ResetCompleteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(Icons.check_circle_rounded, size: 72),
-              SizedBox(height: 18),
-              Text(
-                'Local financial data deleted',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-                textAlign: TextAlign.center,
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: Semantics(
+              container: true,
+              liveRegion: true,
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ExcludeSemantics(
+                    child: Icon(Icons.check_circle_rounded, size: 72),
+                  ),
+                  SizedBox(height: 18),
+                  Text(
+                    'Local financial data deleted',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Close and reopen PiggyAI to create a new encryption key.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              SizedBox(height: 10),
-              Text(
-                'Close and reopen PiggyAI to create a new encryption key.',
-                textAlign: TextAlign.center,
-              ),
-            ],
+            ),
           ),
         ),
       ),
