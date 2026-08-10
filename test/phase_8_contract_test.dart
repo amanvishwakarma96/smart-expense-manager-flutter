@@ -31,7 +31,7 @@ void main() {
 
   test('reminder permission is requested only from the opt-in editor flow', () {
     final String source = File(
-      'lib/features/settings/presentation/recurring_transactions_card.dart',
+      'lib/features/transactions/presentation/recurring_transaction_editor.dart',
     ).readAsStringSync();
 
     expect(source, contains('if (reminderEnabled)'));

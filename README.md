@@ -35,6 +35,8 @@ after confirmation.
   dropping or confirming either transaction.
 - Confidence-based merchant/category learning from confirmed corrections, with
   encrypted merchant text and editable/clearable learned mappings in Settings.
+- Read-only subscription suggestions from 90 days of confirmed debit history;
+  accepting a suggestion opens the existing recurring editor without auto-saving.
 - Indian UPI, IMPS, NEFT, RTGS, ATM, card, refund, and reversal parsing rules.
 - Weekly and monthly recurring expenses or income that always enter review
   before they affect budgets.
@@ -64,6 +66,20 @@ after confirmation.
   recurring schedules, reminder preferences, and savings goals.
 - Full local financial-data deletion with reminder cancellation and
   encryption-key removal.
+
+## Subscription suggestions
+
+- The detector reads only the last 90 days of confirmed, non-recurring debit
+  transactions already stored on the device.
+- At least three matching merchant-and-amount occurrences are required.
+- Weekly cadence accepts consecutive intervals around seven days with ±3 days of
+  jitter; monthly cadence uses thirty days with the same tolerance.
+- A matching existing recurring template suppresses the suggestion.
+- Dashboard suggestions can be dismissed for the current app session.
+- “Set up as recurring” opens the same recurring editor used in Settings with
+  merchant, amount, cadence, category, and next expected date prefilled.
+- The detector never creates or edits a recurring item; only the editor's
+  explicit Save action does that.
 
 ## Bill reminders
 
@@ -176,8 +192,9 @@ after confirmation.
 - A restore validates the encrypted envelope and snapshot before replacing any
   local database collections.
 - Sensitive fields are re-encrypted using the destination installation's key.
-- Snapshot version 4 includes recurring schedules, reminder preferences, and
-  savings goals, while versions 1, 2, and 3 remain restorable.
+- Snapshot version 5 preserves semantic transaction purpose and includes
+  recurring schedules, reminder preferences, and savings goals; versions 1
+  through 4 remain restorable.
 - Restoring or deleting data cancels obsolete scheduled reminders and rebuilds
   only the reminders represented by the resulting local data.
 - Weekly quest history is excluded from financial backup files and is reset
@@ -227,14 +244,14 @@ flutter build apk --debug
 - **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
   transaction SMS detection, pending review, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
-  custom categories, merchant rules, local forecast, savings goals, cash-flow
-  calendar, budgets, local alerts, encrypted backup/restore, insights, charts,
-  privacy mode, and configurable app lock.
+  custom categories, merchant rules, local forecast, subscription suggestions,
+  savings goals, cash-flow calendar, budgets, local alerts, encrypted
+  backup/restore, insights, charts, privacy mode, and configurable app lock.
 - **iOS:** onboarding, manual entry, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
-  custom categories, merchant rules, local forecast, savings goals, cash-flow
-  calendar, budgets, local alerts, encrypted backup/restore, insights, charts,
-  privacy mode, and configurable app lock. Automatic SMS access is intentionally
-  unavailable.
+  custom categories, merchant rules, local forecast, subscription suggestions,
+  savings goals, cash-flow calendar, budgets, local alerts, encrypted
+  backup/restore, insights, charts, privacy mode, and configurable app lock.
+  Automatic SMS access is intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.

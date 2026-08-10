@@ -15,6 +15,10 @@ All notable changes to PiggyAI will be documented in this file.
   category corrections.
 - A Settings view for learned mappings with confidence counts plus per-mapping
   category editing and clearing.
+- Read-only subscription detection across the last 90 days of confirmed debit
+  history for weekly or monthly merchant+amount cadences with ±3 day jitter.
+- Dismissible dashboard subscription suggestions that open the existing recurring
+  editor with detected values prefilled.
 
 ### Changed
 
@@ -22,13 +26,17 @@ All notable changes to PiggyAI will be documented in this file.
   the same merchant when no explicit merchant rule matches first.
 - Pending category edits are marked for learning but do not increase confidence
   until the transaction is confirmed.
+- The recurring editor is shared between Settings and dashboard subscription
+  suggestions so setup follows one explicit Save flow.
 
 ### Security
 
-- Duplicate analysis runs deterministically on-device and never silently drops,
-  confirms, or changes a financial record.
+- Duplicate and subscription analysis run deterministically on-device and never
+  silently create, confirm, remove, or change a financial record.
 - Newly learned merchant text is encrypted at rest with `SecureCipherService`;
   confidence metadata never requires a network or remote model.
+- Subscription suggestions remain transient UI guidance and do not persist new
+  sensitive merchant text or auto-create recurring templates.
 - No backend, cloud service, analytics, telemetry, remote AI, or Android internet
   permission was introduced.
 

@@ -58,4 +58,26 @@ void main() {
     expect(settings, contains('Learned from confirmations'));
     expect(settings, contains('Clear learned mapping'));
   });
+
+  test('subscription detection is read-only and opens the existing editor', () {
+    final String service = File(
+      'lib/features/dashboard/services/subscription_detector_service.dart',
+    ).readAsStringSync();
+    final String card = File(
+      'lib/features/dashboard/presentation/subscription_suggestions_card.dart',
+    ).readAsStringSync();
+    final String editor = File(
+      'lib/features/transactions/presentation/recurring_transaction_editor.dart',
+    ).readAsStringSync();
+
+    expect(service, contains('lookbackDays = 90'));
+    expect(service, contains('jitterDays = 3'));
+    expect(service, contains('item.status != TransactionStatus.confirmed'));
+    expect(service, isNot(contains('.save(')));
+    expect(service, isNot(contains('.put(')));
+    expect(card, contains('Looks like a subscription'));
+    expect(card, contains('Set up as recurring'));
+    expect(card, contains('showRecurringTransactionEditor'));
+    expect(editor, contains('Nothing is created until you press Save'));
+  });
 }
