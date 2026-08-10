@@ -23,17 +23,32 @@ class _CategoryManagementCardState
     'A8D8FF',
     'FFCAD4',
     'FFD98E',
+    'FFE4A3',
+    'F8C8B8',
+    'E8C7FF',
+    'B7DDF6',
+    'D6E8A8',
+    'B9E2D0',
+    'FFD0B5',
+    'BEE7C5',
     'D7DCE5',
   ];
   static const Map<String, IconData> _icons = <String, IconData>{
     'circle': Icons.circle_rounded,
     'utensils': Icons.restaurant_rounded,
+    'basket': Icons.shopping_basket_rounded,
     'car': Icons.directions_car_rounded,
     'shopping-bag': Icons.shopping_bag_rounded,
     'receipt': Icons.receipt_long_rounded,
     'heart-pulse': Icons.favorite_rounded,
     'home': Icons.home_rounded,
+    'movie': Icons.movie_rounded,
+    'flight': Icons.flight_rounded,
     'school': Icons.school_rounded,
+    'trending-up': Icons.trending_up_rounded,
+    'account-balance': Icons.account_balance_rounded,
+    'swap-horiz': Icons.swap_horiz_rounded,
+    'payments': Icons.payments_rounded,
     'pets': Icons.pets_rounded,
     'celebration': Icons.celebration_rounded,
   };
@@ -75,6 +90,8 @@ class _CategoryManagementCardState
                       decoration: const InputDecoration(
                         labelText: 'Monthly budget',
                         prefixText: '$defaultCurrencySymbol ',
+                        helperText:
+                            'Use 0 for non-budget categories such as Income or Transfers.',
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -107,6 +124,7 @@ class _CategoryManagementCardState
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 10,
+                      runSpacing: 10,
                       children: _colors
                           .map((String value) {
                             final bool selected = hexColor == value;
@@ -164,7 +182,7 @@ class _CategoryManagementCardState
       return;
     }
     if (budget == null) {
-      _message('Enter a valid monthly budget.');
+      _message('Enter a valid monthly budget. Use 0 if no budget applies.');
       return;
     }
     try {
@@ -268,7 +286,9 @@ class _CategoryManagementCardState
               ],
             ),
             const SizedBox(height: 4),
-            const Text('Create your own colorful buckets and monthly limits.'),
+            const Text(
+              'Automatic categories stay editable, and your corrections teach future merchant matches.',
+            ),
             const SizedBox(height: 10),
             categories.when(
               loading: () => const LinearProgressIndicator(),
@@ -288,7 +308,9 @@ class _CategoryManagementCardState
                           ),
                           title: Text(category.name),
                           subtitle: Text(
-                            '${inrCurrency.format(category.monthlyBudgetLimit)} / month',
+                            category.monthlyBudgetLimit <= 0
+                                ? 'No monthly budget'
+                                : '${inrCurrency.format(category.monthlyBudgetLimit)} / month',
                           ),
                           trailing: PopupMenuButton<String>(
                             onSelected: (String action) {

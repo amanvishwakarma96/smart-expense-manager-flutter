@@ -68,13 +68,13 @@ class SafeToSpendService {
         })
         .toList(growable: false);
     final double income = thisMonth
-        .where((ExpenseTransaction item) => !item.isDebit)
+        .where((ExpenseTransaction item) => item.countsAsIncome)
         .fold(
           0,
           (double total, ExpenseTransaction item) => total + item.amount,
         );
     final double spending = thisMonth
-        .where((ExpenseTransaction item) => item.isDebit)
+        .where((ExpenseTransaction item) => item.countsAsSpending)
         .fold(
           0,
           (double total, ExpenseTransaction item) => total + item.amount,
@@ -88,7 +88,7 @@ class SafeToSpendService {
 
     final List<UpcomingBill> upcomingBills = <UpcomingBill>[];
     for (final RecurringTransaction template in recurring) {
-      if (!template.isActive || !template.isDebit) {
+      if (!template.isActive || !template.countsAsSpending) {
         continue;
       }
       DateTime occurrence = template.nextDueAt;

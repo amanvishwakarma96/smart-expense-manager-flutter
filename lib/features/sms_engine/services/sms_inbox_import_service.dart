@@ -27,6 +27,32 @@ class SmsInboxImportService {
     }
 
     final PermissionStatus status = await Permission.sms.request();
+    return _importWithStatus(status, count: count);
+  }
+
+  Future<SmsImportResult> importRecentIfGranted({int count = 150}) async {
+    if (!Platform.isAndroid) {
+      return const SmsImportResult(
+        permission: SmsPermissionResult.unsupported,
+        messages: <QueuedSms>[],
+      );
+    }
+    final PermissionStatus status = await Permission.sms.status;
+    if (!status.isGranted) {
+      return SmsImportResult(
+        permission: status.isPermanentlyDenied
+            ? SmsPermissionResult.permanentlyDenied
+            : SmsPermissionResult.denied,
+        messages: const <QueuedSms>[],
+      );
+    }
+    return _importWithStatus(status, count: count);
+  }
+
+  Future<SmsImportResult> _importWithStatus(
+    PermissionStatus status, {
+    required int count,
+  }) async {
     if (status.isPermanentlyDenied) {
       return const SmsImportResult(
         permission: SmsPermissionResult.permanentlyDenied,

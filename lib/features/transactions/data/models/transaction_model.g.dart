@@ -49,24 +49,29 @@ const TransactionModelSchema = CollectionSchema(
       name: r'isRecurring',
       type: IsarType.bool,
     ),
-    r'smsFingerprint': PropertySchema(
+    r'purposeCode': PropertySchema(
       id: 8,
+      name: r'purposeCode',
+      type: IsarType.string,
+    ),
+    r'smsFingerprint': PropertySchema(
+      id: 9,
       name: r'smsFingerprint',
       type: IsarType.string,
     ),
     r'status': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TransactionModelstatusEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
     r'type': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactionModeltypeEnumValueMap,
@@ -111,6 +116,7 @@ int _transactionModelEstimateSize(
   bytesCount += 3 + object.encryptedAccountTail.length * 3;
   bytesCount += 3 + object.encryptedMerchant.length * 3;
   bytesCount += 3 + object.encryptedOriginalSmsText.length * 3;
+  bytesCount += 3 + object.purposeCode.length * 3;
   {
     final value = object.smsFingerprint;
     if (value != null) {
@@ -134,10 +140,11 @@ void _transactionModelSerialize(
   writer.writeString(offsets[5], object.encryptedOriginalSmsText);
   writer.writeBool(offsets[6], object.isManual);
   writer.writeBool(offsets[7], object.isRecurring);
-  writer.writeString(offsets[8], object.smsFingerprint);
-  writer.writeByte(offsets[9], object.status.index);
-  writer.writeDateTime(offsets[10], object.timestamp);
-  writer.writeByte(offsets[11], object.type.index);
+  writer.writeString(offsets[8], object.purposeCode);
+  writer.writeString(offsets[9], object.smsFingerprint);
+  writer.writeByte(offsets[10], object.status.index);
+  writer.writeDateTime(offsets[11], object.timestamp);
+  writer.writeByte(offsets[12], object.type.index);
 }
 
 TransactionModel _transactionModelDeserialize(
@@ -155,15 +162,16 @@ TransactionModel _transactionModelDeserialize(
     id: id,
     isManual: reader.readBoolOrNull(offsets[6]) ?? false,
     isRecurring: reader.readBoolOrNull(offsets[7]) ?? false,
-    smsFingerprint: reader.readStringOrNull(offsets[8]),
+    purposeCode: reader.readStringOrNull(offsets[8]) ?? '',
+    smsFingerprint: reader.readStringOrNull(offsets[9]),
     status:
         _TransactionModelstatusValueEnumMap[reader.readByteOrNull(
-          offsets[9],
+          offsets[10],
         )] ??
         TransactionStatus.pending,
-    timestamp: reader.readDateTime(offsets[10]),
+    timestamp: reader.readDateTime(offsets[11]),
     type:
-        _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
+        _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[12])] ??
         TransactionType.debit,
   );
   object.createdAt = reader.readDateTime(offsets[2]);
@@ -194,16 +202,18 @@ P _transactionModelDeserializeProp<P>(
     case 7:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? '') as P;
     case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
       return (_TransactionModelstatusValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
               TransactionStatus.pending)
           as P;
-    case 10:
-      return (reader.readDateTime(offset)) as P;
     case 11:
+      return (reader.readDateTime(offset)) as P;
+    case 12:
       return (_TransactionModeltypeValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
@@ -1173,6 +1183,147 @@ extension TransactionModelQueryFilter
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'purposeCode',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'purposeCode',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'purposeCode', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  purposeCodeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'purposeCode', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
   smsFingerprintIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1618,6 +1769,20 @@ extension TransactionModelQuerySortBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByPurposeCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'purposeCode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByPurposeCodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'purposeCode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   sortBySmsFingerprint() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'smsFingerprint', Sort.asc);
@@ -1801,6 +1966,20 @@ extension TransactionModelQuerySortThenBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByPurposeCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'purposeCode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByPurposeCodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'purposeCode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   thenBySmsFingerprint() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'smsFingerprint', Sort.asc);
@@ -1924,6 +2103,13 @@ extension TransactionModelQueryWhereDistinct
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QDistinct>
+  distinctByPurposeCode({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'purposeCode', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QDistinct>
   distinctBySmsFingerprint({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(
@@ -2011,6 +2197,13 @@ extension TransactionModelQueryProperty
   QueryBuilder<TransactionModel, bool, QQueryOperations> isRecurringProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isRecurring');
+    });
+  }
+
+  QueryBuilder<TransactionModel, String, QQueryOperations>
+  purposeCodeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'purposeCode');
     });
   }
 

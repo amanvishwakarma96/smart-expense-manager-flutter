@@ -8,6 +8,7 @@ import 'package:smart_expense_manager/features/settings/services/bill_reminder_s
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/presentation/transaction_semantics_widgets.dart';
 
 class RecurringTransactionsCard extends ConsumerWidget {
   const RecurringTransactionsCard({super.key});
@@ -96,7 +97,7 @@ class RecurringTransactionsCard extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const Text(
-                        'Weekly or monthly, with optional private reminders.',
+                        'Salary, EMI, rent, investments and transfers stay correctly separated.',
                       ),
                     ],
                   ),
@@ -129,7 +130,7 @@ class RecurringTransactionsCard extends ConsumerWidget {
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Add rent, salary, subscriptions, or any repeating transaction.',
+                            'Add rent, salary, EMI, SIP, subscriptions, or any repeating transaction.',
                           ),
                         ),
                       ],
@@ -183,7 +184,13 @@ class RecurringTransactionsCard extends ConsumerWidget {
                                           fontWeight: FontWeight.w900,
                                         ),
                                       ),
-                                      const SizedBox(height: 3),
+                                      const SizedBox(height: 5),
+                                      TransactionSemanticChips(
+                                        type: item.type,
+                                        purpose: item.purpose,
+                                        compact: true,
+                                      ),
+                                      const SizedBox(height: 5),
                                       Text(
                                         '${_frequencyLabel(item.frequency)} · next ${transactionDayFormat.format(item.nextDueAt)}',
                                       ),
@@ -306,6 +313,7 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
   late final TextEditingController _merchantController;
   late final TextEditingController _amountController;
   late TransactionType _type;
+  late TransactionPurpose _purpose;
   late RecurringFrequency _frequency;
   late DateTime _nextDueAt;
   late bool _reminderEnabled;
@@ -322,6 +330,7 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
       text: item?.amount.toStringAsFixed(2) ?? '',
     );
     _type = item?.type ?? TransactionType.debit;
+    _purpose = item?.purpose ?? defaultTransactionPurpose(_type);
     _frequency = item?.frequency ?? RecurringFrequency.monthly;
     _nextDueAt = item?.nextDueAt ?? DateTime.now();
     _categoryId = item?.categoryId;
@@ -350,6 +359,18 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
     setState(() => _nextDueAt = selected);
   }
 
+  void _changeType(TransactionType type) {
+    setState(() {
+      _type = type;
+      if (!transactionPurposesFor(type).contains(_purpose)) {
+        _purpose = defaultTransactionPurpose(type);
+      }
+      if (_type == TransactionType.credit) {
+        _reminderEnabled = false;
+      }
+    });
+  }
+
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
@@ -375,13 +396,15 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
       }
     }
 
+    final String merchant = _merchantController.text.trim();
     await ref
         .read(recurringTransactionRepositoryProvider)
         .save(
           id: widget.transaction?.id,
           amount: double.parse(_amountController.text.trim()),
           type: _type,
-          merchant: _merchantController.text.trim(),
+          purpose: _purpose,
+          merchant: merchant,
           frequency: _frequency,
           nextDueAt: _nextDueAt,
           categoryId: _categoryId,
@@ -389,6 +412,11 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
           reminderEnabled: reminderEnabled,
           reminderDaysBefore: _reminderDaysBefore,
         );
+    if (_categoryId != null) {
+      await ref
+          .read(merchantRuleRepositoryProvider)
+          .learnCategory(merchant: merchant, categoryId: _categoryId!);
+    }
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -445,30 +473,34 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
                 segments: const <ButtonSegment<TransactionType>>[
                   ButtonSegment<TransactionType>(
                     value: TransactionType.debit,
-                    label: Text('Expense'),
+                    label: Text('Debit'),
                     icon: Icon(Icons.north_east_rounded),
                   ),
                   ButtonSegment<TransactionType>(
                     value: TransactionType.credit,
-                    label: Text('Income'),
+                    label: Text('Credit'),
                     icon: Icon(Icons.south_west_rounded),
                   ),
                 ],
                 selected: <TransactionType>{_type},
                 onSelectionChanged: (Set<TransactionType> selected) {
-                  setState(() {
-                    _type = selected.first;
-                    if (_type == TransactionType.credit) {
-                      _reminderEnabled = false;
-                    }
-                  });
+                  _changeType(selected.first);
+                },
+              ),
+              const SizedBox(height: 12),
+              TransactionPurposeField(
+                key: ValueKey<String>('${_type.name}-${_purpose.name}'),
+                type: _type,
+                value: _purpose,
+                onChanged: (TransactionPurpose value) {
+                  setState(() => _purpose = value);
                 },
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _merchantController,
                 decoration: const InputDecoration(
-                  labelText: 'Name or note',
+                  labelText: 'Merchant, person or note',
                   prefixIcon: Icon(Icons.storefront_rounded),
                 ),
                 validator: (String? value) => (value?.trim().isEmpty ?? true)
@@ -558,7 +590,7 @@ class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
                   ),
                   child: SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Private bill reminder'),
+                    title: const Text('Private reminder'),
                     subtitle: const Text(
                       'Notification text never includes the name or amount.',
                     ),

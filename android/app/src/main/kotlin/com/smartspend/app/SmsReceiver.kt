@@ -26,6 +26,9 @@ class SmsReceiver : BroadcastReceiver() {
         if (!looksLikeTransaction(body)) return
 
         LocalSmsVault(context).enqueue(sender, body, timestamp)
+        context.sendBroadcast(
+            Intent(SMS_QUEUED_ACTION).setPackage(context.packageName),
+        )
         showGenericNotification(context)
     }
 
@@ -35,18 +38,31 @@ class SmsReceiver : BroadcastReceiver() {
             "debited",
             "credited",
             "spent",
+            "purchase",
             "paid",
+            "sent",
             "received",
+            "deposited",
             "withdrawn",
+            "withdrawal",
+            "transferred",
             "refund",
+            "reversed",
+            "reversal",
+            "cash deposit",
+            "cash withdrawal",
         ).any(lower::contains)
-        val hasAmount = Regex(
-            pattern = """(?i)(?:INR|Rs\.?|₹|USD|\$)\s*[\d,]+(?:\.\d{1,2})?""",
+        val hasAmountPrefix = Regex(
+            pattern = """(?i)(?:INR|Rs\.?|₹|USD|\$)\s*[:\-]?\s*[\d,]+(?:\.\d{1,2})?(?:/-)?""",
+        ).containsMatchIn(body)
+        val hasAmountSuffix = Regex(
+            pattern = """(?i)[\d,]+(?:\.\d{1,2})?(?:/-)?\s*(?:INR|USD)\b""",
         ).containsMatchIn(body)
         val isSensitiveCode = lower.contains("otp") ||
             lower.contains("one time password") ||
-            lower.contains("verification code")
-        return hasSignal && hasAmount && !isSensitiveCode
+            lower.contains("verification code") ||
+            lower.contains("do not share this code")
+        return hasSignal && (hasAmountPrefix || hasAmountSuffix) && !isSensitiveCode
     }
 
     private fun showGenericNotification(context: Context) {
@@ -77,7 +93,7 @@ class SmsReceiver : BroadcastReceiver() {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(context.applicationInfo.icon)
             .setContentTitle("Transaction ready to review")
-            .setContentText("Open PiggyAI to confirm or edit it.")
+            .setContentText("PiggyAI processed it locally. Open Review to confirm or edit.")
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
@@ -88,5 +104,6 @@ class SmsReceiver : BroadcastReceiver() {
     private companion object {
         const val CHANNEL_ID = "piggyai_pending_transactions"
         const val NOTIFICATION_ID = 1201
+        const val SMS_QUEUED_ACTION = "com.smartspend.app.SMS_QUEUED"
     }
 }

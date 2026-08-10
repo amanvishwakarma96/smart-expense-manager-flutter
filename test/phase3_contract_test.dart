@@ -33,7 +33,11 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('confirmedTransactionsProvider'));
-    expect(source, contains('Search merchant, category, or account tail'));
+    expect(
+      source,
+      contains('Search merchant, purpose, category, or account tail'),
+    );
+    expect(source, contains('TransactionSemanticChips'));
     expect(source, contains('_HistoryPeriodFilter.currentMonth'));
     expect(source, isNot(contains('package:http/')));
     expect(source, isNot(contains('package:dio/')));

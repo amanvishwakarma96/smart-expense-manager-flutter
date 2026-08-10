@@ -8,6 +8,7 @@ import 'package:smart_expense_manager/core/widgets/playful_empty_state.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 import 'package:smart_expense_manager/features/transactions/presentation/manual_transaction_dialog.dart';
+import 'package:smart_expense_manager/features/transactions/presentation/transaction_semantics_widgets.dart';
 
 enum _HistoryTypeFilter { all, debit, credit }
 
@@ -90,7 +91,9 @@ class _TransactionHistoryScreenState
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 4),
-                      const Text('Tap any card to edit it locally.'),
+                      const Text(
+                        'Debit/Credit shows direction; purpose explains what the money movement means.',
+                      ),
                     ],
                   ),
                 ),
@@ -113,7 +116,7 @@ class _TransactionHistoryScreenState
               controller: _searchController,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                hintText: 'Search merchant, category, or account tail',
+                hintText: 'Search merchant, purpose, category, or account tail',
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _searchController.text.isEmpty
                     ? null
@@ -140,14 +143,14 @@ class _TransactionHistoryScreenState
                     },
                   ),
                   _FilterChip(
-                    label: 'Expenses',
+                    label: 'Debit',
                     selected: _typeFilter == _HistoryTypeFilter.debit,
                     onSelected: () {
                       setState(() => _typeFilter = _HistoryTypeFilter.debit);
                     },
                   ),
                   _FilterChip(
-                    label: 'Income',
+                    label: 'Credit',
                     selected: _typeFilter == _HistoryTypeFilter.credit,
                     onSelected: () {
                       setState(() => _typeFilter = _HistoryTypeFilter.credit);
@@ -207,8 +210,7 @@ class _TransactionHistoryScreenState
                     return PlayfulEmptyState(
                       icon: Icons.search_rounded,
                       title: 'Nothing matched yet',
-                      message:
-                          'Try another search, type, or date filter. Your next money moment may be hiding nearby.',
+                      message: 'Try another search, direction, or date filter.',
                       actionLabel: 'Clear filters',
                       onAction: () {
                         _searchController.clear();
@@ -220,15 +222,15 @@ class _TransactionHistoryScreenState
                       accentColor: AppPalette.sky,
                     );
                   }
-                  final double expenseTotal = filtered
-                      .where((ExpenseTransaction item) => item.isDebit)
+                  final double spendingTotal = filtered
+                      .where((ExpenseTransaction item) => item.countsAsSpending)
                       .fold(
                         0,
                         (double total, ExpenseTransaction item) =>
                             total + item.amount,
                       );
                   final double incomeTotal = filtered
-                      .where((ExpenseTransaction item) => !item.isDebit)
+                      .where((ExpenseTransaction item) => item.countsAsIncome)
                       .fold(
                         0,
                         (double total, ExpenseTransaction item) =>
@@ -242,7 +244,7 @@ class _TransactionHistoryScreenState
                     itemBuilder: (BuildContext context, int index) {
                       if (index == 0) {
                         return _HistorySummary(
-                          expenseTotal: expenseTotal,
+                          spendingTotal: spendingTotal,
                           incomeTotal: incomeTotal,
                           count: filtered.length,
                           privacyMode: privacyMode,
@@ -290,7 +292,7 @@ class _TransactionHistoryScreenState
           final bool matchesType = switch (_typeFilter) {
             _HistoryTypeFilter.all => true,
             _HistoryTypeFilter.debit => item.isDebit,
-            _HistoryTypeFilter.credit => !item.isDebit,
+            _HistoryTypeFilter.credit => item.isCredit,
           };
           if (!matchesType) {
             return false;
@@ -318,6 +320,8 @@ class _TransactionHistoryScreenState
           );
           return item.merchant.toLowerCase().contains(query) ||
               item.accountTail.toLowerCase().contains(query) ||
+              item.purpose.label.toLowerCase().contains(query) ||
+              item.type.name.toLowerCase().contains(query) ||
               (category?.name.toLowerCase().contains(query) ?? false);
         })
         .toList(growable: false);
@@ -367,13 +371,13 @@ class _FilterChip extends StatelessWidget {
 
 class _HistorySummary extends StatelessWidget {
   const _HistorySummary({
-    required this.expenseTotal,
+    required this.spendingTotal,
     required this.incomeTotal,
     required this.count,
     required this.privacyMode,
   });
 
-  final double expenseTotal;
+  final double spendingTotal;
   final double incomeTotal;
   final int count;
   final bool privacyMode;
@@ -393,8 +397,8 @@ class _HistorySummary extends StatelessWidget {
         children: <Widget>[
           Expanded(
             child: _SummaryValue(
-              label: 'Spent',
-              value: amount(expenseTotal),
+              label: 'Spending',
+              value: amount(spendingTotal),
               icon: Icons.arrow_outward_rounded,
             ),
           ),
@@ -405,7 +409,7 @@ class _HistorySummary extends StatelessWidget {
           ),
           Expanded(
             child: _SummaryValue(
-              label: 'Received',
+              label: 'Income',
               value: amount(incomeTotal),
               icon: Icons.call_received_rounded,
             ),
@@ -492,6 +496,7 @@ class _HistoryCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Container(
                 width: 48,
@@ -517,7 +522,13 @@ class _HistoryCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
+                    TransactionSemanticChips(
+                      type: transaction.type,
+                      purpose: transaction.purpose,
+                      compact: true,
+                    ),
+                    const SizedBox(height: 5),
                     Text(
                       '${category?.name ?? 'Uncategorized'} · '
                       '${transactionDateFormat.format(transaction.timestamp)}',

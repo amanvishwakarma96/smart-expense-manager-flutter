@@ -10,6 +10,7 @@ class RecurringTransactionModel {
     this.id = Isar.autoIncrement,
     this.amount = 0,
     this.type = TransactionType.debit,
+    this.purposeCode = '',
     this.encryptedMerchant = '',
     this.categoryId,
     this.frequency = RecurringFrequency.monthly,
@@ -26,6 +27,7 @@ class RecurringTransactionModel {
   @enumerated
   TransactionType type;
 
+  String purposeCode;
   String encryptedMerchant;
   int? categoryId;
 

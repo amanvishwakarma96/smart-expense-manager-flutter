@@ -32,8 +32,11 @@ void main() {
       'lib/features/settings/services/local_backup_service.dart',
     ).readAsStringSync();
 
-    expect(source, contains('snapshotVersion = 4'));
-    expect(source, contains('supportedSnapshotVersions = <int>{1, 2, 3, 4}'));
+    expect(source, contains('snapshotVersion = 5'));
+    expect(
+      source,
+      contains('supportedSnapshotVersions = <int>{1, 2, 3, 4, 5}'),
+    );
     expect(source, contains("'savingsGoals': goalPayload"));
     expect(source, contains('savingsGoalModels.putAll(goals)'));
     expect(source, contains('rawVersion >= 3'));

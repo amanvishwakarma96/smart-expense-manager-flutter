@@ -320,9 +320,8 @@ class _ChallengeEditorSheetState extends ConsumerState<_ChallengeEditorSheet> {
   void initState() {
     super.initState();
     _type = widget.challenge?.type ?? WeeklyChallengeType.spendingCap;
-    _targetDays = widget.challenge?.targetDays == 0
-        ? 2
-        : widget.challenge!.targetDays;
+    final int existingTargetDays = widget.challenge?.targetDays ?? 0;
+    _targetDays = existingTargetDays <= 0 ? 2 : existingTargetDays;
     _amountController = TextEditingController(
       text: (widget.challenge?.targetAmount ?? 0) > 0
           ? widget.challenge!.targetAmount.toStringAsFixed(0)

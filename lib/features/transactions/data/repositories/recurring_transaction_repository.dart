@@ -71,6 +71,7 @@ class RecurringTransactionRepository {
     int? id,
     required double amount,
     required TransactionType type,
+    TransactionPurpose? purpose,
     required String merchant,
     required RecurringFrequency frequency,
     required DateTime nextDueAt,
@@ -90,9 +91,12 @@ class RecurringTransactionRepository {
         ? RecurringTransactionModel(nextDueAt: nextDueAt)
         : await _isar.recurringTransactionModels.get(id) ??
               RecurringTransactionModel(id: id, nextDueAt: nextDueAt);
+    final TransactionPurpose resolvedPurpose =
+        purpose ?? transactionPurposeFromCode(model.purposeCode, type);
     model
       ..amount = amount
       ..type = type
+      ..purposeCode = resolvedPurpose.name
       ..encryptedMerchant = await _cipher.encrypt(merchant)
       ..categoryId = categoryId
       ..frequency = frequency
@@ -148,6 +152,10 @@ class RecurringTransactionRepository {
           TransactionModel(
             amount: template.amount,
             type: template.type,
+            purposeCode: transactionPurposeFromCode(
+              template.purposeCode,
+              template.type,
+            ).name,
             encryptedMerchant: template.encryptedMerchant,
             timestamp: template.nextDueAt,
             categoryId: template.categoryId,
@@ -185,6 +193,7 @@ class RecurringTransactionRepository {
       id: model.id,
       amount: model.amount,
       type: model.type,
+      purpose: transactionPurposeFromCode(model.purposeCode, model.type),
       merchant: await _cipher.decrypt(model.encryptedMerchant),
       categoryId: model.categoryId,
       frequency: model.frequency,

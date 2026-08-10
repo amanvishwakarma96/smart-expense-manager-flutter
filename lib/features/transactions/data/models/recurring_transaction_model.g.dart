@@ -46,23 +46,28 @@ const RecurringTransactionModelSchema = CollectionSchema(
       name: r'nextDueAt',
       type: IsarType.dateTime,
     ),
-    r'reminderDaysBefore': PropertySchema(
+    r'purposeCode': PropertySchema(
       id: 7,
+      name: r'purposeCode',
+      type: IsarType.string,
+    ),
+    r'reminderDaysBefore': PropertySchema(
+      id: 8,
       name: r'reminderDaysBefore',
       type: IsarType.long,
     ),
     r'reminderEnabled': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'reminderEnabled',
       type: IsarType.bool,
     ),
     r'scheduleDay': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'scheduleDay',
       type: IsarType.long,
     ),
     r'type': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'type',
       type: IsarType.byte,
       enumMap: _RecurringTransactionModeltypeEnumValueMap,
@@ -91,6 +96,7 @@ int _recurringTransactionModelEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.encryptedMerchant.length * 3;
+  bytesCount += 3 + object.purposeCode.length * 3;
   return bytesCount;
 }
 
@@ -107,10 +113,11 @@ void _recurringTransactionModelSerialize(
   writer.writeByte(offsets[4], object.frequency.index);
   writer.writeBool(offsets[5], object.isActive);
   writer.writeDateTime(offsets[6], object.nextDueAt);
-  writer.writeLong(offsets[7], object.reminderDaysBefore);
-  writer.writeBool(offsets[8], object.reminderEnabled);
-  writer.writeLong(offsets[9], object.scheduleDay);
-  writer.writeByte(offsets[10], object.type.index);
+  writer.writeString(offsets[7], object.purposeCode);
+  writer.writeLong(offsets[8], object.reminderDaysBefore);
+  writer.writeBool(offsets[9], object.reminderEnabled);
+  writer.writeLong(offsets[10], object.scheduleDay);
+  writer.writeByte(offsets[11], object.type.index);
 }
 
 RecurringTransactionModel _recurringTransactionModelDeserialize(
@@ -131,12 +138,13 @@ RecurringTransactionModel _recurringTransactionModelDeserialize(
     id: id,
     isActive: reader.readBoolOrNull(offsets[5]) ?? true,
     nextDueAt: reader.readDateTime(offsets[6]),
-    reminderDaysBefore: reader.readLongOrNull(offsets[7]) ?? 1,
-    reminderEnabled: reader.readBoolOrNull(offsets[8]) ?? false,
-    scheduleDay: reader.readLongOrNull(offsets[9]) ?? 1,
+    purposeCode: reader.readStringOrNull(offsets[7]) ?? '',
+    reminderDaysBefore: reader.readLongOrNull(offsets[8]) ?? 1,
+    reminderEnabled: reader.readBoolOrNull(offsets[9]) ?? false,
+    scheduleDay: reader.readLongOrNull(offsets[10]) ?? 1,
     type:
         _RecurringTransactionModeltypeValueEnumMap[reader.readByteOrNull(
-          offsets[10],
+          offsets[11],
         )] ??
         TransactionType.debit,
   );
@@ -169,12 +177,14 @@ P _recurringTransactionModelDeserializeProp<P>(
     case 6:
       return (reader.readDateTime(offset)) as P;
     case 7:
-      return (reader.readLongOrNull(offset) ?? 1) as P;
+      return (reader.readStringOrNull(offset) ?? '') as P;
     case 8:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
-    case 9:
       return (reader.readLongOrNull(offset) ?? 1) as P;
+    case 9:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 10:
+      return (reader.readLongOrNull(offset) ?? 1) as P;
+    case 11:
       return (_RecurringTransactionModeltypeValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
@@ -1009,6 +1019,187 @@ extension RecurringTransactionModelQueryFilter
     RecurringTransactionModel,
     QAfterFilterCondition
   >
+  purposeCodeEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'purposeCode',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'purposeCode',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'purposeCode',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'purposeCode', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
+  purposeCodeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'purposeCode', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterFilterCondition
+  >
   reminderDaysBeforeEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1413,6 +1604,28 @@ extension RecurringTransactionModelQuerySortBy
     RecurringTransactionModel,
     QAfterSortBy
   >
+  sortByPurposeCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'purposeCode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterSortBy
+  >
+  sortByPurposeCodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'purposeCode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterSortBy
+  >
   sortByReminderDaysBefore() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'reminderDaysBefore', Sort.asc);
@@ -1685,6 +1898,28 @@ extension RecurringTransactionModelQuerySortThenBy
     RecurringTransactionModel,
     QAfterSortBy
   >
+  thenByPurposeCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'purposeCode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterSortBy
+  >
+  thenByPurposeCodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'purposeCode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<
+    RecurringTransactionModel,
+    RecurringTransactionModel,
+    QAfterSortBy
+  >
   thenByReminderDaysBefore() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'reminderDaysBefore', Sort.asc);
@@ -1829,6 +2064,13 @@ extension RecurringTransactionModelQueryWhereDistinct
   }
 
   QueryBuilder<RecurringTransactionModel, RecurringTransactionModel, QDistinct>
+  distinctByPurposeCode({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'purposeCode', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RecurringTransactionModel, RecurringTransactionModel, QDistinct>
   distinctByReminderDaysBefore() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'reminderDaysBefore');
@@ -1916,6 +2158,13 @@ extension RecurringTransactionModelQueryProperty
   nextDueAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'nextDueAt');
+    });
+  }
+
+  QueryBuilder<RecurringTransactionModel, String, QQueryOperations>
+  purposeCodeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'purposeCode');
     });
   }
 

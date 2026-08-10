@@ -6,6 +6,7 @@ import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/presentation/transaction_semantics_widgets.dart';
 
 Future<void> showManualTransactionDialog(BuildContext context) {
   return showTransactionEditorDialog(context);
@@ -40,6 +41,7 @@ class _TransactionEditorSheetState
   late final TextEditingController _amountController;
   late final TextEditingController _merchantController;
   late TransactionType _type;
+  late TransactionPurpose _purpose;
   late DateTime _timestamp;
   int? _categoryId;
   bool _saving = false;
@@ -57,6 +59,7 @@ class _TransactionEditorSheetState
       text: transaction?.merchant ?? '',
     );
     _type = transaction?.type ?? TransactionType.debit;
+    _purpose = transaction?.purpose ?? defaultTransactionPurpose(_type);
     _timestamp = transaction?.timestamp ?? DateTime.now();
     _categoryId = transaction?.categoryId;
   }
@@ -90,6 +93,15 @@ class _TransactionEditorSheetState
     });
   }
 
+  void _changeType(TransactionType type) {
+    setState(() {
+      _type = type;
+      if (!transactionPurposesFor(type).contains(_purpose)) {
+        _purpose = defaultTransactionPurpose(type);
+      }
+    });
+  }
+
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
@@ -103,6 +115,7 @@ class _TransactionEditorSheetState
         id: widget.transaction!.id,
         amount: amount,
         type: _type,
+        purpose: _purpose,
         merchant: merchant,
         timestamp: _timestamp,
         categoryId: _categoryId,
@@ -111,10 +124,16 @@ class _TransactionEditorSheetState
       await repository.addManualTransaction(
         amount: amount,
         type: _type,
+        purpose: _purpose,
         merchant: merchant,
         timestamp: _timestamp,
         categoryId: _categoryId,
       );
+    }
+    if (_categoryId != null) {
+      await ref
+          .read(merchantRuleRepositoryProvider)
+          .learnCategory(merchant: merchant, categoryId: _categoryId!);
     }
     if (mounted) {
       Navigator.of(context).pop();
@@ -181,7 +200,7 @@ class _TransactionEditorSheetState
                           const SizedBox(height: 3),
                           Text(
                             _isEditing
-                                ? 'Fix the details and keep your insights accurate.'
+                                ? 'Direction, purpose and category stay separate so your totals remain accurate.'
                                 : 'Saved privately on this device in $defaultCurrencyCode.',
                           ),
                         ],
@@ -195,18 +214,27 @@ class _TransactionEditorSheetState
                 segments: const <ButtonSegment<TransactionType>>[
                   ButtonSegment<TransactionType>(
                     value: TransactionType.debit,
-                    label: Text('Expense'),
+                    label: Text('Debit'),
                     icon: Icon(Icons.north_east_rounded),
                   ),
                   ButtonSegment<TransactionType>(
                     value: TransactionType.credit,
-                    label: Text('Income'),
+                    label: Text('Credit'),
                     icon: Icon(Icons.south_west_rounded),
                   ),
                 ],
                 selected: <TransactionType>{_type},
                 onSelectionChanged: (Set<TransactionType> value) {
-                  setState(() => _type = value.first);
+                  _changeType(value.first);
+                },
+              ),
+              const SizedBox(height: 14),
+              TransactionPurposeField(
+                key: ValueKey<String>('${_type.name}-${_purpose.name}'),
+                type: _type,
+                value: _purpose,
+                onChanged: (TransactionPurpose value) {
+                  setState(() => _purpose = value);
                 },
               ),
               const SizedBox(height: 14),
@@ -232,11 +260,11 @@ class _TransactionEditorSheetState
                 controller: _merchantController,
                 textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
-                  labelText: 'Merchant or note',
+                  labelText: 'Merchant, person or note',
                   prefixIcon: Icon(Icons.storefront_rounded),
                 ),
                 validator: (String? value) => (value?.trim().isEmpty ?? true)
-                    ? 'Enter a merchant or note'
+                    ? 'Enter a merchant, person or note'
                     : null,
               ),
               const SizedBox(height: 12),
@@ -250,6 +278,8 @@ class _TransactionEditorSheetState
                     decoration: const InputDecoration(
                       labelText: 'Category',
                       prefixIcon: Icon(Icons.category_rounded),
+                      helperText:
+                          'PiggyAI remembers this merchant/category for future SMS matches.',
                     ),
                     items: items
                         .map((CategoryModel item) {

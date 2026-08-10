@@ -78,13 +78,13 @@ class SpendingForecastService {
     final int divisor = math.max(historyDays, 1);
 
     final double historicalDebit = history
-        .where((ExpenseTransaction item) => item.isDebit)
+        .where((ExpenseTransaction item) => item.countsAsSpending)
         .fold(
           0,
           (double total, ExpenseTransaction item) => total + item.amount,
         );
     final double historicalCredit = history
-        .where((ExpenseTransaction item) => !item.isDebit)
+        .where((ExpenseTransaction item) => item.countsAsIncome)
         .fold(
           0,
           (double total, ExpenseTransaction item) => total + item.amount,
@@ -109,9 +109,9 @@ class SpendingForecastService {
         guard += 1;
       }
       while (!occurrence.isAfter(horizon) && guard < 72) {
-        if (template.isDebit) {
+        if (template.countsAsSpending) {
           recurringSpend += template.amount;
-        } else {
+        } else if (template.countsAsIncome) {
           recurringIncome += template.amount;
         }
         occurrence = _nextOccurrence(template, occurrence);

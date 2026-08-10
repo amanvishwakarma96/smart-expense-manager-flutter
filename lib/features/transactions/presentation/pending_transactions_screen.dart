@@ -8,6 +8,7 @@ import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/presentation/transaction_semantics_widgets.dart';
 
 class PendingTransactionsScreen extends ConsumerWidget {
   const PendingTransactionsScreen({super.key});
@@ -35,7 +36,9 @@ class PendingTransactionsScreen extends ConsumerWidget {
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 4),
-            const Text('Swipe right to confirm or left to remove.'),
+            const Text(
+              'PiggyAI parses direction, purpose and category locally. Tap to correct; corrections teach future matches.',
+            ),
             const SizedBox(height: 18),
             Expanded(
               child: pending.when(
@@ -167,8 +170,25 @@ class PendingTransactionsScreen extends ConsumerWidget {
           amount: edit.amount,
           merchant: edit.merchant,
           type: edit.type,
+          purpose: edit.purpose,
           categoryId: edit.categoryId,
         );
+
+    bool learned = false;
+    if (edit.categoryId != null) {
+      learned = await ref
+          .read(merchantRuleRepositoryProvider)
+          .learnCategory(merchant: edit.merchant, categoryId: edit.categoryId!);
+    }
+    if (learned && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Category remembered. Future matching transactions will use it automatically.',
+          ),
+        ),
+      );
+    }
   }
 }
 
@@ -203,6 +223,7 @@ class _PendingCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               CircleAvatar(
                 radius: 26,
@@ -229,7 +250,13 @@ class _PendingCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
+                    TransactionSemanticChips(
+                      type: transaction.type,
+                      purpose: transaction.purpose,
+                      compact: true,
+                    ),
+                    const SizedBox(height: 6),
                     Text(
                       '${category?.name ?? 'Choose category'} · '
                       '${transactionDateFormat.format(transaction.timestamp)}',
@@ -314,7 +341,7 @@ class _ReviewEmptyState extends StatelessWidget {
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
           ),
           SizedBox(height: 6),
-          Text('New detected transactions will appear here.'),
+          Text('New detected transactions will appear here automatically.'),
         ],
       ),
     );
@@ -326,12 +353,14 @@ class _PendingEdit {
     required this.amount,
     required this.merchant,
     required this.type,
+    required this.purpose,
     required this.categoryId,
   });
 
   final double amount;
   final String merchant;
   final TransactionType type;
+  final TransactionPurpose purpose;
   final int? categoryId;
 }
 
@@ -352,6 +381,7 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
   late final TextEditingController _amountController;
   late final TextEditingController _merchantController;
   late TransactionType _type;
+  late TransactionPurpose _purpose;
   int? _categoryId;
 
   @override
@@ -364,6 +394,7 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
       text: widget.transaction.merchant,
     );
     _type = widget.transaction.type;
+    _purpose = widget.transaction.purpose;
     _categoryId = widget.transaction.categoryId;
   }
 
@@ -374,14 +405,51 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
     super.dispose();
   }
 
+  void _changeType(TransactionType type) {
+    setState(() {
+      _type = type;
+      if (!transactionPurposesFor(type).contains(_purpose)) {
+        _purpose = defaultTransactionPurpose(type);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit transaction'),
+      title: const Text('Review transaction'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            SegmentedButton<TransactionType>(
+              segments: const <ButtonSegment<TransactionType>>[
+                ButtonSegment<TransactionType>(
+                  value: TransactionType.debit,
+                  label: Text('Debit'),
+                  icon: Icon(Icons.north_east_rounded),
+                ),
+                ButtonSegment<TransactionType>(
+                  value: TransactionType.credit,
+                  label: Text('Credit'),
+                  icon: Icon(Icons.south_west_rounded),
+                ),
+              ],
+              selected: <TransactionType>{_type},
+              onSelectionChanged: (Set<TransactionType> value) {
+                _changeType(value.first);
+              },
+            ),
+            const SizedBox(height: 12),
+            TransactionPurposeField(
+              key: ValueKey<String>('${_type.name}-${_purpose.name}'),
+              type: _type,
+              value: _purpose,
+              onChanged: (TransactionPurpose value) {
+                setState(() => _purpose = value);
+              },
+            ),
+            const SizedBox(height: 10),
             TextField(
               controller: _amountController,
               keyboardType: const TextInputType.numberWithOptions(
@@ -395,30 +463,17 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
             const SizedBox(height: 10),
             TextField(
               controller: _merchantController,
-              decoration: const InputDecoration(labelText: 'Merchant'),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<TransactionType>(
-              initialValue: _type,
-              decoration: const InputDecoration(labelText: 'Type'),
-              items: TransactionType.values
-                  .map((TransactionType type) {
-                    return DropdownMenuItem<TransactionType>(
-                      value: type,
-                      child: Text(type.name),
-                    );
-                  })
-                  .toList(growable: false),
-              onChanged: (TransactionType? value) {
-                if (value != null) {
-                  setState(() => _type = value);
-                }
-              },
+              decoration: const InputDecoration(
+                labelText: 'Merchant, person or note',
+              ),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<int>(
               initialValue: _categoryId,
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                helperText: 'Your correction is remembered for this merchant.',
+              ),
               items: widget.categories
                   .map((CategoryModel category) {
                     return DropdownMenuItem<int>(
@@ -451,6 +506,7 @@ class _PendingEditDialogState extends State<_PendingEditDialog> {
                 amount: amount,
                 merchant: merchant,
                 type: _type,
+                purpose: _purpose,
                 categoryId: _categoryId,
               ),
             );

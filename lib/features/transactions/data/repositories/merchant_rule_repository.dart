@@ -7,6 +7,14 @@ class MerchantRuleRepository {
 
   final Isar _isar;
 
+  static const Set<String> _genericMerchants = <String>{
+    'bank transaction',
+    'bank transfer',
+    'card transaction',
+    'upi transaction',
+    'atm cash withdrawal',
+  };
+
   Stream<List<MerchantRuleModel>> watchAll() {
     return _isar.merchantRuleModels.where().watch(fireImmediately: true).map((
       List<MerchantRuleModel> items,
@@ -78,6 +86,40 @@ class MerchantRuleRepository {
     return _isar.writeTxn(() => _isar.merchantRuleModels.put(rule));
   }
 
+  Future<bool> learnCategory({
+    required String merchant,
+    required int categoryId,
+  }) async {
+    final CategoryModel? category = await _isar.categoryModels.get(categoryId);
+    if (category == null) {
+      return false;
+    }
+    final String? pattern = _learnablePattern(merchant);
+    if (pattern == null) {
+      return false;
+    }
+
+    final List<MerchantRuleModel> rules = await _isar.merchantRuleModels
+        .where()
+        .findAll();
+    MerchantRuleModel? existing;
+    for (final MerchantRuleModel rule in rules) {
+      if (rule.merchantPattern.toLowerCase() == pattern) {
+        existing = rule;
+        break;
+      }
+    }
+    if (existing != null && existing.mappedCategoryId == categoryId) {
+      return false;
+    }
+    final MerchantRuleModel learned = existing ?? MerchantRuleModel();
+    learned
+      ..merchantPattern = pattern
+      ..mappedCategoryId = categoryId;
+    await _isar.writeTxn(() => _isar.merchantRuleModels.put(learned));
+    return true;
+  }
+
   Future<void> delete(int id) async {
     await _isar.writeTxn(() => _isar.merchantRuleModels.delete(id));
   }
@@ -91,5 +133,22 @@ class MerchantRuleRepository {
       }
     }
     return null;
+  }
+
+  String? _learnablePattern(String merchant) {
+    String normalized = merchant
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'\b\d{4,}\b'), ' ')
+        .replaceAll(RegExp(r'[^a-z0-9@.& _-]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (normalized.length > 48) {
+      normalized = normalized.substring(0, 48).trim();
+    }
+    if (normalized.length < 2 || _genericMerchants.contains(normalized)) {
+      return null;
+    }
+    return normalized;
   }
 }

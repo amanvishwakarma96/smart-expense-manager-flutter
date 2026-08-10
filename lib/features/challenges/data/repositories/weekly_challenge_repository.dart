@@ -115,6 +115,7 @@ class WeeklyChallengeRepository {
             id: item.id,
             amount: item.amount,
             type: item.type,
+            purpose: transactionPurposeFromCode(item.purposeCode, item.type),
             merchant: '',
             timestamp: item.timestamp,
             categoryId: item.categoryId,
