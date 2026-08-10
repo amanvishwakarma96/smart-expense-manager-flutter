@@ -1,8 +1,11 @@
 import 'package:smart_expense_manager/features/sms_engine/services/native_sms_queue_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_inbox_import_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_parser_service.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/repositories/category_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/merchant_rule_repository.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/transaction_repository.dart';
+import 'package:smart_expense_manager/features/transactions/services/transaction_category_classifier.dart';
 
 class SmsScanSummary {
   const SmsScanSummary({
@@ -22,20 +25,27 @@ class SmsEngineCoordinator {
   SmsEngineCoordinator({
     required TransactionRepository transactionRepository,
     required MerchantRuleRepository merchantRuleRepository,
+    required CategoryRepository categoryRepository,
     SmsParserService? parser,
     SmsInboxImportService? inbox,
     NativeSmsQueueService? nativeQueue,
+    TransactionCategoryClassifier? categoryClassifier,
   }) : _transactions = transactionRepository,
        _rules = merchantRuleRepository,
+       _categories = categoryRepository,
        _parser = parser ?? SmsParserService(),
        _inbox = inbox ?? SmsInboxImportService(),
-       _nativeQueue = nativeQueue ?? NativeSmsQueueService();
+       _nativeQueue = nativeQueue ?? NativeSmsQueueService(),
+       _categoryClassifier =
+           categoryClassifier ?? const TransactionCategoryClassifier();
 
   final TransactionRepository _transactions;
   final MerchantRuleRepository _rules;
+  final CategoryRepository _categories;
   final SmsParserService _parser;
   final SmsInboxImportService _inbox;
   final NativeSmsQueueService _nativeQueue;
+  final TransactionCategoryClassifier _categoryClassifier;
 
   Future<SmsScanSummary> drainNativeQueue() async {
     final List<QueuedSms> queued = await _nativeQueue.drain();
@@ -64,6 +74,7 @@ class SmsEngineCoordinator {
   Future<SmsScanSummary> _ingest(List<QueuedSms> messages) async {
     int matched = 0;
     int added = 0;
+    final List<CategoryModel> categories = await _categories.getAll();
 
     for (final QueuedSms sms in messages) {
       final parsed = _parser.parse(
@@ -79,10 +90,18 @@ class SmsEngineCoordinator {
       final String fingerprint = await _transactions.fingerprintFor(
         '${sms.sender}|${sms.timestamp.millisecondsSinceEpoch}|${sms.body}',
       );
-      final int? categoryId = await _rules.matchCategory(parsed.merchantName);
+      final int? learnedCategoryId = await _rules.matchCategory(
+        parsed.merchantName,
+      );
+      final int? categoryId = learnedCategoryId ??
+          _categoryClassifier.inferCategoryId(
+            categories: categories,
+            transaction: parsed,
+          );
       final int id = await _transactions.addSmsTransaction(
         amount: parsed.amount,
         type: parsed.type,
+        purpose: parsed.purpose,
         merchant: parsed.merchantName,
         timestamp: parsed.timestamp,
         accountTail: parsed.accountTail,
