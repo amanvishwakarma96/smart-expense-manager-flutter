@@ -64,6 +64,8 @@ class AppTheme {
       colorScheme: colors,
       scaffoldBackgroundColor: AppPalette.canvas,
       splashFactory: InkSparkle.splashFactory,
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      visualDensity: VisualDensity.standard,
       textTheme: const TextTheme(
         headlineSmall: TextStyle(
           color: AppPalette.ink,
@@ -133,6 +135,13 @@ class AppTheme {
           );
         }),
       ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(minimumSize: const Size.square(48)),
+      ),
+      tooltipTheme: const TooltipThemeData(
+        waitDuration: Duration(milliseconds: 350),
+        showDuration: Duration(seconds: 3),
+      ),
       chipTheme: ChipThemeData(
         backgroundColor: AppPalette.surface,
         selectedColor: AppPalette.lavender.withValues(alpha: 0.72),
@@ -143,6 +152,7 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          minimumSize: const Size(48, 48),
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
           textStyle: const TextStyle(fontWeight: FontWeight.w900),
@@ -150,6 +160,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
           textStyle: const TextStyle(fontWeight: FontWeight.w800),
