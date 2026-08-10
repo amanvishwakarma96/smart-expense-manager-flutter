@@ -49,29 +49,34 @@ const TransactionModelSchema = CollectionSchema(
       name: r'isRecurring',
       type: IsarType.bool,
     ),
-    r'purposeCode': PropertySchema(
+    r'possibleDuplicateOf': PropertySchema(
       id: 8,
+      name: r'possibleDuplicateOf',
+      type: IsarType.long,
+    ),
+    r'purposeCode': PropertySchema(
+      id: 9,
       name: r'purposeCode',
       type: IsarType.string,
     ),
     r'smsFingerprint': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'smsFingerprint',
       type: IsarType.string,
     ),
     r'status': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TransactionModelstatusEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
     r'type': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactionModeltypeEnumValueMap,
@@ -140,11 +145,12 @@ void _transactionModelSerialize(
   writer.writeString(offsets[5], object.encryptedOriginalSmsText);
   writer.writeBool(offsets[6], object.isManual);
   writer.writeBool(offsets[7], object.isRecurring);
-  writer.writeString(offsets[8], object.purposeCode);
-  writer.writeString(offsets[9], object.smsFingerprint);
-  writer.writeByte(offsets[10], object.status.index);
-  writer.writeDateTime(offsets[11], object.timestamp);
-  writer.writeByte(offsets[12], object.type.index);
+  writer.writeLong(offsets[8], object.possibleDuplicateOf);
+  writer.writeString(offsets[9], object.purposeCode);
+  writer.writeString(offsets[10], object.smsFingerprint);
+  writer.writeByte(offsets[11], object.status.index);
+  writer.writeDateTime(offsets[12], object.timestamp);
+  writer.writeByte(offsets[13], object.type.index);
 }
 
 TransactionModel _transactionModelDeserialize(
@@ -162,16 +168,17 @@ TransactionModel _transactionModelDeserialize(
     id: id,
     isManual: reader.readBoolOrNull(offsets[6]) ?? false,
     isRecurring: reader.readBoolOrNull(offsets[7]) ?? false,
-    purposeCode: reader.readStringOrNull(offsets[8]) ?? '',
-    smsFingerprint: reader.readStringOrNull(offsets[9]),
+    possibleDuplicateOf: reader.readLongOrNull(offsets[8]),
+    purposeCode: reader.readStringOrNull(offsets[9]) ?? '',
+    smsFingerprint: reader.readStringOrNull(offsets[10]),
     status:
         _TransactionModelstatusValueEnumMap[reader.readByteOrNull(
-          offsets[10],
+          offsets[11],
         )] ??
         TransactionStatus.pending,
-    timestamp: reader.readDateTime(offsets[11]),
+    timestamp: reader.readDateTime(offsets[12]),
     type:
-        _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[12])] ??
+        _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[13])] ??
         TransactionType.debit,
   );
   object.createdAt = reader.readDateTime(offsets[2]);
@@ -202,18 +209,20 @@ P _transactionModelDeserializeProp<P>(
     case 7:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 8:
-      return (reader.readStringOrNull(offset) ?? '') as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 9:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? '') as P;
     case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (_TransactionModelstatusValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
               TransactionStatus.pending)
           as P;
-    case 11:
-      return (reader.readDateTime(offset)) as P;
     case 12:
+      return (reader.readDateTime(offset)) as P;
+    case 13:
       return (_TransactionModeltypeValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
@@ -1183,6 +1192,79 @@ extension TransactionModelQueryFilter
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'possibleDuplicateOf'),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'possibleDuplicateOf'),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'possibleDuplicateOf', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfGreaterThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'possibleDuplicateOf',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfLessThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'possibleDuplicateOf',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'possibleDuplicateOf',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
   purposeCodeEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1769,6 +1851,20 @@ extension TransactionModelQuerySortBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByPossibleDuplicateOf() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'possibleDuplicateOf', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByPossibleDuplicateOfDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'possibleDuplicateOf', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   sortByPurposeCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'purposeCode', Sort.asc);
@@ -1966,6 +2062,20 @@ extension TransactionModelQuerySortThenBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByPossibleDuplicateOf() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'possibleDuplicateOf', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByPossibleDuplicateOfDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'possibleDuplicateOf', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   thenByPurposeCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'purposeCode', Sort.asc);
@@ -2103,6 +2213,13 @@ extension TransactionModelQueryWhereDistinct
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QDistinct>
+  distinctByPossibleDuplicateOf() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'possibleDuplicateOf');
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QDistinct>
   distinctByPurposeCode({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'purposeCode', caseSensitive: caseSensitive);
@@ -2197,6 +2314,13 @@ extension TransactionModelQueryProperty
   QueryBuilder<TransactionModel, bool, QQueryOperations> isRecurringProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isRecurring');
+    });
+  }
+
+  QueryBuilder<TransactionModel, int?, QQueryOperations>
+  possibleDuplicateOfProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'possibleDuplicateOf');
     });
   }
 
