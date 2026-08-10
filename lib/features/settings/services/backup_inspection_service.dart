@@ -56,7 +56,10 @@ class BackupInspectionService {
       'transactions',
     );
     final List<Object?> recurring = rawVersion >= 2
-        ? _requiredList(payload['recurringTransactions'], 'recurringTransactions')
+        ? _requiredList(
+            payload['recurringTransactions'],
+            'recurringTransactions',
+          )
         : const <Object?>[];
     final List<Object?> goals = rawVersion >= 3
         ? _requiredList(payload['savingsGoals'], 'savingsGoals')

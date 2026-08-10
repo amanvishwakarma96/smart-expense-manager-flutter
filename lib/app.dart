@@ -184,9 +184,7 @@ class _AppLockGateState extends ConsumerState<_AppLockGate>
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: AppLoadingState(label: 'Checking app lock'),
-      );
+      return const Scaffold(body: AppLoadingState(label: 'Checking app lock'));
     }
     if (!_lockEnabled || _unlocked) {
       return widget.child;

@@ -8,10 +8,10 @@ void main() {
     final String workflow = File(
       '.github/workflows/flutter-ci.yml',
     ).readAsStringSync();
-    final ProcessResult tracked = Process.runSync(
-      'git',
-      <String>['ls-files', 'dist/*'],
-    );
+    final ProcessResult tracked = Process.runSync('git', <String>[
+      'ls-files',
+      'dist/*',
+    ]);
 
     expect(gitignore, contains('dist/'));
     expect(tracked.exitCode, 0);

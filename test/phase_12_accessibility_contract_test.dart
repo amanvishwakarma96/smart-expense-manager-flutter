@@ -33,12 +33,15 @@ void main() {
     expect(source, contains('Size(48, 48)'));
   });
 
-  test('app shell remains scrollable and expands navigation for large text', () {
-    final String source = File('lib/app.dart').readAsStringSync();
+  test(
+    'app shell remains scrollable and expands navigation for large text',
+    () {
+      final String source = File('lib/app.dart').readAsStringSync();
 
-    expect(source, contains('AppLoadingState'));
-    expect(source, contains('SingleChildScrollView'));
-    expect(source, contains('MediaQuery.textScalerOf(context)'));
-    expect(source, contains('height: navigationHeight'));
-  });
+      expect(source, contains('AppLoadingState'));
+      expect(source, contains('SingleChildScrollView'));
+      expect(source, contains('MediaQuery.textScalerOf(context)'));
+      expect(source, contains('height: navigationHeight'));
+    },
+  );
 }
