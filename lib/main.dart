@@ -32,6 +32,7 @@ Future<void> main() async {
   final SmsEngineCoordinator smsEngine = SmsEngineCoordinator(
     transactionRepository: transactions,
     merchantRuleRepository: MerchantRuleRepository(isar),
+    categoryRepository: categories,
   );
   final BillReminderService billReminders = BillReminderService(isar: isar);
   final RecurringTransactionRepository recurring =
@@ -40,7 +41,7 @@ Future<void> main() async {
         cipher,
         reminderService: billReminders,
       );
-  unawaited(smsEngine.drainNativeQueue());
+  unawaited(smsEngine.startAutomaticProcessing());
   unawaited(_prepareRecurringItems(recurring, billReminders));
   unawaited(WeeklyChallengeRepository(isar).finalizeExpired());
 
