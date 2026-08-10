@@ -30,95 +30,100 @@ class _SubscriptionSuggestionsCardState
 
   @override
   Widget build(BuildContext context) {
-    final List<SubscriptionSuggestion> suggestions = const SubscriptionDetectorService()
-        .detect(
-          transactions: widget.transactions,
-          recurringTransactions: widget.recurring,
-          now: DateTime.now(),
-        )
-        .where(
-          (SubscriptionSuggestion item) => !_dismissed.contains(item.id),
-        )
-        .take(3)
-        .toList(growable: false);
+    final List<SubscriptionSuggestion> suggestions =
+        const SubscriptionDetectorService()
+            .detect(
+              transactions: widget.transactions,
+              recurringTransactions: widget.recurring,
+              now: DateTime.now(),
+            )
+            .where(
+              (SubscriptionSuggestion item) => !_dismissed.contains(item.id),
+            )
+            .take(3)
+            .toList(growable: false);
     if (suggestions.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return Column(
-      children: suggestions.map((SubscriptionSuggestion suggestion) {
-        final String cadence =
-            suggestion.frequency == RecurringFrequency.weekly
-            ? 'weekly'
-            : 'monthly';
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(17),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
+      children: suggestions
+          .map((SubscriptionSuggestion suggestion) {
+            final String cadence =
+                suggestion.frequency == RecurringFrequency.weekly
+                ? 'weekly'
+                : 'monthly';
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(17),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppPalette.lemon,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: const Icon(Icons.autorenew_rounded),
-                    ),
-                    const SizedBox(width: 11),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            'Looks like a subscription',
-                            style: TextStyle(fontWeight: FontWeight.w900),
+                    Row(
+                      children: <Widget>[
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: AppPalette.lemon,
+                            borderRadius: BorderRadius.circular(15),
                           ),
-                          Text('Detected only from confirmed local history.'),
-                        ],
-                      ),
+                          child: const Icon(Icons.autorenew_rounded),
+                        ),
+                        const SizedBox(width: 11),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'Looks like a subscription',
+                                style: TextStyle(fontWeight: FontWeight.w900),
+                              ),
+                              Text(
+                                'Detected only from confirmed local history.',
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Dismiss suggestion',
+                          onPressed: () =>
+                              setState(() => _dismissed.add(suggestion.id)),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      tooltip: 'Dismiss suggestion',
-                      onPressed: () =>
-                          setState(() => _dismissed.add(suggestion.id)),
-                      icon: const Icon(Icons.close_rounded),
+                    const SizedBox(height: 10),
+                    Text(
+                      '${suggestion.merchant} · $cadence · '
+                      '${widget.privacyMode ? '$defaultCurrencySymbol ••••' : inrCurrency.format(suggestion.amount)}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${suggestion.occurrences} matching payments found in the last 90 days.',
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: () => showRecurringTransactionEditor(
+                        context,
+                        seed: RecurringEditorSeed(
+                          merchant: suggestion.merchant,
+                          amount: suggestion.amount,
+                          frequency: suggestion.frequency,
+                          nextDueAt: suggestion.nextExpectedAt,
+                          categoryId: suggestion.categoryId,
+                        ),
+                      ),
+                      icon: const Icon(Icons.event_repeat_rounded),
+                      label: const Text('Set up as recurring'),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  '${suggestion.merchant} · $cadence · '
-                  '${widget.privacyMode ? '$defaultCurrencySymbol ••••' : inrCurrency.format(suggestion.amount)}',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${suggestion.occurrences} matching payments found in the last 90 days.',
-                ),
-                const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: () => showRecurringTransactionEditor(
-                    context,
-                    seed: RecurringEditorSeed(
-                      merchant: suggestion.merchant,
-                      amount: suggestion.amount,
-                      frequency: suggestion.frequency,
-                      nextDueAt: suggestion.nextExpectedAt,
-                      categoryId: suggestion.categoryId,
-                    ),
-                  ),
-                  icon: const Icon(Icons.event_repeat_rounded),
-                  label: const Text('Set up as recurring'),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(growable: false),
+              ),
+            );
+          })
+          .toList(growable: false),
     );
   }
 }

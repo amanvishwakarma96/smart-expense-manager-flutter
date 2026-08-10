@@ -7,7 +7,12 @@ void main() {
   const SubscriptionDetectorService service = SubscriptionDetectorService();
   final DateTime now = DateTime(2026, 8, 10, 12);
 
-  ExpenseTransaction debit(int id, String merchant, double amount, DateTime at) {
+  ExpenseTransaction debit(
+    int id,
+    String merchant,
+    double amount,
+    DateTime at,
+  ) {
     return ExpenseTransaction(
       id: id,
       amount: amount,
