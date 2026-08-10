@@ -58,8 +58,8 @@ class LocalBackupService {
     this._reminderService,
   );
 
-  static const int snapshotVersion = 4;
-  static const Set<int> supportedSnapshotVersions = <int>{1, 2, 3, 4};
+  static const int snapshotVersion = 5;
+  static const Set<int> supportedSnapshotVersions = <int>{1, 2, 3, 4, 5};
 
   final Isar _isar;
   final SecureCipherService _cipher;
@@ -91,6 +91,10 @@ class LocalBackupService {
         'id': item.id,
         'amount': item.amount,
         'type': item.type.name,
+        'purpose': transactionPurposeFromCode(
+          item.purposeCode,
+          item.type,
+        ).name,
         'merchant': await _cipher.decrypt(item.encryptedMerchant),
         'timestamp': item.timestamp.toUtc().toIso8601String(),
         'categoryId': item.categoryId,
@@ -110,6 +114,10 @@ class LocalBackupService {
         'id': item.id,
         'amount': item.amount,
         'type': item.type.name,
+        'purpose': transactionPurposeFromCode(
+          item.purposeCode,
+          item.type,
+        ).name,
         'merchant': await _cipher.decrypt(item.encryptedMerchant),
         'categoryId': item.categoryId,
         'frequency': item.frequency.name,
@@ -276,6 +284,15 @@ class LocalBackupService {
           'Backup contains duplicate recurring transaction IDs',
         );
       }
+      final TransactionType type = _transactionType(map['type']);
+      final TransactionPurpose purpose = rawVersion >= 5
+          ? _transactionPurpose(map['purpose'])
+          : defaultTransactionPurpose(type);
+      if (!transactionPurposesFor(type).contains(purpose)) {
+        throw const FormatException(
+          'Recurring transaction purpose conflicts with its debit/credit direction',
+        );
+      }
       final RecurringFrequency frequency = _recurringFrequency(
         map['frequency'],
       );
@@ -299,7 +316,8 @@ class LocalBackupService {
         RecurringTransactionModel(
           id: id,
           amount: _positiveNumber(map['amount'], 'recurring.amount'),
-          type: _transactionType(map['type']),
+          type: type,
+          purposeCode: purpose.name,
           encryptedMerchant: await _cipher.encrypt(
             _requiredString(map['merchant'], 'recurring.merchant'),
           ),
@@ -376,11 +394,21 @@ class LocalBackupService {
           'Backup contains duplicate SMS fingerprints',
         );
       }
+      final TransactionType type = _transactionType(map['type']);
+      final TransactionPurpose purpose = rawVersion >= 5
+          ? _transactionPurpose(map['purpose'])
+          : defaultTransactionPurpose(type);
+      if (!transactionPurposesFor(type).contains(purpose)) {
+        throw const FormatException(
+          'Transaction purpose conflicts with its debit/credit direction',
+        );
+      }
       transactions.add(
         TransactionModel(
           id: id,
           amount: _positiveNumber(map['amount'], 'transaction.amount'),
-          type: _transactionType(map['type']),
+          type: type,
+          purposeCode: purpose.name,
           encryptedMerchant: await _cipher.encrypt(
             _requiredString(map['merchant'], 'transaction.merchant'),
           ),
@@ -535,6 +563,16 @@ class LocalBackupService {
       }
     }
     throw FormatException('Unknown transaction type: $name');
+  }
+
+  TransactionPurpose _transactionPurpose(Object? value) {
+    final String name = _requiredString(value, 'transaction.purpose');
+    for (final TransactionPurpose purpose in TransactionPurpose.values) {
+      if (purpose.name == name) {
+        return purpose;
+      }
+    }
+    throw FormatException('Unknown transaction purpose: $name');
   }
 
   TransactionStatus _transactionStatus(Object? value) {
