@@ -7,6 +7,7 @@ import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/dashboard/presentation/spending_forecast_card.dart';
+import 'package:smart_expense_manager/features/dashboard/presentation/subscription_suggestions_card.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
@@ -160,6 +161,12 @@ class MonthlyInsightCard extends ConsumerWidget {
             ),
           ),
         ).animate().fadeIn(delay: 160.ms).slideY(begin: 0.06, end: 0),
+        const SizedBox(height: 14),
+        SubscriptionSuggestionsCard(
+          transactions: transactions,
+          recurring: recurring,
+          privacyMode: privacyMode,
+        ),
         const SizedBox(height: 14),
         SpendingForecastCard(
           transactions: transactions,

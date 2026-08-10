@@ -25,13 +25,18 @@ Future<void> main() async {
   final CategoryRepository categories = CategoryRepository(isar);
   await categories.seedDefaults();
 
-  final TransactionRepository transactions = TransactionRepository(
+  final MerchantRuleRepository merchantRules = MerchantRuleRepository(
     isar,
     cipher,
   );
+  final TransactionRepository transactions = TransactionRepository(
+    isar,
+    cipher,
+    merchantRuleRepository: merchantRules,
+  );
   final SmsEngineCoordinator smsEngine = SmsEngineCoordinator(
     transactionRepository: transactions,
-    merchantRuleRepository: MerchantRuleRepository(isar),
+    merchantRuleRepository: merchantRules,
     categoryRepository: categories,
   );
   final BillReminderService billReminders = BillReminderService(isar: isar);
@@ -51,7 +56,6 @@ Future<void> main() async {
         isarProvider.overrideWithValue(isar),
         cipherProvider.overrideWithValue(cipher),
         billReminderServiceProvider.overrideWithValue(billReminders),
-        smsEngineCoordinatorProvider.overrideWithValue(smsEngine),
       ],
       child: const PiggyAiApp(),
     ),

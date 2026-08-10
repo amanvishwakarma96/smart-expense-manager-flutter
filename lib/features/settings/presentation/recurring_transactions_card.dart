@@ -4,27 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
-import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
-import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
-import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 import 'package:smart_expense_manager/features/transactions/domain/recurring_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/presentation/recurring_transaction_editor.dart';
 import 'package:smart_expense_manager/features/transactions/presentation/transaction_semantics_widgets.dart';
 
 class RecurringTransactionsCard extends ConsumerWidget {
   const RecurringTransactionsCard({super.key});
-
-  Future<void> _openEditor(
-    BuildContext context, {
-    RecurringTransaction? transaction,
-  }) {
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (BuildContext context) =>
-          _RecurringEditorSheet(transaction: transaction),
-    );
-  }
 
   Future<void> _delete(
     BuildContext context,
@@ -34,33 +19,30 @@ class RecurringTransactionsCard extends ConsumerWidget {
     final bool confirmed =
         await showDialog<bool>(
           context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text('Delete recurring item?'),
-              content: Text(
-                '${transaction.merchant} will stop creating future review entries and reminders.',
+          builder: (BuildContext dialogContext) => AlertDialog(
+            title: const Text('Delete recurring item?'),
+            content: Text(
+              '${transaction.merchant} will stop creating future review entries and reminders.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Keep'),
               ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Keep'),
-                ),
-                FilledButton.icon(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  icon: const Icon(Icons.delete_rounded),
-                  label: const Text('Delete'),
-                ),
-              ],
-            );
-          },
+              FilledButton.icon(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                icon: const Icon(Icons.delete_rounded),
+                label: const Text('Delete'),
+              ),
+            ],
+          ),
         ) ??
         false;
-    if (!confirmed) {
-      return;
+    if (confirmed) {
+      await ref
+          .read(recurringTransactionRepositoryProvider)
+          .delete(transaction.id);
     }
-    await ref
-        .read(recurringTransactionRepositoryProvider)
-        .delete(transaction.id);
   }
 
   @override
@@ -69,7 +51,6 @@ class RecurringTransactionsCard extends ConsumerWidget {
       recurringTransactionsProvider,
     );
     final bool privacyMode = ref.watch(privacyModeProvider);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -97,14 +78,14 @@ class RecurringTransactionsCard extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const Text(
-                        'Salary, EMI, rent, investments and transfers stay correctly separated.',
+                        'Salary, EMI, rent, investments and subscriptions stay local.',
                       ),
                     ],
                   ),
                 ),
                 IconButton.filledTonal(
                   tooltip: 'Add recurring transaction',
-                  onPressed: () => _openEditor(context),
+                  onPressed: () => showRecurringTransactionEditor(context),
                   icon: const Icon(Icons.add_rounded),
                 ),
               ],
@@ -124,18 +105,10 @@ class RecurringTransactionsCard extends ConsumerWidget {
                       color: AppPalette.lemon,
                       borderRadius: BorderRadius.circular(22),
                     ),
-                    child: const Row(
-                      children: <Widget>[
-                        Icon(Icons.auto_awesome_rounded),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Add rent, salary, EMI, SIP, subscriptions, or any repeating transaction.',
-                          ),
-                        ),
-                      ],
+                    child: const Text(
+                      'Add rent, salary, EMI, SIP, subscriptions, or any repeating transaction.',
                     ),
-                  ).animate().fadeIn().scale(begin: const Offset(0.97, 0.97));
+                  ).animate().fadeIn();
                 }
                 return Column(
                   children: items.indexed
@@ -145,117 +118,88 @@ class RecurringTransactionsCard extends ConsumerWidget {
                         final Color accent =
                             AppPalette.playfulSequence[index %
                                 AppPalette.playfulSequence.length];
-                        return Padding(
-                          padding: EdgeInsets.only(top: index == 0 ? 0 : 10),
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: accent.withValues(
-                                alpha: item.isActive ? 0.72 : 0.30,
-                              ),
-                              borderRadius: BorderRadius.circular(22),
+                        return Container(
+                          margin: EdgeInsets.only(top: index == 0 ? 0 : 10),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: accent.withValues(
+                              alpha: item.isActive ? 0.72 : 0.30,
                             ),
-                            child: Row(
-                              children: <Widget>[
-                                Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.66),
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: Icon(
-                                    item.isDebit
-                                        ? Icons.north_east_rounded
-                                        : Icons.south_west_rounded,
-                                  ),
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              CircleAvatar(
+                                backgroundColor: Colors.white.withValues(
+                                  alpha: 0.66,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(
-                                        item.merchant,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 5),
-                                      TransactionSemanticChips(
-                                        type: item.type,
-                                        purpose: item.purpose,
-                                        compact: true,
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        '${_frequencyLabel(item.frequency)} · next ${transactionDayFormat.format(item.nextDueAt)}',
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        privacyMode
-                                            ? '$defaultCurrencySymbol ••••'
-                                            : inrCurrency.format(item.amount),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                      if (item.reminderEnabled && item.isDebit)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 5,
-                                          ),
-                                          child: Row(
-                                            children: <Widget>[
-                                              const Icon(
-                                                Icons
-                                                    .notifications_active_rounded,
-                                                size: 15,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                _reminderLabel(
-                                                  item.reminderDaysBefore,
-                                                ),
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+                                child: Icon(
+                                  item.isDebit
+                                      ? Icons.north_east_rounded
+                                      : Icons.south_west_rounded,
                                 ),
-                                Switch(
-                                  value: item.isActive,
-                                  onChanged: (bool value) {
-                                    ref
-                                        .read(
-                                          recurringTransactionRepositoryProvider,
-                                        )
-                                        .setActive(item.id, value);
-                                  },
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      item.merchant,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    TransactionSemanticChips(
+                                      type: item.type,
+                                      purpose: item.purpose,
+                                      compact: true,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${_frequencyLabel(item.frequency)} · next ${transactionDayFormat.format(item.nextDueAt)}',
+                                    ),
+                                    Text(
+                                      privacyMode
+                                          ? '$defaultCurrencySymbol ••••'
+                                          : inrCurrency.format(item.amount),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    if (item.reminderEnabled && item.isDebit)
+                                      Text(
+                                        _reminderLabel(item.reminderDaysBefore),
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                  ],
                                 ),
-                                PopupMenuButton<_RecurringAction>(
-                                  onSelected: (_RecurringAction action) {
-                                    switch (action) {
-                                      case _RecurringAction.edit:
-                                        _openEditor(context, transaction: item);
-                                        break;
-                                      case _RecurringAction.delete:
-                                        _delete(context, ref, item);
-                                        break;
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) {
-                                    return const <
-                                      PopupMenuEntry<_RecurringAction>
-                                    >[
+                              ),
+                              Switch(
+                                value: item.isActive,
+                                onChanged: (bool value) => ref
+                                    .read(
+                                      recurringTransactionRepositoryProvider,
+                                    )
+                                    .setActive(item.id, value),
+                              ),
+                              PopupMenuButton<_RecurringAction>(
+                                onSelected: (_RecurringAction action) {
+                                  switch (action) {
+                                    case _RecurringAction.edit:
+                                      showRecurringTransactionEditor(
+                                        context,
+                                        transaction: item,
+                                      );
+                                    case _RecurringAction.delete:
+                                      _delete(context, ref, item);
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) =>
+                                    const <PopupMenuEntry<_RecurringAction>>[
                                       PopupMenuItem<_RecurringAction>(
                                         value: _RecurringAction.edit,
                                         child: Text('Edit'),
@@ -264,13 +208,11 @@ class RecurringTransactionsCard extends ConsumerWidget {
                                         value: _RecurringAction.delete,
                                         child: Text('Delete'),
                                       ),
-                                    ];
-                                  },
-                                ),
-                              ],
-                            ),
-                          ).animate().fadeIn(delay: (index * 45).ms).slideX(begin: 0.04, end: 0),
-                        );
+                                    ],
+                              ),
+                            ],
+                          ),
+                        ).animate().fadeIn(delay: (index * 45).ms);
                       })
                       .toList(growable: false),
                 );
@@ -282,377 +224,12 @@ class RecurringTransactionsCard extends ConsumerWidget {
     );
   }
 
-  static String _frequencyLabel(RecurringFrequency frequency) {
-    return switch (frequency) {
-      RecurringFrequency.weekly => 'Weekly',
-      RecurringFrequency.monthly => 'Monthly',
-    };
-  }
+  static String _frequencyLabel(RecurringFrequency frequency) =>
+      frequency == RecurringFrequency.weekly ? 'Weekly' : 'Monthly';
 
-  static String _reminderLabel(int daysBefore) {
-    return switch (daysBefore) {
-      0 => 'Reminder on due day',
-      1 => 'Reminder 1 day before',
-      _ => 'Reminder $daysBefore days before',
-    };
-  }
-}
-
-class _RecurringEditorSheet extends ConsumerStatefulWidget {
-  const _RecurringEditorSheet({this.transaction});
-
-  final RecurringTransaction? transaction;
-
-  @override
-  ConsumerState<_RecurringEditorSheet> createState() =>
-      _RecurringEditorSheetState();
-}
-
-class _RecurringEditorSheetState extends ConsumerState<_RecurringEditorSheet> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  late final TextEditingController _merchantController;
-  late final TextEditingController _amountController;
-  late TransactionType _type;
-  late TransactionPurpose _purpose;
-  late RecurringFrequency _frequency;
-  late DateTime _nextDueAt;
-  late bool _reminderEnabled;
-  late int _reminderDaysBefore;
-  int? _categoryId;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final RecurringTransaction? item = widget.transaction;
-    _merchantController = TextEditingController(text: item?.merchant ?? '');
-    _amountController = TextEditingController(
-      text: item?.amount.toStringAsFixed(2) ?? '',
-    );
-    _type = item?.type ?? TransactionType.debit;
-    _purpose = item?.purpose ?? defaultTransactionPurpose(_type);
-    _frequency = item?.frequency ?? RecurringFrequency.monthly;
-    _nextDueAt = item?.nextDueAt ?? DateTime.now();
-    _categoryId = item?.categoryId;
-    _reminderEnabled = item?.reminderEnabled ?? false;
-    _reminderDaysBefore = item?.reminderDaysBefore ?? 1;
-  }
-
-  @override
-  void dispose() {
-    _merchantController.dispose();
-    _amountController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final DateTime? selected = await showDatePicker(
-      context: context,
-      initialDate: _nextDueAt,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 3660)),
-      helpText: 'Choose the next due date',
-    );
-    if (selected == null || !mounted) {
-      return;
-    }
-    setState(() => _nextDueAt = selected);
-  }
-
-  void _changeType(TransactionType type) {
-    setState(() {
-      _type = type;
-      if (!transactionPurposesFor(type).contains(_purpose)) {
-        _purpose = defaultTransactionPurpose(type);
-      }
-      if (_type == TransactionType.credit) {
-        _reminderEnabled = false;
-      }
-    });
-  }
-
-  Future<void> _save() async {
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
-    setState(() => _saving = true);
-
-    bool reminderEnabled = _type == TransactionType.debit && _reminderEnabled;
-    if (reminderEnabled) {
-      final bool permitted = await ref
-          .read(billReminderServiceProvider)
-          .requestPermission();
-      if (!permitted) {
-        reminderEnabled = false;
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Notification permission was not granted. The item was saved without a reminder.',
-              ),
-            ),
-          );
-        }
-      }
-    }
-
-    final String merchant = _merchantController.text.trim();
-    await ref
-        .read(recurringTransactionRepositoryProvider)
-        .save(
-          id: widget.transaction?.id,
-          amount: double.parse(_amountController.text.trim()),
-          type: _type,
-          purpose: _purpose,
-          merchant: merchant,
-          frequency: _frequency,
-          nextDueAt: _nextDueAt,
-          categoryId: _categoryId,
-          isActive: widget.transaction?.isActive ?? true,
-          reminderEnabled: reminderEnabled,
-          reminderDaysBefore: _reminderDaysBefore,
-        );
-    if (_categoryId != null) {
-      await ref
-          .read(merchantRuleRepositoryProvider)
-          .learnCategory(merchant: merchant, categoryId: _categoryId!);
-    }
-    if (mounted) {
-      Navigator.of(context).pop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final List<CategoryModel> categories =
-        ref.watch(categoriesProvider).value ?? const <CategoryModel>[];
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 8,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: AppPalette.heroGradient,
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                child: Row(
-                  children: <Widget>[
-                    const Icon(Icons.event_repeat_rounded, size: 38),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            widget.transaction == null
-                                ? 'Add a recurring item'
-                                : 'Edit recurring item',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const Text(
-                            'It will land in Review before confirmation.',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              SegmentedButton<TransactionType>(
-                segments: const <ButtonSegment<TransactionType>>[
-                  ButtonSegment<TransactionType>(
-                    value: TransactionType.debit,
-                    label: Text('Debit'),
-                    icon: Icon(Icons.north_east_rounded),
-                  ),
-                  ButtonSegment<TransactionType>(
-                    value: TransactionType.credit,
-                    label: Text('Credit'),
-                    icon: Icon(Icons.south_west_rounded),
-                  ),
-                ],
-                selected: <TransactionType>{_type},
-                onSelectionChanged: (Set<TransactionType> selected) {
-                  _changeType(selected.first);
-                },
-              ),
-              const SizedBox(height: 12),
-              TransactionPurposeField(
-                key: ValueKey<String>('${_type.name}-${_purpose.name}'),
-                type: _type,
-                value: _purpose,
-                onChanged: (TransactionPurpose value) {
-                  setState(() => _purpose = value);
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _merchantController,
-                decoration: const InputDecoration(
-                  labelText: 'Merchant, person or note',
-                  prefixIcon: Icon(Icons.storefront_rounded),
-                ),
-                validator: (String? value) => (value?.trim().isEmpty ?? true)
-                    ? 'Enter a name or note'
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Amount in INR',
-                  prefixText: '$defaultCurrencySymbol ',
-                  prefixIcon: Icon(Icons.currency_rupee_rounded),
-                ),
-                validator: (String? value) {
-                  final double? amount = double.tryParse(value?.trim() ?? '');
-                  return amount == null || amount <= 0
-                      ? 'Enter a valid amount'
-                      : null;
-                },
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<int>(
-                initialValue: _categoryId,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  prefixIcon: Icon(Icons.category_rounded),
-                ),
-                items: categories
-                    .map((CategoryModel category) {
-                      return DropdownMenuItem<int>(
-                        value: category.id,
-                        child: Text(category.name),
-                      );
-                    })
-                    .toList(growable: false),
-                onChanged: (int? value) => setState(() => _categoryId = value),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<RecurringFrequency>(
-                initialValue: _frequency,
-                decoration: const InputDecoration(
-                  labelText: 'Repeats',
-                  prefixIcon: Icon(Icons.repeat_rounded),
-                ),
-                items: const <DropdownMenuItem<RecurringFrequency>>[
-                  DropdownMenuItem<RecurringFrequency>(
-                    value: RecurringFrequency.weekly,
-                    child: Text('Every week'),
-                  ),
-                  DropdownMenuItem<RecurringFrequency>(
-                    value: RecurringFrequency.monthly,
-                    child: Text('Every month'),
-                  ),
-                ],
-                onChanged: (RecurringFrequency? value) {
-                  if (value != null) {
-                    setState(() => _frequency = value);
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: _pickDate,
-                borderRadius: BorderRadius.circular(22),
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Next due date',
-                    prefixIcon: Icon(Icons.calendar_month_rounded),
-                  ),
-                  child: Text(transactionDayFormat.format(_nextDueAt)),
-                ),
-              ),
-              if (_type == TransactionType.debit) ...<Widget>[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppPalette.lemon,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Private reminder'),
-                    subtitle: const Text(
-                      'Notification text never includes the name or amount.',
-                    ),
-                    value: _reminderEnabled,
-                    onChanged: (bool value) {
-                      setState(() => _reminderEnabled = value);
-                    },
-                  ),
-                ),
-                if (_reminderEnabled) ...<Widget>[
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
-                    initialValue: _reminderDaysBefore,
-                    decoration: const InputDecoration(
-                      labelText: 'Remind me',
-                      prefixIcon: Icon(Icons.notifications_active_rounded),
-                    ),
-                    items: BillReminderService.supportedLeadDays
-                        .map((int days) {
-                          return DropdownMenuItem<int>(
-                            value: days,
-                            child: Text(_leadTimeLabel(days)),
-                          );
-                        })
-                        .toList(growable: false),
-                    onChanged: (int? value) {
-                      if (value != null) {
-                        setState(() => _reminderDaysBefore = value);
-                      }
-                    },
-                  ),
-                ],
-              ],
-              const SizedBox(height: 18),
-              FilledButton.icon(
-                onPressed: _saving ? null : _save,
-                icon: _saving
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.check_rounded),
-                label: Text(
-                  widget.transaction == null
-                      ? 'Save recurring item'
-                      : 'Save changes',
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  static String _leadTimeLabel(int days) {
-    return switch (days) {
-      0 => 'On the due day at 9:00 AM',
-      1 => '1 day before at 9:00 AM',
-      _ => '$days days before at 9:00 AM',
-    };
-  }
+  static String _reminderLabel(int daysBefore) => daysBefore == 0
+      ? 'Reminder on due day'
+      : 'Reminder $daysBefore day${daysBefore == 1 ? '' : 's'} before';
 }
 
 enum _RecurringAction { edit, delete }

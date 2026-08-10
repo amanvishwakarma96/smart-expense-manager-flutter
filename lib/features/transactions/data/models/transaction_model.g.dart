@@ -23,55 +23,65 @@ const TransactionModelSchema = CollectionSchema(
       name: r'categoryId',
       type: IsarType.long,
     ),
-    r'createdAt': PropertySchema(
+    r'categoryManuallyAssigned': PropertySchema(
       id: 2,
+      name: r'categoryManuallyAssigned',
+      type: IsarType.bool,
+    ),
+    r'createdAt': PropertySchema(
+      id: 3,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'encryptedAccountTail': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'encryptedAccountTail',
       type: IsarType.string,
     ),
     r'encryptedMerchant': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'encryptedMerchant',
       type: IsarType.string,
     ),
     r'encryptedOriginalSmsText': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'encryptedOriginalSmsText',
       type: IsarType.string,
     ),
-    r'isManual': PropertySchema(id: 6, name: r'isManual', type: IsarType.bool),
+    r'isManual': PropertySchema(id: 7, name: r'isManual', type: IsarType.bool),
     r'isRecurring': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'isRecurring',
       type: IsarType.bool,
     ),
+    r'possibleDuplicateOf': PropertySchema(
+      id: 9,
+      name: r'possibleDuplicateOf',
+      type: IsarType.long,
+    ),
     r'purposeCode': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'purposeCode',
       type: IsarType.string,
     ),
     r'smsFingerprint': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'smsFingerprint',
       type: IsarType.string,
     ),
     r'status': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TransactionModelstatusEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
     r'type': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactionModeltypeEnumValueMap,
@@ -134,17 +144,19 @@ void _transactionModelSerialize(
 ) {
   writer.writeDouble(offsets[0], object.amount);
   writer.writeLong(offsets[1], object.categoryId);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeString(offsets[3], object.encryptedAccountTail);
-  writer.writeString(offsets[4], object.encryptedMerchant);
-  writer.writeString(offsets[5], object.encryptedOriginalSmsText);
-  writer.writeBool(offsets[6], object.isManual);
-  writer.writeBool(offsets[7], object.isRecurring);
-  writer.writeString(offsets[8], object.purposeCode);
-  writer.writeString(offsets[9], object.smsFingerprint);
-  writer.writeByte(offsets[10], object.status.index);
-  writer.writeDateTime(offsets[11], object.timestamp);
-  writer.writeByte(offsets[12], object.type.index);
+  writer.writeBool(offsets[2], object.categoryManuallyAssigned);
+  writer.writeDateTime(offsets[3], object.createdAt);
+  writer.writeString(offsets[4], object.encryptedAccountTail);
+  writer.writeString(offsets[5], object.encryptedMerchant);
+  writer.writeString(offsets[6], object.encryptedOriginalSmsText);
+  writer.writeBool(offsets[7], object.isManual);
+  writer.writeBool(offsets[8], object.isRecurring);
+  writer.writeLong(offsets[9], object.possibleDuplicateOf);
+  writer.writeString(offsets[10], object.purposeCode);
+  writer.writeString(offsets[11], object.smsFingerprint);
+  writer.writeByte(offsets[12], object.status.index);
+  writer.writeDateTime(offsets[13], object.timestamp);
+  writer.writeByte(offsets[14], object.type.index);
 }
 
 TransactionModel _transactionModelDeserialize(
@@ -156,25 +168,27 @@ TransactionModel _transactionModelDeserialize(
   final object = TransactionModel(
     amount: reader.readDoubleOrNull(offsets[0]) ?? 0,
     categoryId: reader.readLongOrNull(offsets[1]),
-    encryptedAccountTail: reader.readStringOrNull(offsets[3]) ?? '',
-    encryptedMerchant: reader.readStringOrNull(offsets[4]) ?? '',
-    encryptedOriginalSmsText: reader.readStringOrNull(offsets[5]) ?? '',
+    categoryManuallyAssigned: reader.readBoolOrNull(offsets[2]) ?? false,
+    encryptedAccountTail: reader.readStringOrNull(offsets[4]) ?? '',
+    encryptedMerchant: reader.readStringOrNull(offsets[5]) ?? '',
+    encryptedOriginalSmsText: reader.readStringOrNull(offsets[6]) ?? '',
     id: id,
-    isManual: reader.readBoolOrNull(offsets[6]) ?? false,
-    isRecurring: reader.readBoolOrNull(offsets[7]) ?? false,
-    purposeCode: reader.readStringOrNull(offsets[8]) ?? '',
-    smsFingerprint: reader.readStringOrNull(offsets[9]),
+    isManual: reader.readBoolOrNull(offsets[7]) ?? false,
+    isRecurring: reader.readBoolOrNull(offsets[8]) ?? false,
+    possibleDuplicateOf: reader.readLongOrNull(offsets[9]),
+    purposeCode: reader.readStringOrNull(offsets[10]) ?? '',
+    smsFingerprint: reader.readStringOrNull(offsets[11]),
     status:
         _TransactionModelstatusValueEnumMap[reader.readByteOrNull(
-          offsets[10],
+          offsets[12],
         )] ??
         TransactionStatus.pending,
-    timestamp: reader.readDateTime(offsets[11]),
+    timestamp: reader.readDateTime(offsets[13]),
     type:
-        _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[12])] ??
+        _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[14])] ??
         TransactionType.debit,
   );
-  object.createdAt = reader.readDateTime(offsets[2]);
+  object.createdAt = reader.readDateTime(offsets[3]);
   return object;
 }
 
@@ -190,30 +204,34 @@ P _transactionModelDeserializeProp<P>(
     case 1:
       return (reader.readLongOrNull(offset)) as P;
     case 2:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 3:
-      return (reader.readStringOrNull(offset) ?? '') as P;
+      return (reader.readDateTime(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset) ?? '') as P;
     case 5:
       return (reader.readStringOrNull(offset) ?? '') as P;
     case 6:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readStringOrNull(offset) ?? '') as P;
     case 7:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 8:
-      return (reader.readStringOrNull(offset) ?? '') as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 9:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 10:
+      return (reader.readStringOrNull(offset) ?? '') as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
       return (_TransactionModelstatusValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
               TransactionStatus.pending)
           as P;
-    case 11:
+    case 13:
       return (reader.readDateTime(offset)) as P;
-    case 12:
+    case 14:
       return (_TransactionModeltypeValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
@@ -614,6 +632,18 @@ extension TransactionModelQueryFilter
           includeLower: includeLower,
           upper: upper,
           includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  categoryManuallyAssignedEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'categoryManuallyAssigned',
+          value: value,
         ),
       );
     });
@@ -1183,6 +1213,79 @@ extension TransactionModelQueryFilter
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'possibleDuplicateOf'),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'possibleDuplicateOf'),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'possibleDuplicateOf', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfGreaterThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'possibleDuplicateOf',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfLessThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'possibleDuplicateOf',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  possibleDuplicateOfBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'possibleDuplicateOf',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
   purposeCodeEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1685,6 +1788,20 @@ extension TransactionModelQuerySortBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByCategoryManuallyAssigned() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'categoryManuallyAssigned', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByCategoryManuallyAssignedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'categoryManuallyAssigned', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1765,6 +1882,20 @@ extension TransactionModelQuerySortBy
   sortByIsRecurringDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isRecurring', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByPossibleDuplicateOf() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'possibleDuplicateOf', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByPossibleDuplicateOfDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'possibleDuplicateOf', Sort.desc);
     });
   }
 
@@ -1869,6 +2000,20 @@ extension TransactionModelQuerySortThenBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByCategoryManuallyAssigned() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'categoryManuallyAssigned', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByCategoryManuallyAssignedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'categoryManuallyAssigned', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1966,6 +2111,20 @@ extension TransactionModelQuerySortThenBy
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByPossibleDuplicateOf() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'possibleDuplicateOf', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByPossibleDuplicateOfDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'possibleDuplicateOf', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
   thenByPurposeCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'purposeCode', Sort.asc);
@@ -2052,6 +2211,13 @@ extension TransactionModelQueryWhereDistinct
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QDistinct>
+  distinctByCategoryManuallyAssigned() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'categoryManuallyAssigned');
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QDistinct>
   distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -2099,6 +2265,13 @@ extension TransactionModelQueryWhereDistinct
   distinctByIsRecurring() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isRecurring');
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QDistinct>
+  distinctByPossibleDuplicateOf() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'possibleDuplicateOf');
     });
   }
 
@@ -2160,6 +2333,13 @@ extension TransactionModelQueryProperty
     });
   }
 
+  QueryBuilder<TransactionModel, bool, QQueryOperations>
+  categoryManuallyAssignedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'categoryManuallyAssigned');
+    });
+  }
+
   QueryBuilder<TransactionModel, DateTime, QQueryOperations>
   createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -2197,6 +2377,13 @@ extension TransactionModelQueryProperty
   QueryBuilder<TransactionModel, bool, QQueryOperations> isRecurringProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isRecurring');
+    });
+  }
+
+  QueryBuilder<TransactionModel, int?, QQueryOperations>
+  possibleDuplicateOfProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'possibleDuplicateOf');
     });
   }
 

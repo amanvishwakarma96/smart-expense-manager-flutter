@@ -2,6 +2,50 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.9.0] - Unreleased
+
+### Added
+
+- Local possible-duplicate detection for SMS-derived pending transactions using
+  matching account tails, an inclusive ₹1 amount tolerance, merchant substring
+  or edit-distance similarity, and a five-minute timestamp window.
+- A clear Possible duplicate badge in Pending Review while preserving explicit
+  Confirm and Remove choices for the user.
+- Encrypted merchant→category confidence mappings learned from confirmed manual
+  category corrections.
+- A Settings view for learned mappings with confidence counts plus per-mapping
+  category editing and clearing.
+- Read-only subscription detection across the last 90 days of confirmed debit
+  history for weekly or monthly merchant+amount cadences with ±3 day jitter.
+- Dismissible dashboard subscription suggestions that open the existing recurring
+  editor with detected values prefilled.
+- A non-blocking Settings backup nudge after 30 days without a successful local
+  encrypted backup, plus a 90-day dismiss/snooze option.
+
+### Changed
+
+- Future pending SMS transactions use the highest-confidence learned category for
+  the same merchant when no explicit merchant rule matches first.
+- Pending category edits are marked for learning but do not increase confidence
+  until the transaction is confirmed.
+- The recurring editor is shared between Settings and dashboard subscription
+  suggestions so setup follows one explicit Save flow.
+- Successful encrypted backup sharing now refreshes a local last-backup timestamp
+  used only by the reminder policy.
+
+### Security
+
+- Duplicate and subscription analysis run deterministically on-device and never
+  silently create, confirm, remove, or change a financial record.
+- Newly learned merchant text is encrypted at rest with `SecureCipherService`;
+  confidence metadata never requires a network or remote model.
+- Subscription suggestions remain transient UI guidance and do not persist new
+  sensitive merchant text or auto-create recurring templates.
+- Backup reminder persistence is deliberately limited to two unencrypted local
+  timestamps and contains no financial data, password, or encryption key.
+- No backend, cloud service, analytics, telemetry, remote AI, or Android internet
+  permission was introduced.
+
 ## [0.8.0] - Unreleased
 
 ### Added

@@ -31,6 +31,14 @@ after confirmation.
 - Privacy-first onboarding with optional Android SMS activation.
 - Manual debit and credit entry on Android and iOS.
 - Android bank-SMS detection with a pending review queue.
+- Local possible-duplicate detection that warns in Review without silently
+  dropping or confirming either transaction.
+- Confidence-based merchant/category learning from confirmed corrections, with
+  encrypted merchant text and editable/clearable learned mappings in Settings.
+- Read-only subscription suggestions from 90 days of confirmed debit history;
+  accepting a suggestion opens the existing recurring editor without auto-saving.
+- A non-blocking 30-day encrypted-backup reminder in Settings with a local
+  90-day snooze option.
 - Indian UPI, IMPS, NEFT, RTGS, ATM, card, refund, and reversal parsing rules.
 - Weekly and monthly recurring expenses or income that always enter review
   before they affect budgets.
@@ -60,6 +68,35 @@ after confirmation.
   recurring schedules, reminder preferences, and savings goals.
 - Full local financial-data deletion with reminder cancellation and
   encryption-key removal.
+
+## Backup reminder
+
+- The reminder appears in Settings only when at least one confirmed transaction
+  exists and no successful backup is recorded or the last one is 30+ days old.
+- “Don't remind me for 90 days” stores a local snooze timestamp and keeps the
+  reminder hidden until that time has passed.
+- Reminder storage is an unencrypted local JSON file containing only the last
+  successful backup timestamp and snooze-until timestamp; it contains no
+  transaction, merchant, amount, account, category, password, or encryption-key
+  data.
+- A backup is marked successful only after encrypted backup creation and the
+  user-controlled platform share flow return without error.
+- The reminder is non-blocking and never creates, restores, edits, or deletes
+  financial records.
+
+## Subscription suggestions
+
+- The detector reads only the last 90 days of confirmed, non-recurring debit
+  transactions already stored on the device.
+- At least three matching merchant-and-amount occurrences are required.
+- Weekly cadence accepts consecutive intervals around seven days with ±3 days of
+  jitter; monthly cadence uses thirty days with the same tolerance.
+- A matching existing recurring template suppresses the suggestion.
+- Dashboard suggestions can be dismissed for the current app session.
+- “Set up as recurring” opens the same recurring editor used in Settings with
+  merchant, amount, cadence, category, and next expected date prefilled.
+- The detector never creates or edits a recurring item; only the editor's
+  explicit Save action does that.
 
 ## Bill reminders
 
@@ -122,13 +159,16 @@ after confirmation.
 ## Categories and merchant rules
 
 - Users can create or edit category names, icons, colors, and monthly budgets.
-- A category cannot be deleted while a transaction, recurring item, or merchant
-  rule references it, and PiggyAI always keeps at least one category.
+- A category cannot be deleted while a transaction, recurring item, explicit
+  merchant rule, or learned merchant mapping references it.
 - Merchant rules can be added, edited, and deleted from Settings.
-- Longer merchant patterns are checked before broader patterns so specific rules
-  win, for example `amazon prime` before `amazon`.
-- Categories and merchant rules remain local and are already included in
-  explicit encrypted backups.
+- Longer explicit merchant patterns are checked before broader patterns so
+  specific rules win, for example `amazon prime` before `amazon`.
+- Confirmed manual category corrections build a separate local confidence score;
+  among learned mappings for the same merchant, the highest-confidence category
+  is pre-selected for future pending transactions.
+- Learned merchant text is AES-GCM encrypted at rest and each learned mapping can
+  be edited or cleared from Settings.
 
 ## Savings goals and rewards
 
@@ -169,8 +209,9 @@ after confirmation.
 - A restore validates the encrypted envelope and snapshot before replacing any
   local database collections.
 - Sensitive fields are re-encrypted using the destination installation's key.
-- Snapshot version 4 includes recurring schedules, reminder preferences, and
-  savings goals, while versions 1, 2, and 3 remain restorable.
+- Snapshot version 5 preserves semantic transaction purpose and includes
+  recurring schedules, reminder preferences, and savings goals; versions 1
+  through 4 remain restorable.
 - Restoring or deleting data cancels obsolete scheduled reminders and rebuilds
   only the reminders represented by the resulting local data.
 - Weekly quest history is excluded from financial backup files and is reset
@@ -220,14 +261,15 @@ flutter build apk --debug
 - **Android:** onboarding, manual entry, user-initiated inbox scan, incoming
   transaction SMS detection, pending review, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
-  custom categories, merchant rules, local forecast, savings goals, cash-flow
-  calendar, budgets, local alerts, encrypted backup/restore, insights, charts,
-  privacy mode, and configurable app lock.
+  custom categories, merchant rules, local forecast, subscription suggestions,
+  backup reminder, savings goals, cash-flow calendar, budgets, local alerts,
+  encrypted backup/restore, insights, charts, privacy mode, and configurable app
+  lock.
 - **iOS:** onboarding, manual entry, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
-  custom categories, merchant rules, local forecast, savings goals, cash-flow
-  calendar, budgets, local alerts, encrypted backup/restore, insights, charts,
-  privacy mode, and configurable app lock. Automatic SMS access is intentionally
-  unavailable.
+  custom categories, merchant rules, local forecast, subscription suggestions,
+  backup reminder, savings goals, cash-flow calendar, budgets, local alerts,
+  encrypted backup/restore, insights, charts, privacy mode, and configurable app
+  lock. Automatic SMS access is intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.

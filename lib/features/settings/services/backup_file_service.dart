@@ -25,7 +25,7 @@ class BackupFileService {
     final File file = File('${temporaryDirectory.path}/${backup.fileName}');
     await file.writeAsBytes(backup.bytes, flush: true);
     try {
-      await SharePlus.instance.share(
+      final ShareResult result = await SharePlus.instance.share(
         ShareParams(
           title: 'PiggyAI encrypted backup',
           subject: 'PiggyAI encrypted backup',
@@ -35,6 +35,9 @@ class BackupFileService {
           sharePositionOrigin: sharePositionOrigin,
         ),
       );
+      if (result.status != ShareResultStatus.success) {
+        throw StateError('Encrypted backup sharing was not completed.');
+      }
     } finally {
       if (await file.exists()) {
         await file.delete();

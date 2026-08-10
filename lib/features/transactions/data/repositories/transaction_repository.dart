@@ -8,10 +8,13 @@ import 'package:smart_expense_manager/features/goals/data/models/savings_goal_mo
 import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/merchant_learning_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/recurring_transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/repositories/merchant_rule_repository.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
+import 'package:smart_expense_manager/features/transactions/services/duplicate_transaction_detector.dart';
 
 class TransactionRepository {
   TransactionRepository(
@@ -19,19 +22,32 @@ class TransactionRepository {
     SecureCipherService cipher, {
     BudgetAlertService? budgetAlertService,
     BillReminderService? reminderService,
-  }) : this._(isar, cipher, budgetAlertService, reminderService);
+    DuplicateTransactionDetector? duplicateDetector,
+    MerchantRuleRepository? merchantRuleRepository,
+  }) : this._(
+         isar,
+         cipher,
+         budgetAlertService,
+         reminderService,
+         duplicateDetector ?? const DuplicateTransactionDetector(),
+         merchantRuleRepository,
+       );
 
   TransactionRepository._(
     this._isar,
     this._cipher,
     this._budgetAlertService,
     this._reminderService,
+    this._duplicateDetector,
+    this._merchantRules,
   );
 
   final Isar _isar;
   final SecureCipherService _cipher;
   final BudgetAlertService? _budgetAlertService;
   final BillReminderService? _reminderService;
+  final DuplicateTransactionDetector _duplicateDetector;
+  final MerchantRuleRepository? _merchantRules;
 
   Stream<List<ExpenseTransaction>> watchPending() {
     return _isar.transactionModels
@@ -87,6 +103,12 @@ class TransactionRepository {
       return -1;
     }
 
+    final int? possibleDuplicateOf = await _findPossibleDuplicate(
+      amount: amount,
+      merchant: merchant,
+      accountTail: accountTail,
+      timestamp: timestamp,
+    );
     final TransactionPurpose resolvedPurpose =
         purpose ?? defaultTransactionPurpose(type);
     final TransactionModel model = TransactionModel(
@@ -99,6 +121,7 @@ class TransactionRepository {
       encryptedAccountTail: await _cipher.encrypt(accountTail),
       encryptedOriginalSmsText: await _cipher.encrypt(originalSmsText),
       smsFingerprint: fingerprint,
+      possibleDuplicateOf: possibleDuplicateOf,
     );
     return _isar.writeTxn(() => _isar.transactionModels.put(model));
   }
@@ -126,6 +149,12 @@ class TransactionRepository {
     final int id = await _isar.writeTxn(
       () => _isar.transactionModels.put(model),
     );
+    if (categoryId != null) {
+      await _merchantRules?.recordConfirmedCategory(
+        merchant: merchant,
+        categoryId: categoryId,
+      );
+    }
     if (resolvedPurpose.countsAgainstBudget) {
       await _budgetAlertService?.checkCategory(categoryId);
     }
@@ -134,19 +163,32 @@ class TransactionRepository {
 
   Future<void> confirm(int id, {int? categoryId}) async {
     final TransactionModel? model = await _isar.transactionModels.get(id);
-    if (model == null) {
+    if (model == null || model.status != TransactionStatus.pending) {
       return;
     }
     final TransactionPurpose purpose = transactionPurposeFromCode(
       model.purposeCode,
       model.type,
     );
+    final int? resolvedCategoryId = categoryId ?? model.categoryId;
+    final bool shouldLearn =
+        model.categoryManuallyAssigned && resolvedCategoryId != null;
+    final String merchant = shouldLearn
+        ? await _cipher.decrypt(model.encryptedMerchant)
+        : '';
     model
       ..status = TransactionStatus.confirmed
       ..purposeCode = purpose.name
-      ..categoryId = categoryId ?? model.categoryId
+      ..categoryId = resolvedCategoryId
+      ..categoryManuallyAssigned = false
       ..encryptedOriginalSmsText = '';
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
+    if (shouldLearn) {
+      await _merchantRules?.recordConfirmedCategory(
+        merchant: merchant,
+        categoryId: resolvedCategoryId,
+      );
+    }
     if (purpose.countsAgainstBudget) {
       await _budgetAlertService?.checkCategory(model.categoryId);
     }
@@ -159,6 +201,7 @@ class TransactionRepository {
     required TransactionType type,
     TransactionPurpose? purpose,
     int? categoryId,
+    bool categoryManuallyAssigned = false,
   }) async {
     final TransactionModel? model = await _isar.transactionModels.get(id);
     if (model == null) {
@@ -171,6 +214,8 @@ class TransactionRepository {
       ..type = type
       ..purposeCode = resolvedPurpose.name
       ..categoryId = categoryId
+      ..categoryManuallyAssigned =
+          model.categoryManuallyAssigned || categoryManuallyAssigned
       ..encryptedMerchant = await _cipher.encrypt(merchant);
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
   }
@@ -189,6 +234,9 @@ class TransactionRepository {
       return;
     }
     final int? previousCategoryId = model.categoryId;
+    final String previousMerchant = await _cipher.decrypt(
+      model.encryptedMerchant,
+    );
     final TransactionPurpose previousPurpose = transactionPurposeFromCode(
       model.purposeCode,
       model.type,
@@ -203,6 +251,17 @@ class TransactionRepository {
       ..categoryId = categoryId
       ..encryptedMerchant = await _cipher.encrypt(merchant);
     await _isar.writeTxn(() => _isar.transactionModels.put(model));
+    final bool mappingChanged =
+        categoryId != null &&
+        (categoryId != previousCategoryId ||
+            merchant.trim().toLowerCase() !=
+                previousMerchant.trim().toLowerCase());
+    if (mappingChanged) {
+      await _merchantRules?.recordConfirmedCategory(
+        merchant: merchant,
+        categoryId: categoryId,
+      );
+    }
     if (previousPurpose.countsAgainstBudget) {
       await _budgetAlertService?.checkCategory(previousCategoryId);
     }
@@ -229,6 +288,7 @@ class TransactionRepository {
       await _isar.recurringTransactionModels.clear();
       await _isar.savingsGoalModels.clear();
       await _isar.weeklyChallengeModels.clear();
+      await _isar.merchantLearningModels.clear();
       await _isar.merchantRuleModels.clear();
       await _isar.categoryModels.clear();
     });
@@ -244,6 +304,55 @@ class TransactionRepository {
         .join();
   }
 
+  Future<int?> _findPossibleDuplicate({
+    required double amount,
+    required String merchant,
+    required String accountTail,
+    required DateTime timestamp,
+  }) async {
+    if (accountTail.trim().isEmpty) {
+      return null;
+    }
+    final List<TransactionModel> models = await _isar.transactionModels
+        .where()
+        .findAll();
+    final List<DuplicateTransactionCandidate> candidates =
+        <DuplicateTransactionCandidate>[];
+    for (final TransactionModel model in models) {
+      final int timeDelta = model.timestamp
+          .difference(timestamp)
+          .inMilliseconds
+          .abs();
+      if (timeDelta > DuplicateTransactionDetector.timeWindow.inMilliseconds ||
+          (model.amount - amount).abs() >
+              DuplicateTransactionDetector.amountTolerance) {
+        continue;
+      }
+      final String existingAccount = await _cipher.decrypt(
+        model.encryptedAccountTail,
+      );
+      if (existingAccount.trim() != accountTail.trim()) {
+        continue;
+      }
+      candidates.add(
+        DuplicateTransactionCandidate(
+          id: model.id,
+          amount: model.amount,
+          merchant: await _cipher.decrypt(model.encryptedMerchant),
+          accountTail: existingAccount,
+          timestamp: model.timestamp,
+        ),
+      );
+    }
+    return _duplicateDetector.findPossibleDuplicate(
+      amount: amount,
+      merchant: merchant,
+      accountTail: accountTail,
+      timestamp: timestamp,
+      existing: candidates,
+    );
+  }
+
   Future<ExpenseTransaction> _toDomain(TransactionModel model) async {
     return ExpenseTransaction(
       id: model.id,
@@ -256,6 +365,8 @@ class TransactionRepository {
       status: model.status,
       accountTail: await _cipher.decrypt(model.encryptedAccountTail),
       originalSmsText: await _cipher.decrypt(model.encryptedOriginalSmsText),
+      possibleDuplicateOf: model.possibleDuplicateOf,
+      categoryManuallyAssigned: model.categoryManuallyAssigned,
       isManual: model.isManual,
       isRecurring: model.isRecurring,
     );

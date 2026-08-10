@@ -1,5 +1,6 @@
 import 'package:isar_community/isar.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
+import 'package:smart_expense_manager/features/transactions/data/models/merchant_learning_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/recurring_transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
@@ -196,12 +197,19 @@ class CategoryRepository {
     final List<MerchantRuleModel> rules = await _isar.merchantRuleModels
         .where()
         .findAll();
+    final List<MerchantLearningModel> learned = await _isar
+        .merchantLearningModels
+        .where()
+        .findAll();
     final bool inUse =
         transactions.any((TransactionModel item) => item.categoryId == id) ||
         recurring.any(
           (RecurringTransactionModel item) => item.categoryId == id,
         ) ||
-        rules.any((MerchantRuleModel item) => item.mappedCategoryId == id);
+        rules.any((MerchantRuleModel item) => item.mappedCategoryId == id) ||
+        learned.any(
+          (MerchantLearningModel item) => item.mappedCategoryId == id,
+        );
     if (inUse) {
       return CategoryDeleteResult.inUse;
     }

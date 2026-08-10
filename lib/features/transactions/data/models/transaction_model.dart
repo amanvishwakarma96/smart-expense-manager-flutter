@@ -17,6 +17,8 @@ class TransactionModel {
     this.encryptedOriginalSmsText = '',
     this.encryptedAccountTail = '',
     this.smsFingerprint,
+    this.possibleDuplicateOf,
+    this.categoryManuallyAssigned = false,
     this.isManual = false,
     this.isRecurring = false,
   }) : createdAt = DateTime.now();
@@ -41,6 +43,8 @@ class TransactionModel {
   @Index(unique: true, replace: false)
   String? smsFingerprint;
 
+  int? possibleDuplicateOf;
+  bool categoryManuallyAssigned;
   bool isManual;
   bool isRecurring;
   DateTime createdAt;
