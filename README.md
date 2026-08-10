@@ -31,6 +31,8 @@ after confirmation.
 - Privacy-first onboarding with optional Android SMS activation.
 - Manual debit and credit entry on Android and iOS.
 - Android bank-SMS detection with a pending review queue.
+- Local possible-duplicate detection that warns in Review without silently
+  dropping or confirming either transaction.
 - Indian UPI, IMPS, NEFT, RTGS, ATM, card, refund, and reversal parsing rules.
 - Weekly and monthly recurring expenses or income that always enter review
   before they affect budgets.

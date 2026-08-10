@@ -250,6 +250,30 @@ class _PendingCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
+                    if (transaction.possibleDuplicateOf != null) ...<Widget>[
+                      const SizedBox(height: 7),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppPalette.sunshine,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(Icons.content_copy_rounded, size: 15),
+                            SizedBox(width: 5),
+                            Text(
+                              'Possible duplicate',
+                              style: TextStyle(fontWeight: FontWeight.w900),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 6),
                     TransactionSemanticChips(
                       type: transaction.type,

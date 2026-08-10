@@ -2,6 +2,23 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.9.0] - Unreleased
+
+### Added
+
+- Local possible-duplicate detection for SMS-derived pending transactions using
+  matching account tails, an inclusive ₹1 amount tolerance, merchant substring
+  or edit-distance similarity, and a five-minute timestamp window.
+- A clear Possible duplicate badge in Pending Review while preserving explicit
+  Confirm and Remove choices for the user.
+
+### Security
+
+- Duplicate analysis runs deterministically on-device and never silently drops,
+  confirms, or changes a financial record.
+- No backend, cloud service, analytics, telemetry, remote AI, or Android internet
+  permission was introduced.
+
 ## [0.8.0] - Unreleased
 
 ### Added

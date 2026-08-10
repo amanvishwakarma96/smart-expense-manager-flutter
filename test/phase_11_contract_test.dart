@@ -1,0 +1,37 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('possible duplicates stay in review for an explicit user decision', () {
+    final String model = File(
+      'lib/features/transactions/data/models/transaction_model.dart',
+    ).readAsStringSync();
+    final String repository = File(
+      'lib/features/transactions/data/repositories/transaction_repository.dart',
+    ).readAsStringSync();
+    final String review = File(
+      'lib/features/transactions/presentation/pending_transactions_screen.dart',
+    ).readAsStringSync();
+
+    expect(model, contains('int? possibleDuplicateOf;'));
+    expect(repository, contains('possibleDuplicateOf: possibleDuplicateOf'));
+    expect(review, contains('Possible duplicate'));
+    expect(review, contains("label: 'Confirm'"));
+    expect(review, contains("label: 'Remove'"));
+    expect(repository, isNot(contains('delete(possibleDuplicateOf')));
+  });
+
+  test('duplicate detector remains deterministic and local-only', () {
+    final String source = File(
+      'lib/features/transactions/services/duplicate_transaction_detector.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('amountTolerance = 1'));
+    expect(source, contains('Duration(minutes: 5)'));
+    expect(source, contains('_levenshtein'));
+    expect(source, isNot(contains('package:http/')));
+    expect(source, isNot(contains('package:dio/')));
+    expect(source, isNot(contains('HttpClient(')));
+  });
+}

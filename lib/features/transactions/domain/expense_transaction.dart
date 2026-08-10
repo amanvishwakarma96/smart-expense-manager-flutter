@@ -107,6 +107,7 @@ class ExpenseTransaction {
     required this.originalSmsText,
     TransactionPurpose? purpose,
     this.categoryId,
+    this.possibleDuplicateOf,
     this.isManual = false,
     this.isRecurring = false,
   }) : purpose =
@@ -125,6 +126,7 @@ class ExpenseTransaction {
   final TransactionStatus status;
   final String accountTail;
   final String originalSmsText;
+  final int? possibleDuplicateOf;
   final bool isManual;
   final bool isRecurring;
 
