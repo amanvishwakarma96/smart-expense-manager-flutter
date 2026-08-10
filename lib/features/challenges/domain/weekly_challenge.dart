@@ -76,14 +76,14 @@ WeeklyChallengeProgress evaluateWeeklyChallenge({
   final DateTime evaluationEnd = current.isBefore(challenge.weekEnd)
       ? current
       : challenge.weekEnd.subtract(const Duration(microseconds: 1));
-  final List<ExpenseTransaction> debits = transactions
+  final List<ExpenseTransaction> spending = transactions
       .where((item) {
-        return item.isDebit &&
+        return item.countsAsSpending &&
             !item.timestamp.isBefore(challenge.weekStart) &&
             item.timestamp.isBefore(challenge.weekEnd);
       })
       .toList(growable: false);
-  final double spent = debits.fold(
+  final double spent = spending.fold(
     0,
     (double total, ExpenseTransaction item) => total + item.amount,
   );
@@ -103,7 +103,7 @@ WeeklyChallengeProgress evaluateWeeklyChallenge({
   int noSpendDays = 0;
   for (int offset = 0; offset < elapsedDays; offset += 1) {
     final DateTime day = challenge.weekStart.add(Duration(days: offset));
-    final bool spentOnDay = debits.any((item) {
+    final bool spentOnDay = spending.any((item) {
       return item.timestamp.year == day.year &&
           item.timestamp.month == day.month &&
           item.timestamp.day == day.day;
