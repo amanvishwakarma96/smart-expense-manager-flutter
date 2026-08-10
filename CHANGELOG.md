@@ -19,6 +19,8 @@ All notable changes to PiggyAI will be documented in this file.
   history for weekly or monthly merchant+amount cadences with ±3 day jitter.
 - Dismissible dashboard subscription suggestions that open the existing recurring
   editor with detected values prefilled.
+- A non-blocking Settings backup nudge after 30 days without a successful local
+  encrypted backup, plus a 90-day dismiss/snooze option.
 
 ### Changed
 
@@ -28,6 +30,8 @@ All notable changes to PiggyAI will be documented in this file.
   until the transaction is confirmed.
 - The recurring editor is shared between Settings and dashboard subscription
   suggestions so setup follows one explicit Save flow.
+- Successful encrypted backup sharing now refreshes a local last-backup timestamp
+  used only by the reminder policy.
 
 ### Security
 
@@ -37,6 +41,8 @@ All notable changes to PiggyAI will be documented in this file.
   confidence metadata never requires a network or remote model.
 - Subscription suggestions remain transient UI guidance and do not persist new
   sensitive merchant text or auto-create recurring templates.
+- Backup reminder persistence is deliberately limited to two unencrypted local
+  timestamps and contains no financial data, password, or encryption key.
 - No backend, cloud service, analytics, telemetry, remote AI, or Android internet
   permission was introduced.
 

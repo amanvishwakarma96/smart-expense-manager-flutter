@@ -30,6 +30,8 @@ lib/
 9. The user confirms, edits, categorizes, or discards the transaction. A manually corrected category increases its encrypted merchant mapping confidence only after confirmation; duplicate warnings never remove or confirm a record automatically.
 10. Dashboard analysis reads confirmed local history. Subscription detection groups the last 90 days of non-recurring confirmed debits by normalized merchant and amount, then checks consecutive seven- or thirty-day intervals with a ±3 day tolerance. Existing recurring templates are excluded.
 11. Subscription suggestions are transient UI guidance. Dismissing a suggestion changes only dashboard state; accepting one opens the shared recurring editor with prefilled fields, and no recurring record is created until the user explicitly presses Save.
-12. Riverpod streams refresh dashboard, settings, and budget views.
+12. Backup reminder metadata is separate from financial storage. A tiny unencrypted local JSON file contains only `lastSuccessfulBackupAt` and `snoozedUntil` timestamps. With at least one confirmed transaction, the Settings nudge appears when no backup is recorded or the last successful export is at least 30 days old, unless a 90-day snooze is still active.
+13. The successful-backup timestamp is recorded only after the encrypted backup has been created and the platform share flow returns without error. Reminder metadata never participates in transaction, budget, goal, or recurring-item calculations.
+14. Riverpod streams refresh dashboard, settings, and budget views.
 
 No step sends SMS or financial data over a network.

@@ -37,6 +37,8 @@ after confirmation.
   encrypted merchant text and editable/clearable learned mappings in Settings.
 - Read-only subscription suggestions from 90 days of confirmed debit history;
   accepting a suggestion opens the existing recurring editor without auto-saving.
+- A non-blocking 30-day encrypted-backup reminder in Settings with a local
+  90-day snooze option.
 - Indian UPI, IMPS, NEFT, RTGS, ATM, card, refund, and reversal parsing rules.
 - Weekly and monthly recurring expenses or income that always enter review
   before they affect budgets.
@@ -66,6 +68,21 @@ after confirmation.
   recurring schedules, reminder preferences, and savings goals.
 - Full local financial-data deletion with reminder cancellation and
   encryption-key removal.
+
+## Backup reminder
+
+- The reminder appears in Settings only when at least one confirmed transaction
+  exists and no successful backup is recorded or the last one is 30+ days old.
+- “Don't remind me for 90 days” stores a local snooze timestamp and keeps the
+  reminder hidden until that time has passed.
+- Reminder storage is an unencrypted local JSON file containing only the last
+  successful backup timestamp and snooze-until timestamp; it contains no
+  transaction, merchant, amount, account, category, password, or encryption-key
+  data.
+- A backup is marked successful only after encrypted backup creation and the
+  user-controlled platform share flow return without error.
+- The reminder is non-blocking and never creates, restores, edits, or deletes
+  financial records.
 
 ## Subscription suggestions
 
@@ -245,13 +262,14 @@ flutter build apk --debug
   transaction SMS detection, pending review, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
   custom categories, merchant rules, local forecast, subscription suggestions,
-  savings goals, cash-flow calendar, budgets, local alerts, encrypted
-  backup/restore, insights, charts, privacy mode, and configurable app lock.
+  backup reminder, savings goals, cash-flow calendar, budgets, local alerts,
+  encrypted backup/restore, insights, charts, privacy mode, and configurable app
+  lock.
 - **iOS:** onboarding, manual entry, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
   custom categories, merchant rules, local forecast, subscription suggestions,
-  savings goals, cash-flow calendar, budgets, local alerts, encrypted
-  backup/restore, insights, charts, privacy mode, and configurable app lock.
-  Automatic SMS access is intentionally unavailable.
+  backup reminder, savings goals, cash-flow calendar, budgets, local alerts,
+  encrypted backup/restore, insights, charts, privacy mode, and configurable app
+  lock. Automatic SMS access is intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.
