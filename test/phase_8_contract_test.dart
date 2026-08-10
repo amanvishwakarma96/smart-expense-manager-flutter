@@ -39,13 +39,13 @@ void main() {
     expect(source, contains('saved without a reminder'));
   });
 
-  test('backup version 4 includes reminder preferences', () {
+  test('backup v5 retains v4 reminder preferences', () {
     final String source = File(
       'lib/features/settings/services/local_backup_service.dart',
     ).readAsStringSync();
 
-    expect(source, contains('snapshotVersion = 4'));
-    expect(source, contains('supportedSnapshotVersions = <int>{1, 2, 3, 4}'));
+    expect(source, contains('snapshotVersion = 5'));
+    expect(source, contains('supportedSnapshotVersions = <int>{1, 2, 3, 4, 5}'));
     expect(source, contains("'reminderEnabled': item.reminderEnabled"));
     expect(source, contains("'reminderDaysBefore': item.reminderDaysBefore"));
     expect(source, contains('rawVersion >= 4'));
