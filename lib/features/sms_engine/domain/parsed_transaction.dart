@@ -4,6 +4,7 @@ class ParsedTransaction {
   const ParsedTransaction({
     required this.amount,
     required this.type,
+    required this.purpose,
     required this.merchantName,
     required this.accountTail,
     required this.timestamp,
@@ -14,6 +15,7 @@ class ParsedTransaction {
 
   final double amount;
   final TransactionType type;
+  final TransactionPurpose purpose;
   final String merchantName;
   final String accountTail;
   final DateTime timestamp;
