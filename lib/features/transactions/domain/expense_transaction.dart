@@ -6,6 +6,7 @@ enum TransactionPurpose {
   transfer,
   borrowed,
   lent,
+  lentRepayment,
   loanReceived,
   loanRepayment,
   refund,
@@ -24,6 +25,7 @@ extension TransactionPurposeDetails on TransactionPurpose {
     TransactionPurpose.transfer => 'Transfer',
     TransactionPurpose.borrowed => 'Borrowed money',
     TransactionPurpose.lent => 'Lent money',
+    TransactionPurpose.lentRepayment => 'Lent money repaid',
     TransactionPurpose.loanReceived => 'Loan received',
     TransactionPurpose.loanRepayment => 'Loan / EMI payment',
     TransactionPurpose.refund => 'Refund / reversal',
@@ -35,6 +37,7 @@ extension TransactionPurposeDetails on TransactionPurpose {
 
   String get shortLabel => switch (this) {
     TransactionPurpose.borrowed => 'Borrowed',
+    TransactionPurpose.lentRepayment => 'Lent repaid',
     TransactionPurpose.loanReceived => 'Loan received',
     TransactionPurpose.loanRepayment => 'Loan / EMI',
     TransactionPurpose.cashWithdrawal => 'Cash out',
@@ -67,6 +70,7 @@ List<TransactionPurpose> transactionPurposesFor(TransactionType type) {
       TransactionPurpose.income,
       TransactionPurpose.transfer,
       TransactionPurpose.borrowed,
+      TransactionPurpose.lentRepayment,
       TransactionPurpose.loanReceived,
       TransactionPurpose.refund,
       TransactionPurpose.cashDeposit,
