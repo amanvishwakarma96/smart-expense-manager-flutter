@@ -34,6 +34,7 @@ class TransactionCategoryClassifier {
       case TransactionPurpose.loanReceived:
       case TransactionPurpose.borrowed:
       case TransactionPurpose.lent:
+      case TransactionPurpose.lentRepayment:
       case TransactionPurpose.transfer:
       case TransactionPurpose.cashWithdrawal:
       case TransactionPurpose.cashDeposit:
