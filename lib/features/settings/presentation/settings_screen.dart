@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/security/app_lock_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
@@ -12,6 +11,7 @@ import 'package:smart_expense_manager/features/settings/presentation/budget_aler
 import 'package:smart_expense_manager/features/settings/presentation/category_management_card.dart';
 import 'package:smart_expense_manager/features/settings/presentation/merchant_rules_card.dart';
 import 'package:smart_expense_manager/features/settings/presentation/recurring_transactions_card.dart';
+import 'package:smart_expense_manager/features/sms_engine/presentation/sms_permission_disclosure.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_inbox_import_service.dart';
 
@@ -90,8 +90,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _message('iOS does not expose the SMS inbox. Use manual entry instead.');
       return;
     }
+
+    final bool consented = await confirmSmsAccessIfNeeded(context);
+    if (!consented || !mounted) {
+      return;
+    }
+
     setState(() => _scanning = true);
-    await Permission.notification.request();
     final SmsScanSummary summary = await ref
         .read(smsEngineCoordinatorProvider)
         .requestPermissionAndScanInbox();
