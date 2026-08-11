@@ -2,6 +2,53 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.12.0] - Unreleased
+
+### Added
+
+- **Debt & Loan Manager** with fully local ledgers for money borrowed from people,
+  money lent to others, and formal loans.
+- Repayment and balance-change history with outstanding-balance and progress
+  calculations, including an optional ₹0 opening balance when the original
+  principal will be linked from a confirmed transaction.
+- Explicit linking of compatible confirmed transactions into a debt ledger
+  without modifying the source transaction.
+- A `Lent money repaid` credit purpose so repayments received are not counted as
+  ordinary income.
+- Optional local due-date reminders 1, 3, or 7 days before a debt or loan due
+  date using generic private notification text.
+- A new Plan destination that keeps Goals & Calendar together with Debts & Loans.
+- Encrypted backup snapshot version 6 with debt accounts and debt-ledger entries.
+- Phase 14 balance, transaction-linking, reminder, backup-preview, privacy, and
+  offline regression coverage.
+
+### Changed
+
+- Bottom navigation now opens a Plan hub instead of placing Goals directly in the
+  primary navigation; the existing goals and cash-flow calendar remain available
+  from the Plan hub.
+- Borrowed-money and formal-loan incoming transactions use distinct link
+  semantics, while repayments can reduce either owed balance.
+- Restoring a v1-v5 encrypted backup clears newer debt-ledger state rather than
+  merging it with the older snapshot; v6 restores debt data after validation.
+- Delete All now clears debt/loan ledgers and cancels their local reminders before
+  the installation encryption key is deleted.
+- App version metadata is advanced to `0.12.0+12`.
+
+### Security
+
+- Debt counterparty names and private notes are encrypted at rest with the
+  existing `SecureCipherService` AES-GCM pattern.
+- PiggyAI never auto-creates a debt, repayment, or transaction link: manual ledger
+  entries require Save, and transaction linking requires selection plus explicit
+  confirmation.
+- Debt reminder notifications contain no counterparty name, amount, account,
+  balance, note, category, or raw SMS data.
+- Debt data is exported only inside the user-created password-encrypted local
+  backup and is re-encrypted with the destination installation key after restore.
+- No backend, cloud sync, HTTP client, remote AI, analytics, telemetry,
+  advertising, or Android `INTERNET` permission was introduced.
+
 ## [0.11.0] - Unreleased
 
 ### Added
