@@ -79,15 +79,14 @@ recurringTransactionRepositoryProvider =
       );
     });
 
-final Provider<DebtRepository> debtRepositoryProvider = Provider<DebtRepository>((
-  Ref ref,
-) {
-  return DebtRepository(
-    ref.watch(isarProvider),
-    ref.watch(cipherProvider),
-    reminderService: ref.watch(debtReminderServiceProvider),
-  );
-});
+final Provider<DebtRepository> debtRepositoryProvider =
+    Provider<DebtRepository>((Ref ref) {
+      return DebtRepository(
+        ref.watch(isarProvider),
+        ref.watch(cipherProvider),
+        reminderService: ref.watch(debtReminderServiceProvider),
+      );
+    });
 
 final Provider<WeeklyChallengeRepository> weeklyChallengeRepositoryProvider =
     Provider<WeeklyChallengeRepository>((Ref ref) {

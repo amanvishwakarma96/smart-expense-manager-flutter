@@ -39,7 +39,9 @@ class BackupInspectionService {
     );
     final Object? rawVersion = payload['snapshotVersion'];
     if (rawVersion is! int ||
-        !DebtAwareBackupService.supportedSnapshotVersions.contains(rawVersion)) {
+        !DebtAwareBackupService.supportedSnapshotVersions.contains(
+          rawVersion,
+        )) {
       throw const FormatException('Unsupported PiggyAI snapshot version');
     }
 

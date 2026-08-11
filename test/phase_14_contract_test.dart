@@ -28,7 +28,10 @@ void main() {
     expect(accountModel, isNot(contains('String counterparty;')));
     expect(entryModel, contains('String encryptedNote;'));
     expect(repository, contains('_cipher.encrypt(normalizedCounterparty)'));
-    expect(repository, contains('_cipher.decrypt(model.encryptedCounterparty)'));
+    expect(
+      repository,
+      contains('_cipher.decrypt(model.encryptedCounterparty)'),
+    );
   });
 
   test('database and planning hub expose private debt ledgers', () {
@@ -55,30 +58,30 @@ void main() {
 
     expect(transaction, contains('lentRepayment'));
     expect(transaction, contains("'Lent money repaid'"));
-    expect(
-      transaction,
-      contains('TransactionPurpose.lentRepayment,'),
-    );
+    expect(transaction, contains('TransactionPurpose.lentRepayment,'));
     expect(
       transaction,
       contains('bool get countsAsIncome => this == TransactionPurpose.income;'),
     );
   });
 
-  test('debt transaction linking always requires explicit confirmed selection', () {
-    final String repository = File(
-      'lib/features/debts/data/repositories/debt_repository.dart',
-    ).readAsStringSync();
-    final String detail = File(
-      'lib/features/debts/presentation/debt_detail_screen.dart',
-    ).readAsStringSync();
+  test(
+    'debt transaction linking always requires explicit confirmed selection',
+    () {
+      final String repository = File(
+        'lib/features/debts/data/repositories/debt_repository.dart',
+      ).readAsStringSync();
+      final String detail = File(
+        'lib/features/debts/presentation/debt_detail_screen.dart',
+      ).readAsStringSync();
 
-    expect(repository, contains('TransactionStatus.confirmed'));
-    expect(repository, contains('linkConfirmedTransaction'));
-    expect(detail, contains("title: 'Link this transaction?'"));
-    expect(detail, contains('The original transaction will not be edited.'));
-    expect(detail, contains('This changes only the debt ledger.'));
-  });
+      expect(repository, contains('TransactionStatus.confirmed'));
+      expect(repository, contains('linkConfirmedTransaction'));
+      expect(detail, contains("title: 'Link this transaction?'"));
+      expect(detail, contains('The original transaction will not be edited.'));
+      expect(detail, contains('This changes only the debt ledger.'));
+    },
+  );
 
   test('debt reminders are local and financial-detail free', () {
     final String reminder = File(
@@ -86,7 +89,10 @@ void main() {
     ).readAsStringSync();
 
     expect(reminder, contains('Debt or loan due date coming up'));
-    expect(reminder, contains('Open PiggyAI to review a private local balance.'));
+    expect(
+      reminder,
+      contains('Open PiggyAI to review a private local balance.'),
+    );
     expect(reminder, contains('AndroidScheduleMode.inexactAllowWhileIdle'));
     expect(reminder, isNot(contains('encryptedCounterparty')));
     expect(reminder, isNot(contains('openingBalance')));
@@ -109,15 +115,18 @@ void main() {
     expect(providers, contains('DebtAwareBackupService('));
   });
 
-  test('delete all clears debt ledgers and no internet permission is added', () {
-    final String settings = File(
-      'lib/features/settings/presentation/settings_screen.dart',
-    ).readAsStringSync();
-    final String manifest = File(
-      'android/app/src/main/AndroidManifest.xml',
-    ).readAsStringSync();
+  test(
+    'delete all clears debt ledgers and no internet permission is added',
+    () {
+      final String settings = File(
+        'lib/features/settings/presentation/settings_screen.dart',
+      ).readAsStringSync();
+      final String manifest = File(
+        'android/app/src/main/AndroidManifest.xml',
+      ).readAsStringSync();
 
-    expect(settings, contains('debtRepositoryProvider).clearAll()'));
-    expect(manifest, isNot(contains('android.permission.INTERNET')));
-  });
+      expect(settings, contains('debtRepositoryProvider).clearAll()'));
+      expect(manifest, isNot(contains('android.permission.INTERNET')));
+    },
+  );
 }

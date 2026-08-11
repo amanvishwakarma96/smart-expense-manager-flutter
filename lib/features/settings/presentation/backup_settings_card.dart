@@ -186,7 +186,8 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
     required bool confirmPassword,
   }) async {
     final TextEditingController passwordController = TextEditingController();
-    final TextEditingController confirmationController = TextEditingController();
+    final TextEditingController confirmationController =
+        TextEditingController();
     bool obscure = true;
     String? errorText;
 
@@ -307,7 +308,10 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
                       inspection.recurringTransactions,
                     ),
                     _summaryLine('Savings goals', inspection.savingsGoals),
-                    _summaryLine('Debt & loan ledgers', inspection.debtAccounts),
+                    _summaryLine(
+                      'Debt & loan ledgers',
+                      inspection.debtAccounts,
+                    ),
                     _summaryLine('Debt ledger entries', inspection.debtEntries),
                     const SizedBox(height: 14),
                     const Text(
@@ -455,7 +459,8 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
                   return SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => _exportBackup(_shareOrigin(shareContext)),
+                      onPressed: () =>
+                          _exportBackup(_shareOrigin(shareContext)),
                       icon: const Icon(Icons.lock_rounded),
                       label: const Text('Create encrypted backup'),
                     ),

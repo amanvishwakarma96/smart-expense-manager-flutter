@@ -29,11 +29,18 @@ class DebtReminderService {
     required int daysBefore,
   }) {
     if (!supportedLeadDays.contains(daysBefore)) {
-      throw ArgumentError.value(daysBefore, 'daysBefore', 'Unsupported lead time');
+      throw ArgumentError.value(
+        daysBefore,
+        'daysBefore',
+        'Unsupported lead time',
+      );
     }
-    return DateTime(dueAt.year, dueAt.month, dueAt.day, 9).subtract(
-      Duration(days: daysBefore),
-    );
+    return DateTime(
+      dueAt.year,
+      dueAt.month,
+      dueAt.day,
+      9,
+    ).subtract(Duration(days: daysBefore));
   }
 
   static DateTime? scheduleTime({
@@ -120,7 +127,8 @@ class DebtReminderService {
       android: AndroidNotificationDetails(
         'piggyai_debt_reminders',
         'Debt and loan reminders',
-        channelDescription: 'Private reminders for local debt and loan due dates',
+        channelDescription:
+            'Private reminders for local debt and loan due dates',
         importance: Importance.high,
         priority: Priority.high,
         visibility: NotificationVisibility.private,

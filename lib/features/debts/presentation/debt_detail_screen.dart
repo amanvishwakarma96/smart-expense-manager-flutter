@@ -16,32 +16,32 @@ class DebtDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bool privacyMode = ref.watch(privacyModeProvider);
-    return ref.watch(debtAccountsProvider).when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (Object error, StackTrace stackTrace) => const Scaffold(
-        body: Center(child: Text('Could not open this debt ledger.')),
-      ),
-      data: (List<DebtAccount> items) {
-        DebtAccount? account;
-        for (final DebtAccount item in items) {
-          if (item.id == debtId) {
-            account = item;
-            break;
-          }
-        }
-        if (account == null) {
-          return const Scaffold(
-            body: Center(child: Text('This debt ledger is no longer active.')),
-          );
-        }
-        return _DebtDetailBody(
-          account: account,
-          privacyMode: privacyMode,
+    return ref
+        .watch(debtAccountsProvider)
+        .when(
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (Object error, StackTrace stackTrace) => const Scaffold(
+            body: Center(child: Text('Could not open this debt ledger.')),
+          ),
+          data: (List<DebtAccount> items) {
+            DebtAccount? account;
+            for (final DebtAccount item in items) {
+              if (item.id == debtId) {
+                account = item;
+                break;
+              }
+            }
+            if (account == null) {
+              return const Scaffold(
+                body: Center(
+                  child: Text('This debt ledger is no longer active.'),
+                ),
+              );
+            }
+            return _DebtDetailBody(account: account, privacyMode: privacyMode);
+          },
         );
-      },
-    );
   }
 }
 
@@ -53,9 +53,8 @@ class _DebtDetailBody extends ConsumerWidget {
   final DebtAccount account;
   final bool privacyMode;
 
-  String _amount(double value) => privacyMode
-      ? '$defaultCurrencySymbol •••••'
-      : inrCurrency.format(value);
+  String _amount(double value) =>
+      privacyMode ? '$defaultCurrencySymbol •••••' : inrCurrency.format(value);
 
   Future<bool> _confirm(
     BuildContext context, {
@@ -148,7 +147,9 @@ class _DebtDetailBody extends ConsumerWidget {
                   TextField(
                     controller: amountController,
                     autofocus: true,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Amount',
                       prefixText: '₹ ',
@@ -164,7 +165,9 @@ class _DebtDetailBody extends ConsumerWidget {
                   const SizedBox(height: 10),
                   TextField(
                     controller: noteController,
-                    decoration: const InputDecoration(labelText: 'Private note (optional)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Private note (optional)',
+                    ),
                   ),
                 ],
               ),
@@ -185,7 +188,9 @@ class _DebtDetailBody extends ConsumerWidget {
     if (draft == null) {
       return;
     }
-    await ref.read(debtRepositoryProvider).addManualMovement(
+    await ref
+        .read(debtRepositoryProvider)
+        .addManualMovement(
           debtId: account.id,
           type: type,
           amount: draft.amount,
@@ -227,12 +232,22 @@ class _DebtDetailBody extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text(item.merchant, style: const TextStyle(fontWeight: FontWeight.w800)),
-                            Text('${item.purpose.shortLabel} • ${_dateFormat.format(item.timestamp)}'),
+                            Text(
+                              item.merchant,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Text(
+                              '${item.purpose.shortLabel} • ${_dateFormat.format(item.timestamp)}',
+                            ),
                           ],
                         ),
                       ),
-                      Text(_amount(item.amount), style: const TextStyle(fontWeight: FontWeight.w900)),
+                      Text(
+                        _amount(item.amount),
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
                     ],
                   ),
                 ),
@@ -254,10 +269,9 @@ class _DebtDetailBody extends ConsumerWidget {
     if (!confirmed) {
       return;
     }
-    await ref.read(debtRepositoryProvider).linkConfirmedTransaction(
-          debtId: account.id,
-          transactionId: selected,
-        );
+    await ref
+        .read(debtRepositoryProvider)
+        .linkConfirmedTransaction(debtId: account.id, transactionId: selected);
   }
 
   Future<void> _deleteEntry(
@@ -267,7 +281,9 @@ class _DebtDetailBody extends ConsumerWidget {
   ) async {
     final bool confirmed = await _confirm(
       context,
-      title: entry.isLinkedTransaction ? 'Unlink this transaction?' : 'Delete this ledger entry?',
+      title: entry.isLinkedTransaction
+          ? 'Unlink this transaction?'
+          : 'Delete this ledger entry?',
       message: entry.isLinkedTransaction
           ? 'This removes only the debt-ledger link. The confirmed transaction stays in History.'
           : 'This permanently removes the manual debt-ledger entry from this device.',
@@ -282,7 +298,8 @@ class _DebtDetailBody extends ConsumerWidget {
     final bool confirmed = await _confirm(
       context,
       title: 'Archive this ledger?',
-      message: 'It will leave the active Plan view and its private reminder will be cancelled.',
+      message:
+          'It will leave the active Plan view and its private reminder will be cancelled.',
       action: 'Archive',
     );
     if (!confirmed) {
@@ -336,7 +353,10 @@ class _DebtDetailBody extends ConsumerWidget {
             itemBuilder: (_) => const <PopupMenuEntry<String>>[
               PopupMenuItem<String>(value: 'edit', child: Text('Edit')),
               PopupMenuItem<String>(value: 'archive', child: Text('Archive')),
-              PopupMenuItem<String>(value: 'delete', child: Text('Delete permanently')),
+              PopupMenuItem<String>(
+                value: 'delete',
+                child: Text('Delete permanently'),
+              ),
             ],
           ),
         ],
@@ -354,11 +374,18 @@ class _DebtDetailBody extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(account.kind.label, style: const TextStyle(fontWeight: FontWeight.w800)),
+                  Text(
+                    account.kind.label,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
                   const SizedBox(height: 6),
                   Text(
-                    account.isSettled ? 'Settled' : _amount(account.outstanding),
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
+                    account.isSettled
+                        ? 'Settled'
+                        : _amount(account.outstanding),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   LinearProgressIndicator(
@@ -394,14 +421,24 @@ class _DebtDetailBody extends ConsumerWidget {
               runSpacing: 10,
               children: <Widget>[
                 FilledButton.icon(
-                  onPressed: () => _addMovement(context, ref, DebtMovementType.decrease),
+                  onPressed: () =>
+                      _addMovement(context, ref, DebtMovementType.decrease),
                   icon: const Icon(Icons.done_rounded),
-                  label: Text(account.kind == DebtKind.lent ? 'Repayment received' : 'Record repayment'),
+                  label: Text(
+                    account.kind == DebtKind.lent
+                        ? 'Repayment received'
+                        : 'Record repayment',
+                  ),
                 ),
                 OutlinedButton.icon(
-                  onPressed: () => _addMovement(context, ref, DebtMovementType.increase),
+                  onPressed: () =>
+                      _addMovement(context, ref, DebtMovementType.increase),
                   icon: const Icon(Icons.add_rounded),
-                  label: Text(account.kind == DebtKind.lent ? 'Lent more' : 'Increase balance'),
+                  label: Text(
+                    account.kind == DebtKind.lent
+                        ? 'Lent more'
+                        : 'Increase balance',
+                  ),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => _linkTransaction(context, ref),
@@ -411,7 +448,10 @@ class _DebtDetailBody extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 22),
-            Text('Ledger activity', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Ledger activity',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 10),
             if (account.entries.isEmpty)
               const Card(
@@ -451,7 +491,9 @@ class _DebtDetailBody extends ConsumerWidget {
                           style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                         IconButton(
-                          tooltip: entry.isLinkedTransaction ? 'Unlink' : 'Delete entry',
+                          tooltip: entry.isLinkedTransaction
+                              ? 'Unlink'
+                              : 'Delete entry',
                           onPressed: () => _deleteEntry(context, ref, entry),
                           icon: const Icon(Icons.close_rounded),
                         ),

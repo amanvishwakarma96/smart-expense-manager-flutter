@@ -74,7 +74,8 @@ class _DebtAccountEditorScreenState
     );
     if (counterparty.isEmpty || openingBalance == null || openingBalance < 0) {
       setState(() {
-        _errorText = 'Enter who this is with and an opening balance of zero or more.';
+        _errorText =
+            'Enter who this is with and an opening balance of zero or more.';
       });
       return;
     }
@@ -91,7 +92,8 @@ class _DebtAccountEditorScreenState
           .requestPermission();
       if (!granted && mounted) {
         setState(() {
-          _errorText = 'Notification permission is needed for the private reminder.';
+          _errorText =
+              'Notification permission is needed for the private reminder.';
         });
         return;
       }
@@ -145,7 +147,9 @@ class _DebtAccountEditorScreenState
   Widget build(BuildContext context) {
     final bool editing = widget.account != null;
     return Scaffold(
-      appBar: AppBar(title: Text(editing ? 'Edit debt or loan' : 'Add debt or loan')),
+      appBar: AppBar(
+        title: Text(editing ? 'Edit debt or loan' : 'Add debt or loan'),
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -180,7 +184,9 @@ class _DebtAccountEditorScreenState
             const SizedBox(height: 14),
             TextField(
               controller: _balanceController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 labelText: 'Opening outstanding balance',
                 prefixText: '₹ ',
@@ -224,7 +230,9 @@ class _DebtAccountEditorScreenState
             if (_reminderEnabled)
               DropdownButtonFormField<int>(
                 initialValue: _reminderDaysBefore,
-                decoration: const InputDecoration(labelText: 'Remind me before'),
+                decoration: const InputDecoration(
+                  labelText: 'Remind me before',
+                ),
                 items: DebtReminderService.supportedLeadDays
                     .map(
                       (int days) => DropdownMenuItem<int>(

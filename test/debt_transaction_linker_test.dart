@@ -23,24 +23,27 @@ void main() {
     );
   });
 
-  test('borrowed and formal loan incoming purposes are not interchangeable', () {
-    expect(
-      DebtTransactionLinker.movementFor(
-        kind: DebtKind.borrowed,
-        type: TransactionType.credit,
-        purpose: TransactionPurpose.loanReceived,
-      ),
-      isNull,
-    );
-    expect(
-      DebtTransactionLinker.movementFor(
-        kind: DebtKind.loan,
-        type: TransactionType.credit,
-        purpose: TransactionPurpose.borrowed,
-      ),
-      isNull,
-    );
-  });
+  test(
+    'borrowed and formal loan incoming purposes are not interchangeable',
+    () {
+      expect(
+        DebtTransactionLinker.movementFor(
+          kind: DebtKind.borrowed,
+          type: TransactionType.credit,
+          purpose: TransactionPurpose.loanReceived,
+        ),
+        isNull,
+      );
+      expect(
+        DebtTransactionLinker.movementFor(
+          kind: DebtKind.loan,
+          type: TransactionType.credit,
+          purpose: TransactionPurpose.borrowed,
+        ),
+        isNull,
+      );
+    },
+  );
 
   test('loan repayment decreases borrowed and loan balances', () {
     for (final DebtKind kind in <DebtKind>[DebtKind.borrowed, DebtKind.loan]) {

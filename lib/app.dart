@@ -288,10 +288,7 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.receipt_long_rounded),
             label: 'History',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.route_rounded),
-            label: 'Plan',
-          ),
+          NavigationDestination(icon: Icon(Icons.route_rounded), label: 'Plan'),
           NavigationDestination(
             icon: Icon(Icons.settings_rounded),
             label: 'Settings',

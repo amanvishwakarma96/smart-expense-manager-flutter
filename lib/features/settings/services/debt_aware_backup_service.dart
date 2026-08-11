@@ -49,11 +49,12 @@ class DebtAwareBackupService extends ChallengeAwareBackupService {
     final List<DebtAccountModel> accounts = await _isar.debtAccountModels
         .where()
         .findAll();
-    final List<DebtLedgerEntryModel> entries = await _isar
-        .debtLedgerEntryModels
+    final List<DebtLedgerEntryModel> entries = await _isar.debtLedgerEntryModels
         .where()
         .findAll();
-    accounts.sort((DebtAccountModel a, DebtAccountModel b) => a.id.compareTo(b.id));
+    accounts.sort(
+      (DebtAccountModel a, DebtAccountModel b) => a.id.compareTo(b.id),
+    );
     entries.sort(
       (DebtLedgerEntryModel a, DebtLedgerEntryModel b) => a.id.compareTo(b.id),
     );
@@ -185,7 +186,10 @@ class DebtAwareBackupService extends ChallengeAwareBackupService {
       'transactions',
     );
     final Set<int> transactionIds = transactionMaps
-        .map((Map<String, Object?> map) => _positiveInt(map['id'], 'transaction.id'))
+        .map(
+          (Map<String, Object?> map) =>
+              _positiveInt(map['id'], 'transaction.id'),
+        )
         .toSet();
 
     final Set<int> accountIds = <int>{};
@@ -200,7 +204,10 @@ class DebtAwareBackupService extends ChallengeAwareBackupService {
         map['openingBalance'],
         'debt.openingBalance',
       );
-      final DateTime? dueDate = _optionalDateTime(map['dueDate'], 'debt.dueDate');
+      final DateTime? dueDate = _optionalDateTime(
+        map['dueDate'],
+        'debt.dueDate',
+      );
       final bool reminderEnabled = _bool(
         map['reminderEnabled'],
         'debt.reminderEnabled',
@@ -215,21 +222,24 @@ class DebtAwareBackupService extends ChallengeAwareBackupService {
       if (reminderEnabled && dueDate == null) {
         throw const FormatException('Debt reminder requires a due date');
       }
-      final DebtAccountModel account = DebtAccountModel(
-        id: id,
-        kind: kind,
-        encryptedCounterparty: await _cipher.encrypt(
-          _requiredString(map['counterparty'], 'debt.counterparty'),
-        ),
-        openingBalance: openingBalance,
-        dueDate: dueDate,
-        encryptedNote: await _cipher.encrypt(_nullableString(map['note']) ?? ''),
-        reminderEnabled: reminderEnabled,
-        reminderDaysBefore: reminderDaysBefore,
-        isArchived: _bool(map['isArchived'], 'debt.isArchived'),
-      )
-        ..createdAt = _dateTime(map['createdAt'], 'debt.createdAt')
-        ..updatedAt = _dateTime(map['updatedAt'], 'debt.updatedAt');
+      final DebtAccountModel account =
+          DebtAccountModel(
+              id: id,
+              kind: kind,
+              encryptedCounterparty: await _cipher.encrypt(
+                _requiredString(map['counterparty'], 'debt.counterparty'),
+              ),
+              openingBalance: openingBalance,
+              dueDate: dueDate,
+              encryptedNote: await _cipher.encrypt(
+                _nullableString(map['note']) ?? '',
+              ),
+              reminderEnabled: reminderEnabled,
+              reminderDaysBefore: reminderDaysBefore,
+              isArchived: _bool(map['isArchived'], 'debt.isArchived'),
+            )
+            ..createdAt = _dateTime(map['createdAt'], 'debt.createdAt')
+            ..updatedAt = _dateTime(map['updatedAt'], 'debt.updatedAt');
       accounts.add(account);
     }
 

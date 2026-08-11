@@ -6,10 +6,7 @@ void main() {
     final DateTime due = DateTime(2026, 9, 20, 18, 30);
 
     expect(
-      DebtReminderService.preferredReminderTime(
-        dueAt: due,
-        daysBefore: 3,
-      ),
+      DebtReminderService.preferredReminderTime(dueAt: due, daysBefore: 3),
       DateTime(2026, 9, 17, 9),
     );
   });
@@ -19,11 +16,7 @@ void main() {
     final DateTime due = DateTime(2026, 9, 20, 18);
 
     expect(
-      DebtReminderService.scheduleTime(
-        dueAt: due,
-        daysBefore: 3,
-        now: now,
-      ),
+      DebtReminderService.scheduleTime(dueAt: due, daysBefore: 3, now: now),
       now.add(const Duration(minutes: 1)),
     );
   });

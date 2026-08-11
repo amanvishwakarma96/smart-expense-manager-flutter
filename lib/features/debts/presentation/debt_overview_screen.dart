@@ -32,7 +32,9 @@ class DebtOverviewScreen extends ConsumerWidget {
           error: (Object error, StackTrace stackTrace) => const Center(
             child: Padding(
               padding: EdgeInsets.all(24),
-              child: Text('Debt ledgers could not be opened. Your local data remains on-device.'),
+              child: Text(
+                'Debt ledgers could not be opened. Your local data remains on-device.',
+              ),
             ),
           ),
           data: (List<DebtAccount> items) {
@@ -62,10 +64,16 @@ class DebtOverviewScreen extends ConsumerWidget {
             }
             final double youOwe = items
                 .where((DebtAccount item) => item.kind.youOwe)
-                .fold(0, (double sum, DebtAccount item) => sum + item.outstanding);
+                .fold(
+                  0,
+                  (double sum, DebtAccount item) => sum + item.outstanding,
+                );
             final double owedToYou = items
                 .where((DebtAccount item) => !item.kind.youOwe)
-                .fold(0, (double sum, DebtAccount item) => sum + item.outstanding);
+                .fold(
+                  0,
+                  (double sum, DebtAccount item) => sum + item.outstanding,
+                );
             String amount(double value) => privacyMode
                 ? '$defaultCurrencySymbol •••••'
                 : inrCurrency.format(value);
@@ -141,9 +149,9 @@ class _SummaryTile extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
         ],
       ),

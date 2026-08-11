@@ -24,9 +24,8 @@ class PlanningHubScreen extends ConsumerWidget {
     final double owedToYou = debts
         .where((DebtAccount item) => !item.kind.youOwe)
         .fold(0, (double sum, DebtAccount item) => sum + item.outstanding);
-    String amount(double value) => privacy
-        ? '$defaultCurrencySymbol •••••'
-        : inrCurrency.format(value);
+    String amount(double value) =>
+        privacy ? '$defaultCurrencySymbol •••••' : inrCurrency.format(value);
 
     return SafeArea(
       child: ListView(
@@ -48,7 +47,9 @@ class PlanningHubScreen extends ConsumerWidget {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
                 ),
                 SizedBox(height: 4),
-                Text('Savings goals, cash-flow calendar, debts and loans — all local.'),
+                Text(
+                  'Savings goals, cash-flow calendar, debts and loans — all local.',
+                ),
               ],
             ),
           ),
@@ -57,7 +58,8 @@ class PlanningHubScreen extends ConsumerWidget {
             color: AppPalette.mint,
             icon: Icons.savings_rounded,
             title: 'Goals & calendar',
-            subtitle: '${goals.length} active goal${goals.length == 1 ? '' : 's'}',
+            subtitle:
+                '${goals.length} active goal${goals.length == 1 ? '' : 's'}',
             detail: 'Save toward goals and inspect daily confirmed cash flow.',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -127,7 +129,10 @@ class _PlanCard extends StatelessWidget {
                   children: <Widget>[
                     Text(title, style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 3),
-                    Text(subtitle, style: const TextStyle(fontWeight: FontWeight.w800)),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
                     const SizedBox(height: 4),
                     Text(detail),
                   ],

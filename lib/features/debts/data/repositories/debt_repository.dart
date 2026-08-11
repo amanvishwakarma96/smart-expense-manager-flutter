@@ -26,23 +26,24 @@ class DebtRepository {
         .where()
         .watch(fireImmediately: true)
         .asyncMap((List<DebtAccountModel> models) async {
-          final List<DebtAccountModel> active = models
-              .where((DebtAccountModel item) => !item.isArchived)
-              .toList(growable: false)
-            ..sort((DebtAccountModel a, DebtAccountModel b) {
-              final DateTime? aDue = a.dueDate;
-              final DateTime? bDue = b.dueDate;
-              if (aDue == null && bDue == null) {
-                return b.updatedAt.compareTo(a.updatedAt);
-              }
-              if (aDue == null) {
-                return 1;
-              }
-              if (bDue == null) {
-                return -1;
-              }
-              return aDue.compareTo(bDue);
-            });
+          final List<DebtAccountModel> active =
+              models
+                  .where((DebtAccountModel item) => !item.isArchived)
+                  .toList(growable: false)
+                ..sort((DebtAccountModel a, DebtAccountModel b) {
+                  final DateTime? aDue = a.dueDate;
+                  final DateTime? bDue = b.dueDate;
+                  if (aDue == null && bDue == null) {
+                    return b.updatedAt.compareTo(a.updatedAt);
+                  }
+                  if (aDue == null) {
+                    return 1;
+                  }
+                  if (bDue == null) {
+                    return -1;
+                  }
+                  return aDue.compareTo(bDue);
+                });
           return Future.wait(active.map(_toDomain));
         });
   }
@@ -148,7 +149,11 @@ class DebtRepository {
       throw StateError('Debt account is not available');
     }
     if (amount <= 0) {
-      throw ArgumentError.value(amount, 'amount', 'Amount must be greater than zero');
+      throw ArgumentError.value(
+        amount,
+        'amount',
+        'Amount must be greater than zero',
+      );
     }
     final DebtLedgerEntryModel entry = DebtLedgerEntryModel(
       debtId: debtId,
@@ -176,7 +181,8 @@ class DebtRepository {
     final TransactionModel? transaction = await _isar.transactionModels.get(
       transactionId,
     );
-    if (transaction == null || transaction.status != TransactionStatus.confirmed) {
+    if (transaction == null ||
+        transaction.status != TransactionStatus.confirmed) {
       throw StateError('Only confirmed transactions can be linked');
     }
     final List<DebtLedgerEntryModel> existing = await _isar
@@ -184,8 +190,7 @@ class DebtRepository {
         .where()
         .findAll();
     if (existing.any(
-      (DebtLedgerEntryModel item) =>
-          item.linkedTransactionId == transactionId,
+      (DebtLedgerEntryModel item) => item.linkedTransactionId == transactionId,
     )) {
       throw StateError('Transaction is already linked to a debt or loan');
     }
@@ -224,32 +229,35 @@ class DebtRepository {
     if (account == null || account.isArchived) {
       return const <ExpenseTransaction>[];
     }
-    final Set<int> linkedIds = (await _isar.debtLedgerEntryModels
-            .where()
-            .findAll())
-        .map((DebtLedgerEntryModel item) => item.linkedTransactionId)
-        .whereType<int>()
-        .toSet();
+    final Set<int> linkedIds =
+        (await _isar.debtLedgerEntryModels.where().findAll())
+            .map((DebtLedgerEntryModel item) => item.linkedTransactionId)
+            .whereType<int>()
+            .toSet();
     final List<TransactionModel> transactions = await _isar.transactionModels
         .where()
         .findAll();
-    final List<TransactionModel> relevant = transactions.where(
-      (TransactionModel item) {
-        if (item.status != TransactionStatus.confirmed ||
-            linkedIds.contains(item.id)) {
-          return false;
-        }
-        return DebtTransactionLinker.movementFor(
-              kind: account.kind,
-              type: item.type,
-              purpose: transactionPurposeFromCode(item.purposeCode, item.type),
-            ) !=
-            null;
-      },
-    ).toList(growable: false)
-      ..sort((TransactionModel a, TransactionModel b) {
-        return b.timestamp.compareTo(a.timestamp);
-      });
+    final List<TransactionModel> relevant =
+        transactions
+            .where((TransactionModel item) {
+              if (item.status != TransactionStatus.confirmed ||
+                  linkedIds.contains(item.id)) {
+                return false;
+              }
+              return DebtTransactionLinker.movementFor(
+                    kind: account.kind,
+                    type: item.type,
+                    purpose: transactionPurposeFromCode(
+                      item.purposeCode,
+                      item.type,
+                    ),
+                  ) !=
+                  null;
+            })
+            .toList(growable: false)
+          ..sort((TransactionModel a, TransactionModel b) {
+            return b.timestamp.compareTo(a.timestamp);
+          });
     return Future.wait(relevant.map(_transactionToDomain));
   }
 
@@ -285,8 +293,7 @@ class DebtRepository {
   }
 
   Future<void> delete(int id) async {
-    final List<DebtLedgerEntryModel> entries = await _isar
-        .debtLedgerEntryModels
+    final List<DebtLedgerEntryModel> entries = await _isar.debtLedgerEntryModels
         .where()
         .findAll();
     final List<int> entryIds = entries
@@ -301,9 +308,10 @@ class DebtRepository {
   }
 
   Future<void> clearAll() async {
-    final List<int> accountIds = (await _isar.debtAccountModels.where().findAll())
-        .map((DebtAccountModel item) => item.id)
-        .toList(growable: false);
+    final List<int> accountIds =
+        (await _isar.debtAccountModels.where().findAll())
+            .map((DebtAccountModel item) => item.id)
+            .toList(growable: false);
     await _isar.writeTxn(() async {
       await _isar.debtLedgerEntryModels.clear();
       await _isar.debtAccountModels.clear();
@@ -318,12 +326,13 @@ class DebtRepository {
         .debtLedgerEntryModels
         .where()
         .findAll();
-    final List<DebtLedgerEntryModel> entries = allEntries
-        .where((DebtLedgerEntryModel item) => item.debtId == model.id)
-        .toList(growable: false)
-      ..sort((DebtLedgerEntryModel a, DebtLedgerEntryModel b) {
-        return b.occurredAt.compareTo(a.occurredAt);
-      });
+    final List<DebtLedgerEntryModel> entries =
+        allEntries
+            .where((DebtLedgerEntryModel item) => item.debtId == model.id)
+            .toList(growable: false)
+          ..sort((DebtLedgerEntryModel a, DebtLedgerEntryModel b) {
+            return b.occurredAt.compareTo(a.occurredAt);
+          });
     return DebtAccount(
       id: model.id,
       kind: model.kind,
@@ -353,7 +362,9 @@ class DebtRepository {
     );
   }
 
-  Future<ExpenseTransaction> _transactionToDomain(TransactionModel model) async {
+  Future<ExpenseTransaction> _transactionToDomain(
+    TransactionModel model,
+  ) async {
     return ExpenseTransaction(
       id: model.id,
       amount: model.amount,
@@ -372,11 +383,7 @@ class DebtRepository {
     );
   }
 
-  void _validateReminder(
-    bool enabled,
-    int daysBefore,
-    DateTime? dueDate,
-  ) {
+  void _validateReminder(bool enabled, int daysBefore, DateTime? dueDate) {
     if (!enabled) {
       return;
     }
@@ -384,7 +391,11 @@ class DebtRepository {
       throw ArgumentError('A due date is required when reminders are enabled');
     }
     if (!DebtReminderService.supportedLeadDays.contains(daysBefore)) {
-      throw ArgumentError.value(daysBefore, 'daysBefore', 'Unsupported lead time');
+      throw ArgumentError.value(
+        daysBefore,
+        'daysBefore',
+        'Unsupported lead time',
+      );
     }
   }
 }
