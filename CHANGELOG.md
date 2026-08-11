@@ -2,6 +2,42 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.11.0] - Unreleased
+
+### Added
+
+- A dedicated Android SMS prominent-disclosure dialog shown before the runtime
+  SMS permission flow, with explicit Agree & continue and Not now choices.
+- A full local Privacy Policy screen accessible from Settings without requiring
+  network access.
+- Public store privacy-policy text plus Google Play permission/data-safety,
+  App Store privacy/submission, and store-listing guidance under `docs/store/`.
+- Phase 13 SMS-permission and Android store-compliance regression tests.
+
+### Changed
+
+- Android now explicitly compiles against and targets Android 16 / API level 36
+  for the 2026 Google Play submission requirement.
+- App version metadata is advanced to `0.11.0+11` for the store-compliance
+  release line.
+- Onboarding and Settings both gate first-time SMS access behind the same clear
+  disclosure and affirmative consent flow.
+- The manual SMS scan path no longer requests notification permission before the
+  SMS permission prompt, keeping the SMS disclosure immediately adjacent to the
+  sensitive permission request.
+
+### Security
+
+- SMS access remains optional and is limited to `READ_SMS` and `RECEIVE_SMS` for
+  the core on-device money-management feature; no SEND/WRITE SMS or Call Log
+  permission is introduced.
+- The disclosure states that matching financial alerts become pending review
+  items, unmatched messages are not stored, and SMS/financial data is not sent
+  to servers, analytics, advertisers, or third parties.
+- Manual entry remains available when SMS access is declined or revoked.
+- No backend, HTTP client, cloud sync, remote AI, analytics, telemetry,
+  advertising, or Android `INTERNET` permission was introduced.
+
 ## [0.10.0] - Unreleased
 
 ### Added

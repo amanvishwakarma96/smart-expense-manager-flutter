@@ -39,6 +39,18 @@ lib/
 
 No step sends SMS or financial data over a network.
 
+## SMS permission and consent boundary
+
+Android SMS access is optional and supports PiggyAI's core SMS-based money-management feature.
+
+- The production manifest requests only `READ_SMS` and `RECEIVE_SMS` from the SMS/Call Log permission families.
+- Before first-time runtime SMS permission, `sms_engine/presentation/sms_permission_disclosure.dart` presents a non-dismissible policy disclosure explaining what is accessed, why it is needed, background receipt behavior, local processing/storage behavior, no off-device transmission, and the manual-entry alternative.
+- The disclosure requires an explicit **Agree & continue** action. **Not now** exits the flow without requesting permission. Back/navigation away is never treated as consent.
+- If SMS permission is already granted, the disclosure is not repeated for every manual scan.
+- Onboarding and Settings both use the same disclosure helper immediately before `requestPermissionAndScanInbox()`.
+- Manual transaction entry remains independent of SMS permission.
+- The manual SMS scan flow does not request notification permission; notification access is requested only by the separate reminder feature when the user explicitly enables a reminder.
+
 ## Backup restore boundary
 
 Encrypted restore has two explicit phases:
@@ -60,8 +72,19 @@ These presentation rules do not alter transaction, budget, goal, recurring, or b
 
 ## Android release boundary
 
+PiggyAI explicitly uses `compileSdk = 36` and `targetSdk = 36` for Android 16 / the 2026 Google Play submission requirement. The project already uses Android Gradle Plugin 9.x, which is compatible with this target line.
+
 Pull-request CI never receives the Android release keystore. It runs generation, formatting, strict analysis, tests, artifact-hygiene checks, and a debug APK build only.
 
 After merge to `main`, CI reconstructs the upload keystore temporarily from GitHub Actions secrets, builds the release APK and Play AAB, verifies both signatures, rejects an APK whose certificate identifies as `Android Debug`, generates SHA-256 checksums, and uploads the files as a short-lived Actions artifact. Temporary signing material is deleted in an `always()` cleanup step.
 
 `dist/` is ignored and CI fails if any file below it is tracked by Git. Release APK/AAB binaries therefore belong in GitHub Actions artifacts, not source control.
+
+## Store privacy and submission boundary
+
+- `settings/presentation/privacy_policy_screen.dart` exposes the current policy inside the app without requiring a network connection.
+- `docs/store/privacy-policy.md` is the canonical public store-policy text. It must be published/linked from a stable public URL in Google Play Console and App Store Connect before submission.
+- `docs/store/google-play-release.md` documents the SMS-based money-management permissions declaration, prominent-disclosure review-video flow, expected local-only Data safety posture, Play App Signing artifact flow, and remaining manual Play Console tasks.
+- `docs/store/app-store-release.md` documents the iOS manual-entry behavior, App Privacy posture, Xcode/iOS SDK submission requirement, privacy-manifest audit, and remaining manual App Store Connect tasks.
+- `docs/store/store-listing-copy.md` keeps Android SMS access visible as a core feature in Play listing/review copy and avoids claiming SMS access on iOS.
+- Any future dependency or architecture change that introduces networking, analytics, remote crash reporting, advertising, remote AI, account/cloud sync, or another sensitive permission requires a fresh store privacy and permissions audit before release.

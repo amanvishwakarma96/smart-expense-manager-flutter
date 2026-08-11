@@ -51,7 +51,7 @@ if (releaseBuildRequested && !hasCompleteReleaseSigning) {
 
 android {
     namespace = "com.smartspend.app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -63,7 +63,7 @@ android {
     defaultConfig {
         applicationId = "com.smartspend.app"
         minSdk = 24
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

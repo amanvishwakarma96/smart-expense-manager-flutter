@@ -74,6 +74,10 @@ jobs:
       - name: Build Android debug APK
         run: flutter build apk --debug
 
+      - name: Verify Android debug APK supports 16 KB pages
+        shell: bash
+        run: bash tool/check_android_16kb.sh build/app/outputs/flutter-apk/app-debug.apk
+
       - name: Prepare Android release signing
         if: github.event_name != 'pull_request'
         shell: bash
@@ -102,6 +106,11 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build apk --release
+
+      - name: Verify signed Android APK supports 16 KB pages
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: bash tool/check_android_16kb.sh build/app/outputs/flutter-apk/app-release.apk
 
       - name: Build signed Android App Bundle
         if: github.event_name != 'pull_request'

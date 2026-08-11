@@ -10,10 +10,18 @@
 - Incoming SMS queue is encrypted with Android Keystore.
 - Merchant, account-tail, and original SMS text are encrypted before Isar persistence.
 - Raw SMS content is never printed or included in notifications.
-- SMS access is opt-in; manual entry remains available without permission.
+- Android SMS access is opt-in and limited to the core money-management feature.
+- Before first-time SMS permission, PiggyAI displays a dedicated in-app disclosure explaining local access, background receipt, storage behavior, no off-device transmission, and the manual-entry alternative.
+- The disclosure requires explicit **Agree & continue** consent; **Not now** does not trigger the Android permission prompt.
+- Manual entry remains available without SMS permission.
 - `FLAG_SECURE` prevents screenshots and recent-app previews on Android.
 - Optional biometric or device-lock protection is available.
 - Users can permanently delete local financial data and the installation key.
+- A full local Privacy Policy is accessible from Settings without network access.
+
+## Public store policy
+
+The canonical store-facing policy text lives in `docs/store/privacy-policy.md`. Google Play and App Store submission guidance lives under `docs/store/` and must be re-audited whenever the app adds or changes a dependency, permission, networking behavior, analytics/diagnostics feature, or data-transfer path.
 
 ## Threat-model boundaries
 
