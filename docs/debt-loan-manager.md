@@ -50,3 +50,7 @@ Encrypted snapshot version 6 includes debt accounts and ledger entries. Sensitiv
 Versions 1 through 5 remain restorable. Because those versions predate debt ledgers, restoring one clears current debt data and obsolete debt reminders instead of merging old and new state.
 
 Delete All clears debt accounts, ledger entries, and their reminders before the installation encryption key is removed.
+
+## Release validation
+
+Phase 14 must pass schema generation, `dart format lib test`, `flutter analyze --fatal-infos`, the full Flutter test suite, the Android debug APK build, and the existing 16 KB APK/native-library compatibility check before PR review. Release signing remains isolated to the protected `main` workflow after merge.
