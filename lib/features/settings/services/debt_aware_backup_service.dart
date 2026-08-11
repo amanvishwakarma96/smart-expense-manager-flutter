@@ -196,7 +196,7 @@ class DebtAwareBackupService extends ChallengeAwareBackupService {
         throw const FormatException('Backup contains duplicate debt IDs');
       }
       final DebtKind kind = _debtKind(map['kind']);
-      final double openingBalance = _positiveNumber(
+      final double openingBalance = _nonNegativeNumber(
         map['openingBalance'],
         'debt.openingBalance',
       );
@@ -310,6 +310,13 @@ class DebtAwareBackupService extends ChallengeAwareBackupService {
       return value.toDouble();
     }
     throw FormatException('$name must be greater than zero');
+  }
+
+  double _nonNegativeNumber(Object? value, String name) {
+    if (value is num && value >= 0) {
+      return value.toDouble();
+    }
+    throw FormatException('$name must not be negative');
   }
 
   bool _bool(Object? value, String name) {
