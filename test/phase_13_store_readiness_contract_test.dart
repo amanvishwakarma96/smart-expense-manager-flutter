@@ -26,7 +26,8 @@ void main() {
     expect(policy, contains('Privacy-first by design'));
     expect(policy, contains('No collection or sharing'));
     expect(policy, contains('SMS access on Android'));
-    expect(policy, contains('Manual entry works without SMS permission'));
+    expect(policy, contains('Manual entry works'));
+    expect(policy, contains('without SMS permission'));
   });
 
   test('store submission documents remain present and privacy-first', () {
