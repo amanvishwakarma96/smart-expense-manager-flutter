@@ -69,11 +69,11 @@ class DebtRepository {
         'Counterparty must not be empty',
       );
     }
-    if (openingBalance <= 0) {
+    if (openingBalance < 0) {
       throw ArgumentError.value(
         openingBalance,
         'openingBalance',
-        'Opening balance must be greater than zero',
+        'Opening balance must not be negative',
       );
     }
     _validateReminder(reminderEnabled, reminderDaysBefore, dueDate);
@@ -115,11 +115,11 @@ class DebtRepository {
         'Counterparty must not be empty',
       );
     }
-    if (openingBalance <= 0) {
+    if (openingBalance < 0) {
       throw ArgumentError.value(
         openingBalance,
         'openingBalance',
-        'Opening balance must be greater than zero',
+        'Opening balance must not be negative',
       );
     }
     _validateReminder(reminderEnabled, reminderDaysBefore, dueDate);
