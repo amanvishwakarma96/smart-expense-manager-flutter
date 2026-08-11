@@ -20,6 +20,21 @@ Repository guard:
 - `android/app/build.gradle.kts` contains `compileSdk = 36` and `targetSdk = 36`.
 - Phase 13 contract tests fail if these values regress.
 
+## 16 KB memory page-size compatibility
+
+PiggyAI includes native shared libraries through Flutter and local database dependencies, so 16 KB compatibility must be verified rather than assumed.
+
+The repository includes `tool/check_android_16kb.sh`, which performs both checks recommended for APK validation:
+
+- `zipalign -c -P 16 -v 4` verifies APK/native-library zip alignment; and
+- Android NDK `llvm-objdump` verifies every `arm64-v8a` and `x86_64` shared library has ELF LOAD-segment alignment of at least `2**14` (16 KB).
+
+CI runs this check against every pull-request debug APK and against the signed release APK on `main`. A failing native library blocks the build so its dependency can be upgraded before release.
+
+Google Play requires apps targeting Android 15 / API 35 and higher to support 16 KB page-size devices. Current Android guidance says Play will block non-compliant app updates starting 1 February 2027, so this compatibility check remains a permanent release gate rather than a one-time migration.
+
+For the App Bundle, also inspect the final `.aab` with the current Android `bundletool` during the Play release audit and confirm its bundle configuration requests `PAGE_ALIGNMENT_16K`. AGP 9.x handles modern 16 KB packaging, but the actual signed release binaries remain the source of truth.
+
 ## Restricted SMS permissions
 
 PiggyAI requests only the SMS permissions required by its core money-management feature:
@@ -94,11 +109,12 @@ The store description must make SMS-based money management a visible core Androi
 
 After merging a release change to `main`:
 
-1. Wait for Flutter CI to pass.
+1. Wait for Flutter CI to pass, including signed APK 16 KB alignment verification.
 2. Download the `PiggyAI-Android-Release-<run>` artifact.
 3. Use the versioned `PiggyAI-<version>-play-<run>-<sha>.aab` for Play Console.
 4. Keep `SHA256SUMS.txt` and the signature reports with the release record.
-5. Never upload a debug-signed APK/AAB or commit release binaries to Git.
+5. Verify the final AAB reports `PAGE_ALIGNMENT_16K` with the current `bundletool` during release review.
+6. Never upload a debug-signed APK/AAB or commit release binaries to Git.
 
 ## Manual Play Console actions that cannot be completed from this repository
 
@@ -111,4 +127,5 @@ After merging a release change to `main`:
 - Enter the privacy-policy URL.
 - Complete content rating, target audience, app access, ads declaration, financial-features declarations if Play Console requests them, and any country-specific forms.
 - Add screenshots, feature graphic, app icon, support email/site, and final store copy.
+- Confirm the final AAB's 16 KB page-alignment status in the release audit.
 - Submit the chosen testing/production track for review.
