@@ -144,6 +144,7 @@ IconData transactionPurposeIcon(TransactionPurpose purpose) {
     TransactionPurpose.transfer => Icons.swap_horiz_rounded,
     TransactionPurpose.borrowed => Icons.call_received_rounded,
     TransactionPurpose.lent => Icons.call_made_rounded,
+    TransactionPurpose.lentRepayment => Icons.assignment_return_rounded,
     TransactionPurpose.loanReceived => Icons.account_balance_rounded,
     TransactionPurpose.loanRepayment => Icons.event_repeat_rounded,
     TransactionPurpose.refund => Icons.replay_rounded,
