@@ -13,16 +13,16 @@ import 'package:smart_expense_manager/features/settings/services/encrypted_backu
 import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
 
 class DebtAwareBackupService extends ChallengeAwareBackupService {
+  // ignore: use_super_parameters
   DebtAwareBackupService(
     WeeklyChallengeRepository challenges, {
     required Isar isar,
     required SecureCipherService cipher,
-    required DebtReminderService debtReminderService,
+    required this._debtReminderService,
     BillReminderService? reminderService,
     EncryptedBackupCodec? codec,
   }) : _isar = isar,
        _cipher = cipher,
-       _debtReminderService = debtReminderService,
        _codec = codec ?? EncryptedBackupCodec(),
        super(
          challenges,
