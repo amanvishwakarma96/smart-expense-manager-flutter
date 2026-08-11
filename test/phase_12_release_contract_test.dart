@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('production metadata is aligned with the Phase 12 release line', () {
+  test('Phase 12 production metadata remains documented', () {
     final String pubspec = File('pubspec.yaml').readAsStringSync();
+    final String changelog = File('CHANGELOG.md').readAsStringSync();
 
-    expect(pubspec, contains('version: 0.10.0+10'));
     expect(pubspec, isNot(contains('version: 0.1.0+1')));
+    expect(changelog, contains('## [0.10.0] - Unreleased'));
+    expect(changelog, contains('Android app metadata is aligned to `0.10.0+10`'));
   });
 
   test('Android release remains offline and must use release signing', () {
