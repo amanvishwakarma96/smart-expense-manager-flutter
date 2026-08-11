@@ -95,6 +95,18 @@ Important distinction: PiggyAI **accesses and processes** SMS/financial informat
 
 Re-audit the Data safety answers whenever a dependency or architecture change could introduce networking, analytics, crash reporting, advertising, remote AI, or any other off-device transfer.
 
+## Financial features declaration
+
+Google Play requires every published app to complete the Financial features declaration, including apps on closed testing, open testing, and production tracks. Do not leave this form incomplete simply because PiggyAI does not move money.
+
+PiggyAI currently does **not** provide banking, lending, a line of credit, money transfer/wire services, a wallet/payment service, BNPL, insurance, credit reporting, stock/crypto trading, investment execution, or personalized financial advice. It is a local record-keeping, budgeting, and expense-management tool.
+
+Because Google's declaration includes a Support services → **Other** option and PiggyAI is a money-management application, review the exact current console wording and use **Other** when it is the accurate classification, describing PiggyAI as local expense/budget tracking. Do not select loan, banking, payments/transfers, trading, insurance, or advice categories unless the shipping product actually adds those services.
+
+Suggested explanation when an Other description is requested:
+
+> PiggyAI is a local-only personal expense and budget tracker. It records and categorizes user-confirmed transactions, recurring plans, budgets and savings goals. It does not provide banking, loans, credit, payment processing, money transfer, investment execution, insurance or personalized financial advice, and it does not connect to or move funds from financial accounts.
+
 ## Privacy policy
 
 Use the public, merged repository copy of `docs/store/privacy-policy.md` as the source text for the store privacy-policy page. A stable public web URL should be entered in Play Console before submission. Prefer a permanent project/site URL rather than a temporary branch URL.
@@ -124,8 +136,9 @@ After merging a release change to `main`:
 - Complete the SMS/Call Log Permissions Declaration Form if surfaced.
 - Upload/provide the permissions review video.
 - Enter the Data safety answers.
+- Complete and submit the Financial features declaration.
 - Enter the privacy-policy URL.
-- Complete content rating, target audience, app access, ads declaration, financial-features declarations if Play Console requests them, and any country-specific forms.
+- Complete content rating, target audience, app access, ads declaration, and any country-specific forms.
 - Add screenshots, feature graphic, app icon, support email/site, and final store copy.
 - Confirm the final AAB's 16 KB page-alignment status in the release audit.
 - Submit the chosen testing/production track for review.
