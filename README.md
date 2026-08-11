@@ -17,8 +17,8 @@ after confirmation.
 - No Android `INTERNET` permission.
 - SMS and financial data never leave the device unless the user explicitly
   creates and shares a password-protected backup.
-- Sensitive text, including merchant and savings-goal names, is encrypted before
-  persistence.
+- Sensitive text, including merchant, savings-goal, debt counterparty, and debt
+  note text, is encrypted before persistence.
 - Original SMS text is erased after transaction confirmation.
 - Runtime Google Fonts downloads are explicitly disabled.
 - Android backup and device-transfer backup are disabled.
@@ -60,14 +60,37 @@ after confirmation.
   icons, and five playful milestone stars.
 - A monthly cash-flow calendar with privacy masking and daily confirmed-
   transaction drill-down.
+- A private Debt & Loan Manager for borrowed money, money lent to others, and
+  formal loans, with outstanding balances, repayment progress, optional due
+  reminders, and explicit confirmed-transaction linking.
+- A combined Plan destination for Goals & Calendar plus Debts & Loans.
 - Category spending and seven-day cash-flow charts.
 - Animated pastel cards, tactile controls, colorful summaries, and friendly
   empty states.
 - Privacy amount masking and configurable biometric/device-lock timing.
 - Password-protected encrypted local backup export and restore, including
-  recurring schedules, reminder preferences, and savings goals.
+  recurring schedules, reminder preferences, savings goals, and debt/loan
+  ledgers.
 - Full local financial-data deletion with reminder cancellation and
   encryption-key removal.
+
+## Debt and loan manager
+
+- Users explicitly create one of three local ledger types: Borrowed money, Money
+  lent, or Loan. PiggyAI never creates a debt record automatically from SMS.
+- Counterparty names and private notes are encrypted with the installation key
+  before they are written to Isar.
+- Opening outstanding balance can be the amount owed today, or ₹0 when the user
+  plans to link the original confirmed principal transaction instead.
+- Manual ledger entries can increase a tracked balance or record a repayment;
+  they do not create or edit a bank transaction.
+- Compatible confirmed transactions can be linked only after the user chooses
+  the transaction and confirms the link. The source transaction remains intact.
+- Borrowed-money credits and formal-loan credits stay distinct, while `Lent money
+  repaid` records money returned by a borrower without counting it as income.
+- Optional due reminders are local, use inexact scheduling, and contain no name,
+  amount, account, balance, category, note, or raw SMS content.
+- Privacy mode masks debt/loan amounts throughout Plan and detail screens.
 
 ## Backup reminder
 
@@ -209,9 +232,11 @@ after confirmation.
 - A restore validates the encrypted envelope and snapshot before replacing any
   local database collections.
 - Sensitive fields are re-encrypted using the destination installation's key.
-- Snapshot version 5 preserves semantic transaction purpose and includes
-  recurring schedules, reminder preferences, and savings goals; versions 1
-  through 4 remain restorable.
+- Snapshot version 6 preserves semantic transaction purpose and includes
+  recurring schedules, reminder preferences, savings goals, debt/loan accounts,
+  and debt-ledger entries; versions 1 through 5 remain restorable.
+- Restoring a v1-v5 snapshot clears current debt/loan ledgers rather than merging
+  data that did not exist in that older snapshot format.
 - Restoring or deleting data cancels obsolete scheduled reminders and rebuilds
   only the reminders represented by the resulting local data.
 - Weekly quest history is excluded from financial backup files and is reset
@@ -262,14 +287,15 @@ flutter build apk --debug
   transaction SMS detection, pending review, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
   custom categories, merchant rules, local forecast, subscription suggestions,
-  backup reminder, savings goals, cash-flow calendar, budgets, local alerts,
-  encrypted backup/restore, insights, charts, privacy mode, and configurable app
-  lock.
+  backup reminder, savings goals, cash-flow calendar, private debt/loan ledgers,
+  generic debt due reminders, budgets, local alerts, encrypted backup/restore,
+  insights, charts, privacy mode, and configurable app lock.
 - **iOS:** onboarding, manual entry, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
   custom categories, merchant rules, local forecast, subscription suggestions,
-  backup reminder, savings goals, cash-flow calendar, budgets, local alerts,
-  encrypted backup/restore, insights, charts, privacy mode, and configurable app
-  lock. Automatic SMS access is intentionally unavailable.
+  backup reminder, savings goals, cash-flow calendar, private debt/loan ledgers,
+  generic debt due reminders, budgets, local alerts, encrypted backup/restore,
+  insights, charts, privacy mode, and configurable app lock. Automatic SMS
+  access is intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.
