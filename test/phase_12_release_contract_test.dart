@@ -9,7 +9,10 @@ void main() {
 
     expect(pubspec, isNot(contains('version: 0.1.0+1')));
     expect(changelog, contains('## [0.10.0] - Unreleased'));
-    expect(changelog, contains('Android app metadata is aligned to `0.10.0+10`'));
+    expect(
+      changelog,
+      contains('Android app metadata is aligned to `0.10.0+10`'),
+    );
   });
 
   test('Android release remains offline and must use release signing', () {

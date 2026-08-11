@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('Android release targets API 36 for 2026 Play submissions', () {
-    final String gradle = File('android/app/build.gradle.kts').readAsStringSync();
+    final String gradle = File(
+      'android/app/build.gradle.kts',
+    ).readAsStringSync();
 
     expect(gradle, contains('compileSdk = 36'));
     expect(gradle, contains('targetSdk = 36'));
@@ -22,7 +24,9 @@ void main() {
   });
 
   test('release signing never falls back to debug signing', () {
-    final String gradle = File('android/app/build.gradle.kts').readAsStringSync();
+    final String gradle = File(
+      'android/app/build.gradle.kts',
+    ).readAsStringSync();
 
     expect(gradle, contains('signingConfigs.getByName("release")'));
     expect(gradle, isNot(contains('signingConfigs.getByName("debug")')));
@@ -37,10 +41,7 @@ void main() {
       'tool/check_android_16kb.sh',
     ).readAsStringSync();
 
-    expect(
-      workflow,
-      contains('Verify Android debug APK supports 16 KB pages'),
-    );
+    expect(workflow, contains('Verify Android debug APK supports 16 KB pages'));
     expect(
       workflow,
       contains('Verify signed Android APK supports 16 KB pages'),

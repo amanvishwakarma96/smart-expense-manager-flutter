@@ -96,7 +96,10 @@ class _PolicySection extends StatelessWidget {
         children: <Widget>[
           Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Text(body, style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5)),
+          Text(
+            body,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
+          ),
         ],
       ),
     );

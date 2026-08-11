@@ -40,15 +40,18 @@ void main() {
     expect(settings, isNot(contains('Permission.notification.request')));
   });
 
-  test('manifest requests only the SMS permissions needed for money management', () {
-    final String manifest = File(
-      'android/app/src/main/AndroidManifest.xml',
-    ).readAsStringSync();
+  test(
+    'manifest requests only the SMS permissions needed for money management',
+    () {
+      final String manifest = File(
+        'android/app/src/main/AndroidManifest.xml',
+      ).readAsStringSync();
 
-    expect(manifest, contains('android.permission.READ_SMS'));
-    expect(manifest, contains('android.permission.RECEIVE_SMS'));
-    expect(manifest, isNot(contains('android.permission.SEND_SMS')));
-    expect(manifest, isNot(contains('android.permission.WRITE_SMS')));
-    expect(manifest, isNot(contains('android.permission.READ_CALL_LOG')));
-  });
+      expect(manifest, contains('android.permission.READ_SMS'));
+      expect(manifest, contains('android.permission.RECEIVE_SMS'));
+      expect(manifest, isNot(contains('android.permission.SEND_SMS')));
+      expect(manifest, isNot(contains('android.permission.WRITE_SMS')));
+      expect(manifest, isNot(contains('android.permission.READ_CALL_LOG')));
+    },
+  );
 }
