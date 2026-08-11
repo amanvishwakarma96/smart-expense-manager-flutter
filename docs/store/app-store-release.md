@@ -2,8 +2,10 @@
 
 This document is the PiggyAI App Store Connect submission checklist for iOS.
 
-## Platform behavior
+## App identity and platform behavior
 
+- Current iOS bundle identifier: `com.smartspend.app.smartExpenseManager`.
+- Confirm this exact identifier is the intended long-term App Store identity before creating the first App Store Connect record; do not change bundle identity casually after distribution begins.
 - PiggyAI on iOS uses manual transaction entry because iOS does not expose the device SMS inbox to PiggyAI.
 - The app has no PiggyAI backend/account, remote AI, analytics, advertising, telemetry, or automatic cloud sync.
 - Encrypted backup export is explicit and user initiated.
@@ -54,7 +56,7 @@ Suggested review note:
 
 ## Release checklist
 
-- Confirm the final bundle identifier before the first App Store record is created.
+- Confirm `com.smartspend.app.smartExpenseManager` as the final bundle identifier before the first App Store record is created.
 - Build with the currently required Xcode/iOS SDK.
 - Run `dart format lib test`, `flutter analyze --fatal-infos`, and `flutter test` before archive.
 - Run `flutter build ios --release` or archive from Xcode with production signing configured.
