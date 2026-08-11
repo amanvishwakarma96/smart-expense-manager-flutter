@@ -20,9 +20,14 @@ class DebtTransactionLinker {
       return null;
     }
 
-    if (type == TransactionType.credit &&
-        (purpose == TransactionPurpose.borrowed ||
-            purpose == TransactionPurpose.loanReceived)) {
+    if (kind == DebtKind.borrowed &&
+        type == TransactionType.credit &&
+        purpose == TransactionPurpose.borrowed) {
+      return DebtMovementType.increase;
+    }
+    if (kind == DebtKind.loan &&
+        type == TransactionType.credit &&
+        purpose == TransactionPurpose.loanReceived) {
       return DebtMovementType.increase;
     }
     if (type == TransactionType.debit &&
