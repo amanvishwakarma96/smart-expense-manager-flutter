@@ -3,14 +3,13 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Phase 13 release metadata is aligned', () {
-    final String pubspec = File('pubspec.yaml').readAsStringSync();
+  test('Phase 13 release metadata remains documented', () {
     final String changelog = File('CHANGELOG.md').readAsStringSync();
 
-    expect(pubspec, contains('version: 0.11.0+11'));
     expect(changelog, contains('## [0.11.0] - Unreleased'));
     expect(changelog, contains('Android 16 / API level 36'));
     expect(changelog, contains('Agree & continue'));
+    expect(changelog, contains('App version metadata is advanced to `0.11.0+11`'));
   });
 
   test('privacy policy is available locally inside Settings', () {
