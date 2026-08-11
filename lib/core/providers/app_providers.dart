@@ -5,7 +5,6 @@ import 'package:smart_expense_manager/core/security/onboarding_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/challenges/data/repositories/weekly_challenge_repository.dart';
 import 'package:smart_expense_manager/features/challenges/domain/weekly_challenge.dart';
-import 'package:smart_expense_manager/features/challenges/services/challenge_aware_backup_service.dart';
 import 'package:smart_expense_manager/features/debts/data/repositories/debt_repository.dart';
 import 'package:smart_expense_manager/features/debts/domain/debt_account.dart';
 import 'package:smart_expense_manager/features/debts/services/debt_reminder_service.dart';
@@ -14,6 +13,7 @@ import 'package:smart_expense_manager/features/goals/domain/savings_goal.dart';
 import 'package:smart_expense_manager/features/settings/services/backup_file_service.dart';
 import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
+import 'package:smart_expense_manager/features/settings/services/debt_aware_backup_service.dart';
 import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
@@ -109,11 +109,12 @@ final Provider<CategoryRepository> categoryRepositoryProvider =
 
 final Provider<LocalBackupService> localBackupServiceProvider =
     Provider<LocalBackupService>((Ref ref) {
-      return ChallengeAwareBackupService(
+      return DebtAwareBackupService(
         ref.watch(weeklyChallengeRepositoryProvider),
         isar: ref.watch(isarProvider),
         cipher: ref.watch(cipherProvider),
         reminderService: ref.watch(billReminderServiceProvider),
+        debtReminderService: ref.watch(debtReminderServiceProvider),
       );
     });
 

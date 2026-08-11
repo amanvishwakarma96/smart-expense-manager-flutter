@@ -70,7 +70,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
       if (mounted) {
         _message(
           'Encrypted ${backup.transactions} transaction'
-          '${backup.transactions == 1 ? '' : 's'} for user-controlled sharing.',
+          '${backup.transactions == 1 ? '' : 's'} plus planning data for user-controlled sharing.',
         );
       }
     } on ArgumentError catch (error) {
@@ -159,7 +159,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
       if (mounted) {
         _message(
           'Restored ${summary.transactions} transaction'
-          '${summary.transactions == 1 ? '' : 's'} locally.',
+          '${summary.transactions == 1 ? '' : 's'} and local planning data.',
         );
       }
     } on BackupPasswordException {
@@ -186,8 +186,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
     required bool confirmPassword,
   }) async {
     final TextEditingController passwordController = TextEditingController();
-    final TextEditingController confirmationController =
-        TextEditingController();
+    final TextEditingController confirmationController = TextEditingController();
     bool obscure = true;
     String? errorText;
 
@@ -217,8 +216,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     const Text(
-                      'The password is never stored. A forgotten password '
-                      'cannot be recovered.',
+                      'The password is never stored. A forgotten password cannot be recovered.',
                     ),
                     const SizedBox(height: 14),
                     TextField(
@@ -309,12 +307,11 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
                       inspection.recurringTransactions,
                     ),
                     _summaryLine('Savings goals', inspection.savingsGoals),
+                    _summaryLine('Debt & loan ledgers', inspection.debtAccounts),
+                    _summaryLine('Debt ledger entries', inspection.debtEntries),
                     const SizedBox(height: 14),
                     const Text(
-                      'Continuing permanently replaces the current transactions, '
-                      'recurring items, reminder preferences, categories, budgets, '
-                      'merchant rules, and savings goals on this device. Obsolete '
-                      'scheduled reminders will be cancelled.',
+                      'Continuing permanently replaces the current transactions, recurring items, reminder preferences, categories, budgets, merchant rules, savings goals, and debt/loan ledgers on this device. Obsolete scheduled reminders will be cancelled.',
                     ),
                   ],
                 ),
@@ -387,9 +384,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Export only when you choose. Backups protect transactions, '
-              'recurring schedules, reminder preferences, rules, and goals '
-              'without including the installation encryption key.',
+              'Export only when you choose. Backups protect transactions, recurring schedules, reminder preferences, rules, goals, and debt/loan ledgers without including the installation encryption key.',
             ),
             if (showReminder) ...<Widget>[
               const SizedBox(height: 14),
@@ -460,8 +455,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
                   return SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () =>
-                          _exportBackup(_shareOrigin(shareContext)),
+                      onPressed: () => _exportBackup(_shareOrigin(shareContext)),
                       icon: const Icon(Icons.lock_rounded),
                       label: const Text('Create encrypted backup'),
                     ),
