@@ -10,6 +10,7 @@ import 'package:smart_expense_manager/features/settings/presentation/backup_sett
 import 'package:smart_expense_manager/features/settings/presentation/budget_alert_settings_card.dart';
 import 'package:smart_expense_manager/features/settings/presentation/category_management_card.dart';
 import 'package:smart_expense_manager/features/settings/presentation/merchant_rules_card.dart';
+import 'package:smart_expense_manager/features/settings/presentation/privacy_policy_screen.dart';
 import 'package:smart_expense_manager/features/settings/presentation/recurring_transactions_card.dart';
 import 'package:smart_expense_manager/features/sms_engine/presentation/sms_permission_disclosure.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
@@ -285,21 +286,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 14),
           _SettingsCard(
             title: 'Privacy contract',
-            children: const <Widget>[
-              ListTile(
+            children: <Widget>[
+              const ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.cloud_off_rounded),
                 title: Text('No backend or cloud sync'),
               ),
-              ListTile(
+              const ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.wifi_off_rounded),
                 title: Text('No Android internet permission'),
               ),
-              ListTile(
+              const ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.security_rounded),
                 title: Text('Sensitive text is encrypted locally'),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.privacy_tip_rounded),
+                title: const Text('Read privacy policy'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PrivacyPolicyScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
