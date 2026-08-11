@@ -48,6 +48,6 @@ void main() {
     expect(alignmentScript, contains('zipalign_path'));
     expect(alignmentScript, contains('-P 16 4'));
     expect(alignmentScript, contains('llvm-objdump'));
-    expect(alignmentScript, contains('"$exponent" -lt 14'));
+    expect(alignmentScript, contains(r'"$exponent" -lt 14'));
   });
 }
