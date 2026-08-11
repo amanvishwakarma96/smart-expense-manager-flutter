@@ -72,9 +72,9 @@ class _DebtAccountEditorScreenState
     final double? openingBalance = double.tryParse(
       _balanceController.text.trim().replaceAll(',', ''),
     );
-    if (counterparty.isEmpty || openingBalance == null || openingBalance <= 0) {
+    if (counterparty.isEmpty || openingBalance == null || openingBalance < 0) {
       setState(() {
-        _errorText = 'Enter who this is with and an opening balance above zero.';
+        _errorText = 'Enter who this is with and an opening balance of zero or more.';
       });
       return;
     }
@@ -184,7 +184,8 @@ class _DebtAccountEditorScreenState
               decoration: const InputDecoration(
                 labelText: 'Opening outstanding balance',
                 prefixText: '₹ ',
-                helperText: 'Use the balance that is outstanding when you start tracking it here.',
+                helperText:
+                    'Use today’s outstanding balance, or ₹0 if you plan to link the original loan/borrow transaction.',
               ),
             ),
             const SizedBox(height: 14),
