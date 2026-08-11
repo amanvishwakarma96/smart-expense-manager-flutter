@@ -4,7 +4,7 @@ import 'package:smart_expense_manager/features/debts/services/debt_transaction_l
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 
 void main() {
-  test('borrowed and loan credits increase what the user owes', () {
+  test('borrowed and loan credits increase their matching owed ledger', () {
     expect(
       DebtTransactionLinker.movementFor(
         kind: DebtKind.borrowed,
@@ -20,6 +20,25 @@ void main() {
         purpose: TransactionPurpose.loanReceived,
       ),
       DebtMovementType.increase,
+    );
+  });
+
+  test('borrowed and formal loan incoming purposes are not interchangeable', () {
+    expect(
+      DebtTransactionLinker.movementFor(
+        kind: DebtKind.borrowed,
+        type: TransactionType.credit,
+        purpose: TransactionPurpose.loanReceived,
+      ),
+      isNull,
+    );
+    expect(
+      DebtTransactionLinker.movementFor(
+        kind: DebtKind.loan,
+        type: TransactionType.credit,
+        purpose: TransactionPurpose.borrowed,
+      ),
+      isNull,
     );
   });
 
