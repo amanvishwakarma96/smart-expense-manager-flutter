@@ -3,17 +3,23 @@ import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/debts/data/models/debt_account_model.dart';
 import 'package:smart_expense_manager/features/debts/data/models/debt_ledger_entry_model.dart';
 import 'package:smart_expense_manager/features/debts/domain/debt_account.dart';
+import 'package:smart_expense_manager/features/debts/services/debt_reminder_service.dart';
 import 'package:smart_expense_manager/features/debts/services/debt_transaction_linker.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/transaction_model.dart';
 import 'package:smart_expense_manager/features/transactions/domain/expense_transaction.dart';
 
 class DebtRepository {
-  DebtRepository(Isar isar, SecureCipherService cipher) : this._(isar, cipher);
+  DebtRepository(
+    Isar isar,
+    SecureCipherService cipher, {
+    DebtReminderService? reminderService,
+  }) : this._(isar, cipher, reminderService);
 
-  DebtRepository._(this._isar, this._cipher);
+  DebtRepository._(this._isar, this._cipher, this._reminderService);
 
   final Isar _isar;
   final SecureCipherService _cipher;
+  final DebtReminderService? _reminderService;
 
   Stream<List<DebtAccount>> watchActive() {
     return _isar.debtAccountModels
@@ -80,7 +86,11 @@ class DebtRepository {
       reminderEnabled: reminderEnabled,
       reminderDaysBefore: reminderDaysBefore,
     );
-    return _isar.writeTxn(() => _isar.debtAccountModels.put(model));
+    final int id = await _isar.writeTxn(
+      () => _isar.debtAccountModels.put(model),
+    );
+    await _reminderService?.syncAccount(id);
+    return id;
   }
 
   Future<void> update({
@@ -123,6 +133,7 @@ class DebtRepository {
       ..reminderDaysBefore = reminderDaysBefore
       ..updatedAt = DateTime.now();
     await _isar.writeTxn(() => _isar.debtAccountModels.put(model));
+    await _reminderService?.syncAccount(id);
   }
 
   Future<int> addManualMovement({
@@ -270,6 +281,7 @@ class DebtRepository {
       ..isArchived = archived
       ..updatedAt = DateTime.now();
     await _isar.writeTxn(() => _isar.debtAccountModels.put(model));
+    await _reminderService?.syncAccount(id);
   }
 
   Future<void> delete(int id) async {
@@ -285,13 +297,20 @@ class DebtRepository {
       await _isar.debtLedgerEntryModels.deleteAll(entryIds);
       await _isar.debtAccountModels.delete(id);
     });
+    await _reminderService?.cancelForAccount(id);
   }
 
   Future<void> clearAll() async {
+    final List<int> accountIds = (await _isar.debtAccountModels.where().findAll())
+        .map((DebtAccountModel item) => item.id)
+        .toList(growable: false);
     await _isar.writeTxn(() async {
       await _isar.debtLedgerEntryModels.clear();
       await _isar.debtAccountModels.clear();
     });
+    for (final int id in accountIds) {
+      await _reminderService?.cancelForAccount(id);
+    }
   }
 
   Future<DebtAccount> _toDomain(DebtAccountModel model) async {
@@ -364,7 +383,7 @@ class DebtRepository {
     if (dueDate == null) {
       throw ArgumentError('A due date is required when reminders are enabled');
     }
-    if (!const <int>[1, 3, 7].contains(daysBefore)) {
+    if (!DebtReminderService.supportedLeadDays.contains(daysBefore)) {
       throw ArgumentError.value(daysBefore, 'daysBefore', 'Unsupported lead time');
     }
   }

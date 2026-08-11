@@ -6,7 +6,7 @@ import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/widgets/app_state_view.dart';
 import 'package:smart_expense_manager/features/dashboard/presentation/dashboard_screen.dart';
-import 'package:smart_expense_manager/features/goals/presentation/goals_calendar_screen.dart';
+import 'package:smart_expense_manager/features/debts/presentation/planning_hub_screen.dart';
 import 'package:smart_expense_manager/features/settings/presentation/onboarding_screen.dart';
 import 'package:smart_expense_manager/features/settings/presentation/settings_screen.dart';
 import 'package:smart_expense_manager/features/transactions/presentation/manual_transaction_dialog.dart';
@@ -249,7 +249,7 @@ class _HomeShellState extends State<HomeShell> {
     DashboardScreen(),
     PendingTransactionsScreen(),
     TransactionHistoryScreen(),
-    GoalsCalendarScreen(),
+    PlanningHubScreen(),
     SettingsScreen(),
   ];
 
@@ -289,8 +289,8 @@ class _HomeShellState extends State<HomeShell> {
             label: 'History',
           ),
           NavigationDestination(
-            icon: Icon(Icons.savings_rounded),
-            label: 'Goals',
+            icon: Icon(Icons.route_rounded),
+            label: 'Plan',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_rounded),
