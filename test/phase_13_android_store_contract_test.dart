@@ -28,4 +28,26 @@ void main() {
     expect(gradle, isNot(contains('signingConfigs.getByName("debug")')));
     expect(gradle, contains('Android release signing is not configured'));
   });
+
+  test('CI verifies 16 KB native and APK alignment', () {
+    final String workflow = File(
+      '.github/workflows/flutter-ci.yml',
+    ).readAsStringSync();
+    final String alignmentScript = File(
+      'tool/check_android_16kb.sh',
+    ).readAsStringSync();
+
+    expect(
+      workflow,
+      contains('Verify Android debug APK supports 16 KB pages'),
+    );
+    expect(
+      workflow,
+      contains('Verify signed Android APK supports 16 KB pages'),
+    );
+    expect(alignmentScript, contains('zipalign_path'));
+    expect(alignmentScript, contains('-P 16 4'));
+    expect(alignmentScript, contains('llvm-objdump'));
+    expect(alignmentScript, contains('"$exponent" -lt 14'));
+  });
 }
