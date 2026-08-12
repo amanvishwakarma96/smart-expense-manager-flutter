@@ -93,9 +93,9 @@ class RepaymentScheduleService {
       remaining = math.max(0, remaining - principal);
       interestTotal += interest;
       final DateTime dueDate = _dueDateAt(
-        firstDueDate: earliestUnpaidDue,
+        firstDueDate: plan.firstDueDate,
         cadence: plan.cadence,
-        index: periods,
+        index: coveredInstallments + periods,
       );
       if (preview.length < previewPeriods) {
         preview.add(
