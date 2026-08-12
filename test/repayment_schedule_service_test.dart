@@ -100,6 +100,43 @@ void main() {
     expect(result.nextDueDate, DateTime(2026, 6, 10));
   });
 
+  test('overdue history stays visible but projected payments are not in the past', () {
+    final DateTime today = DateTime(2026, 8, 12);
+    final RepaymentProjection result = service.project(
+      plan: plan(
+        installment: 1000,
+        firstDueDate: DateTime(2026, 6, 10),
+        startingOutstanding: 1500,
+      ),
+      currentOutstanding: 1500,
+      totalRepaid: 0,
+      now: today,
+    );
+
+    expect(result.health, RepaymentHealth.overdue);
+    expect(result.nextDueDate, DateTime(2026, 6, 10));
+    expect(result.installments.first.dueDate, DateTime(2026, 9, 10));
+    expect(result.installments.first.dueDate.isBefore(today), isFalse);
+    expect(result.estimatedPayoffDate!.isBefore(today), isFalse);
+  });
+
+  test('an unpaid installment due today is due today rather than overdue', () {
+    final RepaymentProjection result = service.project(
+      plan: plan(
+        installment: 1000,
+        firstDueDate: DateTime(2026, 8, 12),
+        startingOutstanding: 2000,
+      ),
+      currentOutstanding: 2000,
+      totalRepaid: 0,
+      now: DateTime(2026, 8, 12),
+    );
+
+    expect(result.health, RepaymentHealth.dueToday);
+    expect(result.overdueAmount, 1000);
+    expect(result.installments.first.dueDate, DateTime(2026, 8, 12));
+  });
+
   test('payment too low to cover projected interest is flagged', () {
     final RepaymentProjection result = service.project(
       plan: plan(
