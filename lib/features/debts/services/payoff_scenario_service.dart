@@ -143,7 +143,8 @@ class PayoffScenarioService {
                 scenario.estimatedRemainingInterest!,
           );
 
-    final int? paymentsSaved = baseline.estimatedRemainingPayments == null ||
+    final int? paymentsSaved =
+        baseline.estimatedRemainingPayments == null ||
             scenario.estimatedRemainingPayments == null
         ? null
         : math.max(
@@ -152,7 +153,8 @@ class PayoffScenarioService {
                 scenario.estimatedRemainingPayments!,
           );
 
-    final int? daysSaved = baseline.estimatedPayoffDate == null ||
+    final int? daysSaved =
+        baseline.estimatedPayoffDate == null ||
             scenario.estimatedPayoffDate == null
         ? null
         : math.max(

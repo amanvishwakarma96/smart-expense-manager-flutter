@@ -50,9 +50,8 @@ class _PayoffScenarioScreenState extends ConsumerState<PayoffScenarioScreen> {
     return math.max(0, parsed);
   }
 
-  String _amount(double value, bool privacyMode) => privacyMode
-      ? '$defaultCurrencySymbol •••••'
-      : inrCurrency.format(value);
+  String _amount(double value, bool privacyMode) =>
+      privacyMode ? '$defaultCurrencySymbol •••••' : inrCurrency.format(value);
 
   String _payoffLabel(RepaymentProjection projection) {
     if (projection.health == RepaymentHealth.paymentTooLow) {
@@ -71,15 +70,16 @@ class _PayoffScenarioScreenState extends ConsumerState<PayoffScenarioScreen> {
     final bool privacyMode = ref.watch(privacyModeProvider);
     final double oneTimeExtra = _readAmount(_oneTimeController);
     final double additionalPerInstallment = _readAmount(_recurringController);
-    final PayoffScenarioResult result = PayoffScenarioService(
-      ref.read(repaymentScheduleServiceProvider),
-    ).compare(
-      plan: widget.plan,
-      currentOutstanding: widget.account.outstanding,
-      totalRepaid: widget.account.repaidBalance,
-      oneTimeExtraAmount: oneTimeExtra,
-      additionalPerInstallment: additionalPerInstallment,
-    );
+    final PayoffScenarioResult result =
+        PayoffScenarioService(
+          ref.read(repaymentScheduleServiceProvider),
+        ).compare(
+          plan: widget.plan,
+          currentOutstanding: widget.account.outstanding,
+          totalRepaid: widget.account.repaidBalance,
+          oneTimeExtraAmount: oneTimeExtra,
+          additionalPerInstallment: additionalPerInstallment,
+        );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Payoff what-if simulator')),
@@ -89,9 +89,9 @@ class _PayoffScenarioScreenState extends ConsumerState<PayoffScenarioScreen> {
           children: <Widget>[
             Text(
               widget.account.counterparty,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 4),
             Text(
@@ -126,28 +126,34 @@ class _PayoffScenarioScreenState extends ConsumerState<PayoffScenarioScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: _oneTimeController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               obscureText: privacyMode,
               enableSuggestions: false,
               autocorrect: false,
               decoration: const InputDecoration(
                 labelText: 'One-time extra payment',
                 prefixText: '$defaultCurrencySymbol ',
-                helperText: 'Applied to the current outstanding only in this scenario.',
+                helperText:
+                    'Applied to the current outstanding only in this scenario.',
               ),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: _recurringController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               obscureText: privacyMode,
               enableSuggestions: false,
               autocorrect: false,
               decoration: const InputDecoration(
                 labelText: 'Extra per installment',
                 prefixText: '$defaultCurrencySymbol ',
-                helperText: 'Added to every future planned installment in this scenario.',
+                helperText:
+                    'Added to every future planned installment in this scenario.',
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -171,8 +177,7 @@ class _PayoffScenarioScreenState extends ConsumerState<PayoffScenarioScreen> {
               payment: result.settlesImmediately
                   ? 'No future installment'
                   : _amount(
-                      widget.plan.installmentAmount +
-                          additionalPerInstallment,
+                      widget.plan.installmentAmount + additionalPerInstallment,
                       privacyMode,
                     ),
               interest: result.scenario.estimatedRemainingInterest == null
@@ -209,7 +214,9 @@ class _PayoffScenarioScreenState extends ConsumerState<PayoffScenarioScreen> {
                       if (result.daysSaved != null)
                         Text('${result.daysSaved} days earlier payoff'),
                       if (result.paymentsSaved != null)
-                        Text('${result.paymentsSaved} fewer planned installments'),
+                        Text(
+                          '${result.paymentsSaved} fewer planned installments',
+                        ),
                       if (result.interestSaved != null &&
                           widget.plan.annualInterestRatePct > 0)
                         Text(
@@ -266,7 +273,8 @@ class _ComparisonCard extends StatelessWidget {
             Text('Payoff: $payoff'),
             Text('Planned installment: $payment'),
             if (payments != null) Text('Remaining installments: $payments'),
-            if (interest != null) Text('Projected remaining interest: $interest'),
+            if (interest != null)
+              Text('Projected remaining interest: $interest'),
           ],
         ),
       ),

@@ -29,23 +29,26 @@ void main() {
     expect(screen, contains('change the debt balance'));
   });
 
-  test('scenario calculator is deterministic and has no write dependencies', () {
-    final String service = File(
-      'lib/features/debts/services/payoff_scenario_service.dart',
-    ).readAsStringSync();
+  test(
+    'scenario calculator is deterministic and has no write dependencies',
+    () {
+      final String service = File(
+        'lib/features/debts/services/payoff_scenario_service.dart',
+      ).readAsStringSync();
 
-    expect(service, contains('PayoffScenarioResult compare'));
-    expect(service, contains('RepaymentScheduleService'));
-    expect(service, contains('oneTimeExtraAmount'));
-    expect(service, contains('additionalPerInstallment'));
-    expect(service, isNot(contains('TransactionRepository')));
-    expect(service, isNot(contains('DebtRepository')));
-    expect(service, isNot(contains('Isar')));
-    expect(service, isNot(contains('SharedPreferences')));
-    expect(service, isNot(contains('flutter_secure_storage')));
-    expect(service, isNot(contains('package:http/')));
-    expect(service, isNot(contains('package:dio/')));
-  });
+      expect(service, contains('PayoffScenarioResult compare'));
+      expect(service, contains('RepaymentScheduleService'));
+      expect(service, contains('oneTimeExtraAmount'));
+      expect(service, contains('additionalPerInstallment'));
+      expect(service, isNot(contains('TransactionRepository')));
+      expect(service, isNot(contains('DebtRepository')));
+      expect(service, isNot(contains('Isar')));
+      expect(service, isNot(contains('SharedPreferences')));
+      expect(service, isNot(contains('flutter_secure_storage')));
+      expect(service, isNot(contains('package:http/')));
+      expect(service, isNot(contains('package:dio/')));
+    },
+  );
 
   test('Phase 16 does not introduce Android network permission', () {
     final String manifest = File(
