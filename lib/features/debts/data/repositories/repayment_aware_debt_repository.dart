@@ -5,13 +5,13 @@ import 'package:smart_expense_manager/features/debts/data/repositories/debt_repo
 import 'package:smart_expense_manager/features/debts/services/debt_reminder_service.dart';
 
 class RepaymentAwareDebtRepository extends DebtRepository {
+  // ignore: use_super_parameters
   RepaymentAwareDebtRepository(
     Isar isar,
     SecureCipherService cipher, {
-    required DebtRepaymentPlanRepository repaymentPlans,
+    required this._repaymentPlans,
     DebtReminderService? reminderService,
-  }) : _repaymentPlans = repaymentPlans,
-       super(isar, cipher, reminderService: reminderService);
+  }) : super(isar, cipher, reminderService: reminderService);
 
   final DebtRepaymentPlanRepository _repaymentPlans;
 
