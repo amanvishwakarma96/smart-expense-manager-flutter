@@ -62,7 +62,7 @@ class RepaymentPlanAwareBackupService extends DebtAwareBackupService {
               'cadence': plan.cadence.name,
               'installmentAmount': plan.installmentAmount,
               'annualInterestRatePct': plan.annualInterestRatePct,
-              'firstDueDate': plan.firstDueDate.toUtc().toIso8601String(),
+              'firstDueDate': _calendarDate(plan.firstDueDate),
               'startingOutstanding': plan.startingOutstanding,
               'baselineRepaidAmount': plan.baselineRepaidAmount,
               'isPaused': plan.isPaused,
@@ -182,7 +182,10 @@ class RepaymentPlanAwareBackupService extends DebtAwareBackupService {
         cadence: _cadence(map['cadence']),
         installmentAmount: installment,
         annualInterestRatePct: rate,
-        firstDueDate: _dateTime(map['firstDueDate'], 'repaymentPlan.firstDueDate'),
+        firstDueDate: _calendarDateTime(
+          map['firstDueDate'],
+          'repaymentPlan.firstDueDate',
+        ),
         startingOutstanding: _nonNegativeNumber(
           map['startingOutstanding'],
           'repaymentPlan.startingOutstanding',
@@ -226,6 +229,24 @@ class RepaymentPlanAwareBackupService extends DebtAwareBackupService {
       return value;
     }
     throw FormatException('$name must be true or false');
+  }
+
+  String _calendarDate(DateTime value) {
+    final String year = value.year.toString().padLeft(4, '0');
+    final String month = value.month.toString().padLeft(2, '0');
+    final String day = value.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  DateTime _calendarDateTime(Object? value, String name) {
+    if (value is! String) {
+      throw FormatException('$name must be a calendar date');
+    }
+    final DateTime? parsed = DateTime.tryParse(value);
+    if (parsed == null || _calendarDate(parsed) != value) {
+      throw FormatException('$name is invalid');
+    }
+    return DateTime(parsed.year, parsed.month, parsed.day);
   }
 
   DateTime _dateTime(Object? value, String name) {
