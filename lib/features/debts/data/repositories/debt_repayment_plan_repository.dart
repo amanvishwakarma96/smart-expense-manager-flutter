@@ -72,6 +72,11 @@ class DebtRepaymentPlanRepository {
       throw ArgumentError('Repayment-plan balances must not be negative');
     }
 
+    final DateTime normalizedDueDate = DateTime(
+      firstDueDate.year,
+      firstDueDate.month,
+      firstDueDate.day,
+    );
     final List<DebtRepaymentPlanModel> models = await _isar
         .debtRepaymentPlanModels
         .where()
@@ -80,17 +85,16 @@ class DebtRepaymentPlanRepository {
         .where((DebtRepaymentPlanModel item) => item.debtId == debtId)
         .toList(growable: false);
     final DebtRepaymentPlanModel model = matches.isEmpty
-        ? DebtRepaymentPlanModel(debtId: debtId)
+        ? DebtRepaymentPlanModel(
+            debtId: debtId,
+            firstDueDate: normalizedDueDate,
+          )
         : matches.first;
     model
       ..cadence = cadence
       ..installmentAmount = installmentAmount
       ..annualInterestRatePct = annualInterestRatePct
-      ..firstDueDate = DateTime(
-        firstDueDate.year,
-        firstDueDate.month,
-        firstDueDate.day,
-      )
+      ..firstDueDate = normalizedDueDate
       ..startingOutstanding = startingOutstanding
       ..baselineRepaidAmount = baselineRepaidAmount
       ..isPaused = false
@@ -113,20 +117,21 @@ class DebtRepaymentPlanRepository {
         .debtRepaymentPlanModels
         .where()
         .findAll();
-    DebtRepaymentPlanModel? model;
+    DebtRepaymentPlanModel? found;
     for (final DebtRepaymentPlanModel item in models) {
       if (item.debtId == debtId) {
-        model = item;
+        found = item;
         break;
       }
     }
-    if (model == null) {
+    if (found == null) {
       return;
     }
+    final DebtRepaymentPlanModel model = found;
     model
       ..isPaused = paused
       ..updatedAt = DateTime.now();
-    await _isar.writeTxn(() => _isar.debtRepaymentPlanModels.put(model!));
+    await _isar.writeTxn(() => _isar.debtRepaymentPlanModels.put(model));
   }
 
   Future<void> deleteForDebt(int debtId) async {
