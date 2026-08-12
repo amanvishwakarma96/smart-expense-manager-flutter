@@ -22,6 +22,7 @@ void main() {
 
     expect(database, contains('DebtRepaymentPlanModelSchema'));
     expect(model, contains('@collection'));
+    expect(model, contains('@Index(unique: true'));
     expect(model, contains('RepaymentCadence cadence'));
     expect(model, contains('double installmentAmount'));
     expect(model, contains('double annualInterestRatePct'));
@@ -86,6 +87,8 @@ void main() {
 
     expect(backup, contains('snapshotVersion = 7'));
     expect(backup, contains("['repaymentPlans']"));
+    expect(backup, contains("'firstDueDate': _calendarDate(plan.firstDueDate)"));
+    expect(backup, contains('_calendarDateTime('));
     expect(backup, contains('debtRepaymentPlanModels.clear()'));
     expect(backup, contains('A debt contains more than one repayment plan'));
     expect(inspection, contains('repaymentPlans'));
@@ -102,5 +105,6 @@ void main() {
     expect(manifest, isNot(contains('android.permission.INTERNET')));
     expect(plannerDocs, contains('never changes financial records automatically'));
     expect(plannerDocs, contains('no HTTP client'));
+    expect(plannerDocs, contains('calendar-only `YYYY-MM-DD`'));
   });
 }
