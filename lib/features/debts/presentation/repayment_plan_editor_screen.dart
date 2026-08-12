@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -65,7 +67,11 @@ class _RepaymentPlanEditorScreenState
     if (_cadence == RepaymentCadence.weekly) {
       return today.add(const Duration(days: 7));
     }
-    return DateTime(today.year, today.month + 1, today.day);
+    final int rawMonth = today.month;
+    final int year = today.year + rawMonth ~/ 12;
+    final int month = rawMonth % 12 + 1;
+    final int lastDay = DateTime(year, month + 1, 0).day;
+    return DateTime(year, month, math.min(today.day, lastDay));
   }
 
   Future<void> _pickFirstDueDate() async {
