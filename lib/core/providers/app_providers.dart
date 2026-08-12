@@ -5,9 +5,12 @@ import 'package:smart_expense_manager/core/security/onboarding_service.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/challenges/data/repositories/weekly_challenge_repository.dart';
 import 'package:smart_expense_manager/features/challenges/domain/weekly_challenge.dart';
+import 'package:smart_expense_manager/features/debts/data/repositories/debt_repayment_plan_repository.dart';
 import 'package:smart_expense_manager/features/debts/data/repositories/debt_repository.dart';
 import 'package:smart_expense_manager/features/debts/domain/debt_account.dart';
+import 'package:smart_expense_manager/features/debts/domain/debt_repayment_plan.dart';
 import 'package:smart_expense_manager/features/debts/services/debt_reminder_service.dart';
+import 'package:smart_expense_manager/features/debts/services/repayment_schedule_service.dart';
 import 'package:smart_expense_manager/features/goals/data/repositories/savings_goal_repository.dart';
 import 'package:smart_expense_manager/features/goals/domain/savings_goal.dart';
 import 'package:smart_expense_manager/features/settings/services/backup_file_service.dart';
@@ -48,6 +51,16 @@ final Provider<BillReminderService> billReminderServiceProvider =
 final Provider<DebtReminderService> debtReminderServiceProvider =
     Provider<DebtReminderService>((Ref ref) {
       return DebtReminderService(isar: ref.watch(isarProvider));
+    });
+
+final Provider<DebtRepaymentPlanRepository> debtRepaymentPlanRepositoryProvider =
+    Provider<DebtRepaymentPlanRepository>((Ref ref) {
+      return DebtRepaymentPlanRepository(ref.watch(isarProvider));
+    });
+
+final Provider<RepaymentScheduleService> repaymentScheduleServiceProvider =
+    Provider<RepaymentScheduleService>((Ref ref) {
+      return const RepaymentScheduleService();
     });
 
 final Provider<MerchantRuleRepository> merchantRuleRepositoryProvider =
@@ -153,6 +166,11 @@ final StreamProvider<List<RecurringTransaction>> recurringTransactionsProvider =
 final StreamProvider<List<DebtAccount>> debtAccountsProvider =
     StreamProvider<List<DebtAccount>>((Ref ref) {
       return ref.watch(debtRepositoryProvider).watchActive();
+    });
+
+final StreamProviderFamily<DebtRepaymentPlan?, int> debtRepaymentPlanProvider =
+    StreamProvider.family<DebtRepaymentPlan?, int>((Ref ref, int debtId) {
+      return ref.watch(debtRepaymentPlanRepositoryProvider).watchForDebt(debtId);
     });
 
 final StreamProvider<List<WeeklyChallenge>> weeklyChallengesProvider =
