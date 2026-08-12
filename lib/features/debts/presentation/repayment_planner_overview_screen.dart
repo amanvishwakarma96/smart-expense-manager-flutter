@@ -47,7 +47,7 @@ class RepaymentPlannerOverviewScreen extends ConsumerWidget {
                 return ListView.separated(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 100),
                   itemCount: debts.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 18),
+                  separatorBuilder: (_, _) => const SizedBox(height: 18),
                   itemBuilder: (BuildContext context, int index) {
                     final DebtAccount account = debts[index];
                     return Column(
