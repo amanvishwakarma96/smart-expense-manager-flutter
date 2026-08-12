@@ -63,3 +63,7 @@ Encrypted financial snapshot version 7 includes repayment-plan metadata inside t
 Versions 1 through 6 remain restorable; because those snapshots predate repayment plans, restoring one clears current plan metadata instead of merging old financial state with a newer schedule.
 
 Deleting a parent debt permanently or using Delete All also removes its repayment-plan metadata.
+
+## Validation boundary
+
+Every Phase 15 merge candidate must pass Isar generation, source formatting, strict `flutter analyze --fatal-infos`, the full Flutter test suite, an Android debug APK build, and the existing 16 KB APK/native-library compatibility check. Pull-request jobs never receive the release signing key; signed APK/AAB verification remains a protected `main`-branch gate after merge.
