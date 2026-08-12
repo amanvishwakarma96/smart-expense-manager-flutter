@@ -313,9 +313,10 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
                       inspection.debtAccounts,
                     ),
                     _summaryLine('Debt ledger entries', inspection.debtEntries),
+                    _summaryLine('Repayment plans', inspection.repaymentPlans),
                     const SizedBox(height: 14),
                     const Text(
-                      'Continuing permanently replaces the current transactions, recurring items, reminder preferences, categories, budgets, merchant rules, savings goals, and debt/loan ledgers on this device. Obsolete scheduled reminders will be cancelled.',
+                      'Continuing permanently replaces the current transactions, recurring items, reminder preferences, categories, budgets, merchant rules, savings goals, debt/loan ledgers, and repayment plans on this device. Obsolete scheduled reminders will be cancelled.',
                     ),
                   ],
                 ),
@@ -388,7 +389,7 @@ class _BackupSettingsCardState extends ConsumerState<BackupSettingsCard> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Export only when you choose. Backups protect transactions, recurring schedules, reminder preferences, rules, goals, and debt/loan ledgers without including the installation encryption key.',
+              'Export only when you choose. Backups protect transactions, recurring schedules, reminder preferences, rules, goals, debt/loan ledgers, and repayment plans without including the installation encryption key.',
             ),
             if (showReminder) ...<Widget>[
               const SizedBox(height: 14),
