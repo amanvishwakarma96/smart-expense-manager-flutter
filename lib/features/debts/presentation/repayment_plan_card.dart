@@ -6,6 +6,7 @@ import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/debts/domain/debt_account.dart';
 import 'package:smart_expense_manager/features/debts/domain/debt_repayment_plan.dart';
+import 'package:smart_expense_manager/features/debts/presentation/payoff_scenario_screen.dart';
 import 'package:smart_expense_manager/features/debts/presentation/repayment_plan_editor_screen.dart';
 
 class RepaymentPlanCard extends ConsumerWidget {
@@ -32,6 +33,17 @@ class RepaymentPlanCard extends ConsumerWidget {
       MaterialPageRoute<void>(
         builder: (_) =>
             RepaymentPlanEditorScreen(account: account, existingPlan: plan),
+      ),
+    );
+  }
+
+  Future<void> _openPayoffSimulator(
+    BuildContext context,
+    DebtRepaymentPlan plan,
+  ) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PayoffScenarioScreen(account: account, plan: plan),
       ),
     );
   }
@@ -292,6 +304,13 @@ class RepaymentPlanCard extends ConsumerWidget {
                               _openEditor(context, ref, plan: plan),
                           icon: const Icon(Icons.edit_rounded),
                           label: const Text('Edit plan'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: account.outstanding <= 0.01
+                              ? null
+                              : () => _openPayoffSimulator(context, plan),
+                          icon: const Icon(Icons.auto_graph_rounded),
+                          label: const Text('Try payoff options'),
                         ),
                         OutlinedButton.icon(
                           onPressed: () => ref
