@@ -47,6 +47,7 @@ void main() {
       expect(result.recurringTransactions, 1);
       expect(result.debtAccounts, 0);
       expect(result.debtEntries, 0);
+      expect(result.repaymentPlans, 0);
       expect(result.createdAt.toUtc(), DateTime.utc(2026, 8, 10, 8));
     },
   );
@@ -84,6 +85,40 @@ void main() {
     expect(result.snapshotVersion, 6);
     expect(result.debtAccounts, 2);
     expect(result.debtEntries, 3);
+    expect(result.repaymentPlans, 0);
+  });
+
+  test('backup v7 preview includes repayment plan counts', () async {
+    final Uint8List bytes = await codec.encrypt(
+      password: 'strong-password',
+      payload: <String, Object?>{
+        'snapshotVersion': 7,
+        'createdAt': '2026-08-12T08:00:00.000Z',
+        'categories': <Object?>[
+          <String, Object?>{'id': 1, 'name': 'Other'},
+        ],
+        'merchantRules': <Object?>[],
+        'transactions': <Object?>[],
+        'recurringTransactions': <Object?>[],
+        'savingsGoals': <Object?>[],
+        'debtAccounts': <Object?>[
+          <String, Object?>{'id': 1},
+        ],
+        'debtEntries': <Object?>[],
+        'repaymentPlans': <Object?>[
+          <String, Object?>{'id': 20, 'debtId': 1},
+        ],
+      },
+    );
+
+    final BackupInspection result = await service.inspect(
+      bytes: bytes,
+      password: 'strong-password',
+    );
+
+    expect(result.snapshotVersion, 7);
+    expect(result.debtAccounts, 1);
+    expect(result.repaymentPlans, 1);
   });
 
   test('rejects unsupported snapshot versions before confirmation', () async {
