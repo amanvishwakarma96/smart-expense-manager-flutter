@@ -74,7 +74,11 @@ class RepaymentPlanCard extends ConsumerWidget {
           loading: () => const Card(
             child: Padding(
               padding: EdgeInsets.all(18),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: CircularProgressIndicator(
+                  semanticsLabel: 'Loading repayment plan',
+                ),
+              ),
             ),
           ),
           error: (Object error, StackTrace stackTrace) => Card(
@@ -193,7 +197,9 @@ class RepaymentPlanCard extends ConsumerWidget {
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ],
-                    if (!plan.isPaused && projection.overdueAmount > 0.01) ...<Widget>[
+                    if (!plan.isPaused &&
+                        projection.health == RepaymentHealth.overdue &&
+                        projection.overdueAmount > 0.01) ...<Widget>[
                       const SizedBox(height: 6),
                       Text(
                         'Behind plan by ${_amount(projection.overdueAmount)}',
@@ -201,6 +207,15 @@ class RepaymentPlanCard extends ConsumerWidget {
                           color: Theme.of(context).colorScheme.error,
                           fontWeight: FontWeight.w800,
                         ),
+                      ),
+                    ],
+                    if (!plan.isPaused &&
+                        projection.health == RepaymentHealth.dueToday &&
+                        projection.overdueAmount > 0.01) ...<Widget>[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Scheduled due today ${_amount(projection.overdueAmount)}',
+                        style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ],
                     if (!plan.isPaused &&
