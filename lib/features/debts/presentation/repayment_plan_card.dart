@@ -64,7 +64,9 @@ class RepaymentPlanCard extends ConsumerWidget {
         ) ??
         false;
     if (confirmed) {
-      await ref.read(debtRepaymentPlanRepositoryProvider).deleteForDebt(plan.debtId);
+      await ref
+          .read(debtRepaymentPlanRepositoryProvider)
+          .deleteForDebt(plan.debtId);
     }
   }
 
@@ -148,7 +150,7 @@ class RepaymentPlanCard extends ConsumerWidget {
                     RepaymentHealth.paymentTooLow => 'Payment too low',
                   };
             final Color healthColor = plan.isPaused
-                ? AppPalette.lilac
+                ? AppPalette.lavender
                 : switch (projection.health) {
                     RepaymentHealth.overdue || RepaymentHealth.paymentTooLow =>
                       AppPalette.peach,
