@@ -64,6 +64,23 @@ void main() {
     expect(result.installments[2].dueDate, DateTime(2027, 3, 31));
   });
 
+  test('month-end anchor survives an already covered installment', () {
+    final RepaymentProjection result = service.project(
+      plan: plan(
+        installment: 500,
+        firstDueDate: DateTime(2027, 1, 31),
+        startingOutstanding: 1500,
+      ),
+      currentOutstanding: 1000,
+      totalRepaid: 500,
+      now: DateTime(2027, 2, 1),
+    );
+
+    expect(result.nextDueDate, DateTime(2027, 2, 28));
+    expect(result.installments[0].dueDate, DateTime(2027, 2, 28));
+    expect(result.installments[1].dueDate, DateTime(2027, 3, 31));
+  });
+
   test('missed scheduled amount is surfaced as overdue', () {
     final RepaymentProjection result = service.project(
       plan: plan(
