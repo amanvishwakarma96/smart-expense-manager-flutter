@@ -7,6 +7,7 @@ import 'package:smart_expense_manager/features/challenges/data/repositories/week
 import 'package:smart_expense_manager/features/challenges/domain/weekly_challenge.dart';
 import 'package:smart_expense_manager/features/debts/data/repositories/debt_repayment_plan_repository.dart';
 import 'package:smart_expense_manager/features/debts/data/repositories/debt_repository.dart';
+import 'package:smart_expense_manager/features/debts/data/repositories/repayment_aware_debt_repository.dart';
 import 'package:smart_expense_manager/features/debts/domain/debt_account.dart';
 import 'package:smart_expense_manager/features/debts/domain/debt_repayment_plan.dart';
 import 'package:smart_expense_manager/features/debts/services/debt_reminder_service.dart';
@@ -94,9 +95,10 @@ recurringTransactionRepositoryProvider =
 
 final Provider<DebtRepository> debtRepositoryProvider =
     Provider<DebtRepository>((Ref ref) {
-      return DebtRepository(
+      return RepaymentAwareDebtRepository(
         ref.watch(isarProvider),
         ref.watch(cipherProvider),
+        repaymentPlans: ref.watch(debtRepaymentPlanRepositoryProvider),
         reminderService: ref.watch(debtReminderServiceProvider),
       );
     });
@@ -168,10 +170,12 @@ final StreamProvider<List<DebtAccount>> debtAccountsProvider =
       return ref.watch(debtRepositoryProvider).watchActive();
     });
 
-final StreamProviderFamily<DebtRepaymentPlan?, int> debtRepaymentPlanProvider =
-    StreamProvider.family<DebtRepaymentPlan?, int>((Ref ref, int debtId) {
-      return ref.watch(debtRepaymentPlanRepositoryProvider).watchForDebt(debtId);
-    });
+final debtRepaymentPlanProvider = StreamProvider.family<DebtRepaymentPlan?, int>((
+  Ref ref,
+  int debtId,
+) {
+  return ref.watch(debtRepaymentPlanRepositoryProvider).watchForDebt(debtId);
+});
 
 final StreamProvider<List<WeeklyChallenge>> weeklyChallengesProvider =
     StreamProvider<List<WeeklyChallenge>>((Ref ref) {
