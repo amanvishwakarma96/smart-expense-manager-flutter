@@ -2,6 +2,48 @@
 
 All notable changes to PiggyAI will be documented in this file.
 
+## [0.13.0] - Unreleased
+
+### Added
+
+- A fully local **EMI & Repayment Planner** for existing debt and loan ledgers,
+  with weekly or monthly installment schedules and an optional APR used only for
+  deterministic projections.
+- Repayment-plan health states for on-track, due-today, behind-plan, settled, and
+  installment-too-low scenarios.
+- Local projections for next/earliest-unpaid due date, overdue gap, estimated
+  payoff date, remaining payment count, and projected principal/interest split.
+- A dedicated repayment-planner workspace inside Plan with privacy-masked values,
+  plus explicit create, edit/replan, pause/resume, and delete controls.
+- Encrypted backup snapshot version 7 with repayment-plan records and restore
+  preview counts.
+- Phase 15 repayment math, month-end cadence, backup, lifecycle, privacy, and
+  offline regression coverage.
+
+### Changed
+
+- Monthly repayment schedules preserve their original due-day anchor across short
+  months, including Jan-31 → Feb-28/29 → Mar-31 behavior.
+- Editing a repayment plan replans from the current debt outstanding and current
+  repayment total while leaving all historical transactions and ledger entries
+  unchanged.
+- Deleting a debt or using Delete All now removes its local repayment-plan
+  metadata as part of the same user-controlled lifecycle.
+- Restoring v1-v6 backups clears newer repayment-plan metadata rather than
+  merging it; v7 validates one plan per known debt before replacement.
+- App version metadata is advanced to `0.13.0+13`.
+
+### Security
+
+- Repayment plans are guidance only: they never create an EMI transaction, mark
+  an installment paid, create a debt-ledger movement, or change a debt balance.
+- Plan calculations are deterministic and fully on-device; no financial model,
+  rate, due date, or projection is sent to a remote service.
+- Repayment-plan backup data is included only inside the explicit
+  password-encrypted local backup envelope.
+- No backend, cloud sync, HTTP client, remote AI, analytics, telemetry,
+  advertising, or Android `INTERNET` permission was introduced.
+
 ## [0.12.0] - Unreleased
 
 ### Added
@@ -293,7 +335,7 @@ All notable changes to PiggyAI will be documented in this file.
 - Due recurring occurrences enter the pending-review queue instead of being
   confirmed automatically.
 - Recurring item creation, editing, pausing, resuming, and deletion in Settings.
-- Editable confirmed transaction history and local transaction deletion.
+- Editable confirmed transaction history with local transaction deletion.
 - Monthly local insights for daily average, top category, and spending movement
   versus the previous month.
 - Animated playful empty states, colorful summary cards, richer tactile
