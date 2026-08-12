@@ -30,10 +30,8 @@ class RepaymentPlanCard extends ConsumerWidget {
   }) async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => RepaymentPlanEditorScreen(
-          account: account,
-          existingPlan: plan,
-        ),
+        builder: (_) =>
+            RepaymentPlanEditorScreen(account: account, existingPlan: plan),
       ),
     );
   }
@@ -43,7 +41,8 @@ class RepaymentPlanCard extends ConsumerWidget {
     WidgetRef ref,
     DebtRepaymentPlan plan,
   ) async {
-    final bool confirmed = await showDialog<bool>(
+    final bool confirmed =
+        await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) => AlertDialog(
             title: const Text('Delete repayment plan?'),
@@ -72,7 +71,9 @@ class RepaymentPlanCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(debtRepaymentPlanProvider(account.id)).when(
+    return ref
+        .watch(debtRepaymentPlanProvider(account.id))
+        .when(
           loading: () => const Card(
             child: Padding(
               padding: EdgeInsets.all(18),
@@ -95,9 +96,8 @@ class RepaymentPlanCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: () => ref.invalidate(
-                      debtRepaymentPlanProvider(account.id),
-                    ),
+                    onPressed: () =>
+                        ref.invalidate(debtRepaymentPlanProvider(account.id)),
                     child: const Text('Retry'),
                   ),
                 ],
@@ -152,8 +152,8 @@ class RepaymentPlanCard extends ConsumerWidget {
             final Color healthColor = plan.isPaused
                 ? AppPalette.lavender
                 : switch (projection.health) {
-                    RepaymentHealth.overdue || RepaymentHealth.paymentTooLow =>
-                      AppPalette.peach,
+                    RepaymentHealth.overdue ||
+                    RepaymentHealth.paymentTooLow => AppPalette.peach,
                     RepaymentHealth.settled => AppPalette.mint,
                     _ => AppPalette.sky,
                   };
@@ -192,7 +192,8 @@ class RepaymentPlanCard extends ConsumerWidget {
                     Text(
                       '${plan.cadence.label} • ${_amount(plan.installmentAmount)}${plan.annualInterestRatePct > 0 ? ' • ${plan.annualInterestRatePct.toStringAsFixed(2)}% APR' : ''}',
                     ),
-                    if (!plan.isPaused && projection.nextDueDate != null) ...<Widget>[
+                    if (!plan.isPaused &&
+                        projection.nextDueDate != null) ...<Widget>[
                       const SizedBox(height: 8),
                       Text(
                         '${projection.health == RepaymentHealth.overdue ? 'Earliest unpaid due' : 'Next due'} ${_dateFormat.format(projection.nextDueDate!)}',
@@ -236,13 +237,15 @@ class RepaymentPlanCard extends ConsumerWidget {
                       ),
                     ],
                     if (!plan.isPaused &&
-                        projection.health == RepaymentHealth.paymentTooLow) ...<Widget>[
+                        projection.health ==
+                            RepaymentHealth.paymentTooLow) ...<Widget>[
                       const SizedBox(height: 8),
                       const Text(
                         'The planned installment does not cover one period of projected interest. Increase the payment or revise the APR.',
                       ),
                     ],
-                    if (!plan.isPaused && projection.installments.isNotEmpty) ...<Widget>[
+                    if (!plan.isPaused &&
+                        projection.installments.isNotEmpty) ...<Widget>[
                       const SizedBox(height: 14),
                       const Divider(),
                       const SizedBox(height: 6),
@@ -251,22 +254,28 @@ class RepaymentPlanCard extends ConsumerWidget {
                         style: TextStyle(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 8),
-                      ...projection.installments.take(3).map(
-                        (RepaymentInstallment item) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 5),
-                          child: Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: Text(_dateFormat.format(item.dueDate)),
+                      ...projection.installments
+                          .take(3)
+                          .map(
+                            (RepaymentInstallment item) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 5),
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text(
+                                      _dateFormat.format(item.dueDate),
+                                    ),
+                                  ),
+                                  Text(
+                                    _amount(item.payment),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                _amount(item.payment),
-                                style: const TextStyle(fontWeight: FontWeight.w800),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
                     ],
                     const SizedBox(height: 12),
                     const Text(
@@ -279,7 +288,8 @@ class RepaymentPlanCard extends ConsumerWidget {
                       runSpacing: 8,
                       children: <Widget>[
                         OutlinedButton.icon(
-                          onPressed: () => _openEditor(context, ref, plan: plan),
+                          onPressed: () =>
+                              _openEditor(context, ref, plan: plan),
                           icon: const Icon(Icons.edit_rounded),
                           label: const Text('Edit plan'),
                         ),

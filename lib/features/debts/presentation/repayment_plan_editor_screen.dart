@@ -39,7 +39,9 @@ class _RepaymentPlanEditorScreenState
     final DebtRepaymentPlan? existing = widget.existingPlan;
     _cadence = existing?.cadence ?? RepaymentCadence.monthly;
     _amountController = TextEditingController(
-      text: existing == null ? '' : existing.installmentAmount.toStringAsFixed(0),
+      text: existing == null
+          ? ''
+          : existing.installmentAmount.toStringAsFixed(0),
     );
     _rateController = TextEditingController(
       text: existing == null || existing.annualInterestRatePct == 0
@@ -48,7 +50,9 @@ class _RepaymentPlanEditorScreenState
     );
     final DateTime today = _today();
     final DateTime candidate = existing?.firstDueDate ?? _defaultDueDate(today);
-    _firstDueDate = candidate.isBefore(today) ? _defaultDueDate(today) : candidate;
+    _firstDueDate = candidate.isBefore(today)
+        ? _defaultDueDate(today)
+        : candidate;
   }
 
   @override
@@ -111,7 +115,9 @@ class _RepaymentPlanEditorScreenState
       _errorText = null;
     });
     try {
-      await ref.read(debtRepaymentPlanRepositoryProvider).save(
+      await ref
+          .read(debtRepaymentPlanRepositoryProvider)
+          .save(
             debtId: widget.account.id,
             cadence: _cadence,
             installmentAmount: amount,
@@ -137,7 +143,9 @@ class _RepaymentPlanEditorScreenState
   Widget build(BuildContext context) {
     final bool editing = widget.existingPlan != null;
     return Scaffold(
-      appBar: AppBar(title: Text(editing ? 'Edit repayment plan' : 'Plan repayments')),
+      appBar: AppBar(
+        title: Text(editing ? 'Edit repayment plan' : 'Plan repayments'),
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -151,10 +159,11 @@ class _RepaymentPlanEditorScreenState
               decoration: const InputDecoration(labelText: 'Cadence'),
               items: RepaymentCadence.values
                   .map(
-                    (RepaymentCadence cadence) => DropdownMenuItem<RepaymentCadence>(
-                      value: cadence,
-                      child: Text(cadence.label),
-                    ),
+                    (RepaymentCadence cadence) =>
+                        DropdownMenuItem<RepaymentCadence>(
+                          value: cadence,
+                          child: Text(cadence.label),
+                        ),
                   )
                   .toList(growable: false),
               onChanged: (RepaymentCadence? value) {
@@ -172,7 +181,9 @@ class _RepaymentPlanEditorScreenState
             const SizedBox(height: 14),
             TextField(
               controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 labelText: 'Planned installment',
                 prefixText: '₹ ',
@@ -181,7 +192,9 @@ class _RepaymentPlanEditorScreenState
             const SizedBox(height: 14),
             TextField(
               controller: _rateController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 labelText: 'Annual interest rate (optional)',
                 suffixText: '% APR',
@@ -225,7 +238,9 @@ class _RepaymentPlanEditorScreenState
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.calculate_rounded),
-              label: Text(editing ? 'Replan from current balance' : 'Save plan'),
+              label: Text(
+                editing ? 'Replan from current balance' : 'Save plan',
+              ),
             ),
           ],
         ),

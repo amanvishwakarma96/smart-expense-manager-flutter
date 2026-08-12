@@ -14,7 +14,9 @@ class RepaymentPlannerOverviewScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('EMI & repayment planner')),
       body: SafeArea(
-        child: ref.watch(debtAccountsProvider).when(
+        child: ref
+            .watch(debtAccountsProvider)
+            .when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (Object error, StackTrace stackTrace) => Center(
                 child: Padding(
@@ -63,7 +65,9 @@ class RepaymentPlannerOverviewScreen extends ConsumerWidget {
                                   children: <Widget>[
                                     Text(
                                       account.counterparty,
-                                      style: Theme.of(context).textTheme.titleLarge,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
                                     ),
                                     Text(account.kind.label),
                                   ],
@@ -73,7 +77,9 @@ class RepaymentPlannerOverviewScreen extends ConsumerWidget {
                                 privacyMode
                                     ? '$defaultCurrencySymbol •••••'
                                     : inrCurrency.format(account.outstanding),
-                                style: const TextStyle(fontWeight: FontWeight.w900),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
                             ],
                           ),

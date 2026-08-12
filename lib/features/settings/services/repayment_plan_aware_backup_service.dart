@@ -49,7 +49,8 @@ class RepaymentPlanAwareBackupService extends DebtAwareBackupService {
         .where()
         .findAll();
     plans.sort(
-      (DebtRepaymentPlanModel a, DebtRepaymentPlanModel b) => a.id.compareTo(b.id),
+      (DebtRepaymentPlanModel a, DebtRepaymentPlanModel b) =>
+          a.id.compareTo(b.id),
     );
 
     payload
@@ -157,13 +158,19 @@ class RepaymentPlanAwareBackupService extends DebtAwareBackupService {
       final int id = _positiveInt(map['id'], 'repaymentPlan.id');
       final int debtId = _positiveInt(map['debtId'], 'repaymentPlan.debtId');
       if (!ids.add(id)) {
-        throw const FormatException('Backup contains duplicate repayment plan IDs');
+        throw const FormatException(
+          'Backup contains duplicate repayment plan IDs',
+        );
       }
       if (!debtIds.contains(debtId)) {
-        throw const FormatException('Repayment plan references an unknown debt');
+        throw const FormatException(
+          'Repayment plan references an unknown debt',
+        );
       }
       if (!plannedDebtIds.add(debtId)) {
-        throw const FormatException('A debt contains more than one repayment plan');
+        throw const FormatException(
+          'A debt contains more than one repayment plan',
+        );
       }
       final double installment = _positiveNumber(
         map['installmentAmount'],
@@ -176,28 +183,32 @@ class RepaymentPlanAwareBackupService extends DebtAwareBackupService {
       if (rate > 100) {
         throw const FormatException('Repayment plan APR exceeds 100%');
       }
-      final DebtRepaymentPlanModel plan = DebtRepaymentPlanModel(
-        id: id,
-        debtId: debtId,
-        cadence: _cadence(map['cadence']),
-        installmentAmount: installment,
-        annualInterestRatePct: rate,
-        firstDueDate: _calendarDateTime(
-          map['firstDueDate'],
-          'repaymentPlan.firstDueDate',
-        ),
-        startingOutstanding: _nonNegativeNumber(
-          map['startingOutstanding'],
-          'repaymentPlan.startingOutstanding',
-        ),
-        baselineRepaidAmount: _nonNegativeNumber(
-          map['baselineRepaidAmount'],
-          'repaymentPlan.baselineRepaidAmount',
-        ),
-        isPaused: _bool(map['isPaused'], 'repaymentPlan.isPaused'),
-      )
-        ..createdAt = _dateTime(map['createdAt'], 'repaymentPlan.createdAt')
-        ..updatedAt = _dateTime(map['updatedAt'], 'repaymentPlan.updatedAt');
+      final DebtRepaymentPlanModel plan =
+          DebtRepaymentPlanModel(
+              id: id,
+              debtId: debtId,
+              cadence: _cadence(map['cadence']),
+              installmentAmount: installment,
+              annualInterestRatePct: rate,
+              firstDueDate: _calendarDateTime(
+                map['firstDueDate'],
+                'repaymentPlan.firstDueDate',
+              ),
+              startingOutstanding: _nonNegativeNumber(
+                map['startingOutstanding'],
+                'repaymentPlan.startingOutstanding',
+              ),
+              baselineRepaidAmount: _nonNegativeNumber(
+                map['baselineRepaidAmount'],
+                'repaymentPlan.baselineRepaidAmount',
+              ),
+              isPaused: _bool(map['isPaused'], 'repaymentPlan.isPaused'),
+            )
+            ..createdAt = _dateTime(map['createdAt'], 'repaymentPlan.createdAt')
+            ..updatedAt = _dateTime(
+              map['updatedAt'],
+              'repaymentPlan.updatedAt',
+            );
       plans.add(plan);
     }
     return plans;

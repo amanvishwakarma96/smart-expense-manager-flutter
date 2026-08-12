@@ -54,10 +54,12 @@ final Provider<DebtReminderService> debtReminderServiceProvider =
       return DebtReminderService(isar: ref.watch(isarProvider));
     });
 
-final Provider<DebtRepaymentPlanRepository> debtRepaymentPlanRepositoryProvider =
-    Provider<DebtRepaymentPlanRepository>((Ref ref) {
-      return DebtRepaymentPlanRepository(ref.watch(isarProvider));
-    });
+final Provider<DebtRepaymentPlanRepository>
+debtRepaymentPlanRepositoryProvider = Provider<DebtRepaymentPlanRepository>((
+  Ref ref,
+) {
+  return DebtRepaymentPlanRepository(ref.watch(isarProvider));
+});
 
 final Provider<RepaymentScheduleService> repaymentScheduleServiceProvider =
     Provider<RepaymentScheduleService>((Ref ref) {
@@ -170,12 +172,12 @@ final StreamProvider<List<DebtAccount>> debtAccountsProvider =
       return ref.watch(debtRepositoryProvider).watchActive();
     });
 
-final debtRepaymentPlanProvider = StreamProvider.family<DebtRepaymentPlan?, int>((
-  Ref ref,
-  int debtId,
-) {
-  return ref.watch(debtRepaymentPlanRepositoryProvider).watchForDebt(debtId);
-});
+final debtRepaymentPlanProvider =
+    StreamProvider.family<DebtRepaymentPlan?, int>((Ref ref, int debtId) {
+      return ref
+          .watch(debtRepaymentPlanRepositoryProvider)
+          .watchForDebt(debtId);
+    });
 
 final StreamProvider<List<WeeklyChallenge>> weeklyChallengesProvider =
     StreamProvider<List<WeeklyChallenge>>((Ref ref) {

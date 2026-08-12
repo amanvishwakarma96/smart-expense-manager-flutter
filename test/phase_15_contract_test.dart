@@ -76,23 +76,29 @@ void main() {
     expect(source, contains('_repaymentPlans.clearAll()'));
   });
 
-  test('encrypted backup v7 includes repayment plans and old restores clear them', () {
-    final String backup = File(
-      'lib/features/settings/services/'
-      'repayment_plan_aware_backup_service.dart',
-    ).readAsStringSync();
-    final String inspection = File(
-      'lib/features/settings/services/backup_inspection_service.dart',
-    ).readAsStringSync();
+  test(
+    'encrypted backup v7 includes repayment plans and old restores clear them',
+    () {
+      final String backup = File(
+        'lib/features/settings/services/'
+        'repayment_plan_aware_backup_service.dart',
+      ).readAsStringSync();
+      final String inspection = File(
+        'lib/features/settings/services/backup_inspection_service.dart',
+      ).readAsStringSync();
 
-    expect(backup, contains('snapshotVersion = 7'));
-    expect(backup, contains("['repaymentPlans']"));
-    expect(backup, contains("'firstDueDate': _calendarDate(plan.firstDueDate)"));
-    expect(backup, contains('_calendarDateTime('));
-    expect(backup, contains('debtRepaymentPlanModels.clear()'));
-    expect(backup, contains('A debt contains more than one repayment plan'));
-    expect(inspection, contains('repaymentPlans'));
-  });
+      expect(backup, contains('snapshotVersion = 7'));
+      expect(backup, contains("['repaymentPlans']"));
+      expect(
+        backup,
+        contains("'firstDueDate': _calendarDate(plan.firstDueDate)"),
+      );
+      expect(backup, contains('_calendarDateTime('));
+      expect(backup, contains('debtRepaymentPlanModels.clear()'));
+      expect(backup, contains('A debt contains more than one repayment plan'));
+      expect(inspection, contains('repaymentPlans'));
+    },
+  );
 
   test('Phase 15 keeps Android network permission absent', () {
     final String manifest = File(
@@ -103,7 +109,10 @@ void main() {
     ).readAsStringSync();
 
     expect(manifest, isNot(contains('android.permission.INTERNET')));
-    expect(plannerDocs, contains('never changes financial records automatically'));
+    expect(
+      plannerDocs,
+      contains('never changes financial records automatically'),
+    );
     expect(plannerDocs, contains('no HTTP client'));
     expect(plannerDocs, contains('calendar-only `YYYY-MM-DD`'));
   });

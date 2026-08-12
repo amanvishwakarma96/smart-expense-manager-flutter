@@ -7,7 +7,10 @@ void main() {
     final String changelog = File('CHANGELOG.md').readAsStringSync();
 
     expect(changelog, contains('## [0.12.0] - Unreleased'));
-    expect(changelog, contains('App version metadata is advanced to `0.12.0+12`'));
+    expect(
+      changelog,
+      contains('App version metadata is advanced to `0.12.0+12`'),
+    );
     expect(changelog, contains('Debt & Loan Manager'));
   });
 
@@ -111,10 +114,7 @@ void main() {
     expect(backup, contains("['debtEntries']"));
     expect(backup, contains('debtAccountModels.putAll'));
     expect(backup, contains('debtLedgerEntryModels.putAll'));
-    expect(
-      repaymentBackup,
-      contains('extends DebtAwareBackupService'),
-    );
+    expect(repaymentBackup, contains('extends DebtAwareBackupService'));
   });
 
   test(

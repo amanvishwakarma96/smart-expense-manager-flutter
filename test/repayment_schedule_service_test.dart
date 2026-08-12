@@ -100,25 +100,28 @@ void main() {
     expect(result.nextDueDate, DateTime(2026, 6, 10));
   });
 
-  test('overdue history stays visible but projected payments are not in the past', () {
-    final DateTime today = DateTime(2026, 8, 12);
-    final RepaymentProjection result = service.project(
-      plan: plan(
-        installment: 1000,
-        firstDueDate: DateTime(2026, 6, 10),
-        startingOutstanding: 1500,
-      ),
-      currentOutstanding: 1500,
-      totalRepaid: 0,
-      now: today,
-    );
+  test(
+    'overdue history stays visible but projected payments are not in the past',
+    () {
+      final DateTime today = DateTime(2026, 8, 12);
+      final RepaymentProjection result = service.project(
+        plan: plan(
+          installment: 1000,
+          firstDueDate: DateTime(2026, 6, 10),
+          startingOutstanding: 1500,
+        ),
+        currentOutstanding: 1500,
+        totalRepaid: 0,
+        now: today,
+      );
 
-    expect(result.health, RepaymentHealth.overdue);
-    expect(result.nextDueDate, DateTime(2026, 6, 10));
-    expect(result.installments.first.dueDate, DateTime(2026, 9, 10));
-    expect(result.installments.first.dueDate.isBefore(today), isFalse);
-    expect(result.estimatedPayoffDate!.isBefore(today), isFalse);
-  });
+      expect(result.health, RepaymentHealth.overdue);
+      expect(result.nextDueDate, DateTime(2026, 6, 10));
+      expect(result.installments.first.dueDate, DateTime(2026, 9, 10));
+      expect(result.installments.first.dueDate.isBefore(today), isFalse);
+      expect(result.estimatedPayoffDate!.isBefore(today), isFalse);
+    },
+  );
 
   test('an unpaid installment due today is due today rather than overdue', () {
     final RepaymentProjection result = service.project(
@@ -139,11 +142,7 @@ void main() {
 
   test('payment too low to cover projected interest is flagged', () {
     final RepaymentProjection result = service.project(
-      plan: plan(
-        installment: 50,
-        rate: 24,
-        startingOutstanding: 10000,
-      ),
+      plan: plan(installment: 50, rate: 24, startingOutstanding: 10000),
       currentOutstanding: 10000,
       totalRepaid: 0,
       now: DateTime(2026, 8, 12),
@@ -157,11 +156,7 @@ void main() {
 
   test('interest projection splits payment into interest and principal', () {
     final RepaymentProjection result = service.project(
-      plan: plan(
-        installment: 1000,
-        rate: 12,
-        startingOutstanding: 5000,
-      ),
+      plan: plan(installment: 1000, rate: 12, startingOutstanding: 5000),
       currentOutstanding: 5000,
       totalRepaid: 0,
       now: DateTime(2026, 8, 12),
