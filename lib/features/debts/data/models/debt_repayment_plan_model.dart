@@ -19,6 +19,8 @@ class DebtRepaymentPlanModel {
        updatedAt = DateTime.now();
 
   Id id;
+
+  @Index(unique: true, replace: false)
   int debtId;
 
   @enumerated
