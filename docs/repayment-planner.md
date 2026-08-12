@@ -58,6 +58,8 @@ Editing an existing plan intentionally creates a new planning baseline from the 
 
 All calculations run locally and deterministically. The feature has no HTTP client, remote AI model, analytics, telemetry, or network path.
 
-Encrypted financial snapshot version 7 includes repayment-plan metadata inside the same password-encrypted backup envelope. Versions 1 through 6 remain restorable; because those snapshots predate repayment plans, restoring one clears current plan metadata instead of merging old financial state with a newer schedule.
+Encrypted financial snapshot version 7 includes repayment-plan metadata inside the same password-encrypted backup envelope. The selected first due date is serialized as a calendar-only `YYYY-MM-DD` value rather than a timezone instant, so moving an encrypted backup between timezones cannot shift the installment day. Creation/update timestamps remain UTC instants.
+
+Versions 1 through 6 remain restorable; because those snapshots predate repayment plans, restoring one clears current plan metadata instead of merging old financial state with a newer schedule.
 
 Deleting a parent debt permanently or using Delete All also removes its repayment-plan metadata.
