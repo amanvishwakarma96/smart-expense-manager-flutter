@@ -17,8 +17,8 @@ import 'package:smart_expense_manager/features/goals/domain/savings_goal.dart';
 import 'package:smart_expense_manager/features/settings/services/backup_file_service.dart';
 import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/settings/services/budget_alert_service.dart';
-import 'package:smart_expense_manager/features/settings/services/debt_aware_backup_service.dart';
 import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
+import 'package:smart_expense_manager/features/settings/services/repayment_plan_aware_backup_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/category_model.dart';
 import 'package:smart_expense_manager/features/transactions/data/models/merchant_rule_model.dart';
@@ -123,7 +123,7 @@ final Provider<CategoryRepository> categoryRepositoryProvider =
 
 final Provider<LocalBackupService> localBackupServiceProvider =
     Provider<LocalBackupService>((Ref ref) {
-      return DebtAwareBackupService(
+      return RepaymentPlanAwareBackupService(
         ref.watch(weeklyChallengeRepositoryProvider),
         isar: ref.watch(isarProvider),
         cipher: ref.watch(cipherProvider),
