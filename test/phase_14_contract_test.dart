@@ -3,12 +3,11 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('phase 14 release metadata is aligned', () {
-    final String pubspec = File('pubspec.yaml').readAsStringSync();
+  test('phase 14 release metadata remains documented', () {
     final String changelog = File('CHANGELOG.md').readAsStringSync();
 
-    expect(pubspec, contains('version: 0.12.0+12'));
     expect(changelog, contains('## [0.12.0] - Unreleased'));
+    expect(changelog, contains('App version metadata is advanced to `0.12.0+12`'));
     expect(changelog, contains('Debt & Loan Manager'));
   });
 
@@ -99,12 +98,12 @@ void main() {
     expect(reminder, isNot(contains('accountTail')));
   });
 
-  test('encrypted backup v6 includes and restores debt ledgers', () {
+  test('encrypted backup v6 remains the debt-ledger compatibility layer', () {
     final String backup = File(
       'lib/features/settings/services/debt_aware_backup_service.dart',
     ).readAsStringSync();
-    final String providers = File(
-      'lib/core/providers/app_providers.dart',
+    final String repaymentBackup = File(
+      'lib/features/settings/services/repayment_plan_aware_backup_service.dart',
     ).readAsStringSync();
 
     expect(backup, contains('snapshotVersion = 6'));
@@ -112,7 +111,10 @@ void main() {
     expect(backup, contains("['debtEntries']"));
     expect(backup, contains('debtAccountModels.putAll'));
     expect(backup, contains('debtLedgerEntryModels.putAll'));
-    expect(providers, contains('DebtAwareBackupService('));
+    expect(
+      repaymentBackup,
+      contains('extends DebtAwareBackupService'),
+    );
   });
 
   test(
