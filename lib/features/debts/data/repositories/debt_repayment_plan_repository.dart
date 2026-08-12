@@ -113,16 +113,20 @@ class DebtRepaymentPlanRepository {
         .debtRepaymentPlanModels
         .where()
         .findAll();
-    final DebtRepaymentPlanModel? model = models
-        .where((DebtRepaymentPlanModel item) => item.debtId == debtId)
-        .firstOrNull;
+    DebtRepaymentPlanModel? model;
+    for (final DebtRepaymentPlanModel item in models) {
+      if (item.debtId == debtId) {
+        model = item;
+        break;
+      }
+    }
     if (model == null) {
       return;
     }
     model
       ..isPaused = paused
       ..updatedAt = DateTime.now();
-    await _isar.writeTxn(() => _isar.debtRepaymentPlanModels.put(model));
+    await _isar.writeTxn(() => _isar.debtRepaymentPlanModels.put(model!));
   }
 
   Future<void> deleteForDebt(int debtId) async {
