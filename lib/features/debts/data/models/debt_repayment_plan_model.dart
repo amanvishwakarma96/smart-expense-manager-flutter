@@ -11,12 +11,11 @@ class DebtRepaymentPlanModel {
     this.cadence = RepaymentCadence.monthly,
     this.installmentAmount = 0,
     this.annualInterestRatePct = 0,
-    DateTime? firstDueDate,
+    required this.firstDueDate,
     this.startingOutstanding = 0,
     this.baselineRepaidAmount = 0,
     this.isPaused = false,
-  }) : firstDueDate = firstDueDate ?? DateTime.now(),
-       createdAt = DateTime.now(),
+  }) : createdAt = DateTime.now(),
        updatedAt = DateTime.now();
 
   Id id;
