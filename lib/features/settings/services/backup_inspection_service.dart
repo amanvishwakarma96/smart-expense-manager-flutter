@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:smart_expense_manager/features/settings/services/debt_aware_backup_service.dart';
 import 'package:smart_expense_manager/features/settings/services/encrypted_backup_codec.dart';
 import 'package:smart_expense_manager/features/settings/services/local_backup_service.dart';
 
@@ -12,10 +13,14 @@ class BackupInspection extends BackupSnapshotSummary {
     required super.merchantRules,
     required super.recurringTransactions,
     required super.savingsGoals,
+    this.debtAccounts = 0,
+    this.debtEntries = 0,
   });
 
   final int snapshotVersion;
   final DateTime createdAt;
+  final int debtAccounts;
+  final int debtEntries;
 }
 
 class BackupInspectionService {
@@ -34,7 +39,9 @@ class BackupInspectionService {
     );
     final Object? rawVersion = payload['snapshotVersion'];
     if (rawVersion is! int ||
-        !LocalBackupService.supportedSnapshotVersions.contains(rawVersion)) {
+        !DebtAwareBackupService.supportedSnapshotVersions.contains(
+          rawVersion,
+        )) {
       throw const FormatException('Unsupported PiggyAI snapshot version');
     }
 
@@ -64,6 +71,12 @@ class BackupInspectionService {
     final List<Object?> goals = rawVersion >= 3
         ? _requiredList(payload['savingsGoals'], 'savingsGoals')
         : const <Object?>[];
+    final List<Object?> debtAccounts = rawVersion >= 6
+        ? _requiredList(payload['debtAccounts'], 'debtAccounts')
+        : const <Object?>[];
+    final List<Object?> debtEntries = rawVersion >= 6
+        ? _requiredList(payload['debtEntries'], 'debtEntries')
+        : const <Object?>[];
 
     return BackupInspection(
       snapshotVersion: rawVersion,
@@ -73,6 +86,8 @@ class BackupInspectionService {
       merchantRules: merchantRules.length,
       recurringTransactions: recurring.length,
       savingsGoals: goals.length,
+      debtAccounts: debtAccounts.length,
+      debtEntries: debtEntries.length,
     );
   }
 

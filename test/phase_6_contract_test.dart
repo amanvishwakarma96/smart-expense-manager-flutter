@@ -51,12 +51,17 @@ void main() {
     expect(source, contains('savingsGoalModels.clear()'));
   });
 
-  test('main navigation exposes one clear goals destination', () {
-    final String source = File('lib/app.dart').readAsStringSync();
+  test('main navigation keeps one clear goals destination through Plan', () {
+    final String app = File('lib/app.dart').readAsStringSync();
+    final String planning = File(
+      'lib/features/debts/presentation/planning_hub_screen.dart',
+    ).readAsStringSync();
 
-    expect(source, contains('GoalsCalendarScreen()'));
-    expect(source, contains("label: 'Goals'"));
-    expect(source, contains('_index <= 2'));
+    expect(app, contains('PlanningHubScreen()'));
+    expect(app, contains("label: 'Plan'"));
+    expect(planning, contains('GoalsCalendarScreen()'));
+    expect(planning, contains("title: 'Goals & calendar'"));
+    expect(app, contains('_index <= 2'));
   });
 
   test('phase six remains offline and playful', () {

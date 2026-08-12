@@ -14,6 +14,7 @@ lib/
 └── features/
     ├── challenges/
     ├── dashboard/
+    ├── debts/
     ├── goals/
     ├── settings/
     ├── sms_engine/
@@ -34,10 +35,27 @@ lib/
 10. Dashboard analysis reads confirmed local history. Subscription detection groups the last 90 days of non-recurring confirmed debits by normalized merchant and amount, then checks consecutive seven- or thirty-day intervals with a ±3 day tolerance. Existing recurring templates are excluded.
 11. Subscription suggestions are transient UI guidance. Dismissing a suggestion changes only dashboard state; accepting one opens the shared recurring editor with prefilled fields, and no recurring record is created until the user explicitly presses Save.
 12. Backup reminder metadata is separate from financial storage. A tiny unencrypted local JSON file contains only `lastSuccessfulBackupAt` and `snoozedUntil` timestamps. With at least one confirmed transaction, the Settings nudge appears when no backup is recorded or the last successful export is at least 30 days old, unless a 90-day snooze is still active.
-13. The successful-backup timestamp is recorded only after the encrypted backup has been created and the platform share flow reports success. Reminder metadata never participates in transaction, budget, goal, or recurring-item calculations.
-14. Riverpod streams refresh dashboard, settings, and budget views.
+13. The successful-backup timestamp is recorded only after the encrypted backup has been created and the platform share flow reports success. Reminder metadata never participates in transaction, budget, goal, recurring-item, or debt calculations.
+14. The Plan hub reads encrypted savings goals plus active debt/loan ledgers. Debt records are created only from an explicit editor Save; PiggyAI never turns an SMS or transaction into a debt automatically.
+15. A debt ledger may receive a manual increase/repayment entry after explicit Save, or a compatible confirmed transaction may be linked after explicit selection plus a second Link confirmation. Linking never edits the confirmed transaction.
+16. Riverpod streams refresh dashboard, settings, planning, and budget views.
 
 No step sends SMS or financial data over a network.
+
+## Debt and loan boundary
+
+The `features/debts/` feature owns private local planning for Borrowed, Lent, and Loan ledgers.
+
+- `DebtAccountModel` persists only encrypted counterparty and note text plus non-sensitive numeric/date metadata.
+- `DebtLedgerEntryModel` stores balance movement metadata and an encrypted optional note. A linked confirmed transaction is represented only by its local numeric ID; the transaction itself remains owned by the transactions feature.
+- Opening balance may be the current outstanding amount or ₹0 when the user intends to link the original principal transaction, avoiding principal double-counting.
+- Incoming `borrowed` transactions can increase Borrowed ledgers, while `loanReceived` transactions can increase formal Loan ledgers. They are intentionally not interchangeable.
+- `loanRepayment` debits can reduce Borrowed or Loan balances. `lent` debits increase a receivable, and `lentRepayment` credits reduce it without being treated as income.
+- Ordinary income/expense/transfer transactions are not linkable to a debt ledger merely because their amount happens to match.
+- Optional due reminders use inexact local scheduling and generic lock-screen text containing no counterparty, amount, account, balance, category, note, or raw SMS.
+- Archiving/deleting a ledger cancels its due reminder. Startup restores eligible reminders from local metadata.
+
+This feature does not create transactions, infer a person from SMS, auto-record repayments, or automatically change balances.
 
 ## SMS permission and consent boundary
 
@@ -56,9 +74,18 @@ Android SMS access is optional and supports PiggyAI's core SMS-based money-manag
 Encrypted restore has two explicit phases:
 
 1. `BackupInspectionService` decrypts the selected backup in memory, validates the supported snapshot version and basic collection shape, and returns only a summary containing the backup date/version and record counts. It has no Isar dependency and performs no writes.
-2. Settings shows that summary before the destructive replacement dialog. Only after the user explicitly chooses **Replace and restore** does `LocalBackupService.restoreEncryptedBackup` perform its existing deep validation and local replacement transaction.
+2. Settings shows that summary before the destructive replacement dialog. Only after the user explicitly chooses **Replace and restore** does the backup service perform deep validation and local replacement.
 
-The backup password is never persisted. Sensitive restored fields are encrypted again with the destination installation key before persistence.
+Phase 14 wraps the existing financial snapshot service with `DebtAwareBackupService`:
+
+- New exports use snapshot version 6 and add debt accounts plus debt-ledger entries to the same password-encrypted AES-GCM envelope.
+- Sensitive debt text is decrypted only in memory while constructing that password-protected envelope.
+- v6 restore validates debt IDs, entry references, linked transaction IDs, amounts, reminder configuration, and link uniqueness before the destructive base restore begins.
+- Restored counterparty and note text is encrypted again with the destination installation key before Isar persistence.
+- Versions 1 through 5 remain restorable. Because those formats had no debt collection, restoring an older snapshot clears current debt/loan state and its obsolete reminders instead of merging it.
+- After a v6 replacement, only reminders represented by restored debt metadata are rescheduled.
+
+The backup password is never persisted.
 
 ## Accessibility boundary
 
@@ -68,7 +95,7 @@ The backup password is never persisted. Sensitive restored fields are encrypted 
 - Primary buttons and icon buttons maintain padded touch targets of at least 48 logical pixels.
 - Decorative looping empty-state motion is disabled when the platform requests reduced animation; decorative graphics are excluded from the semantics tree.
 
-These presentation rules do not alter transaction, budget, goal, recurring, or backup behavior.
+These presentation rules do not alter transaction, budget, goal, recurring, debt, or backup behavior.
 
 ## Android release boundary
 
@@ -87,4 +114,5 @@ After merge to `main`, CI reconstructs the upload keystore temporarily from GitH
 - `docs/store/google-play-release.md` documents the SMS-based money-management permissions declaration, prominent-disclosure review-video flow, expected local-only Data safety posture, Play App Signing artifact flow, and remaining manual Play Console tasks.
 - `docs/store/app-store-release.md` documents the iOS manual-entry behavior, App Privacy posture, Xcode/iOS SDK submission requirement, privacy-manifest audit, and remaining manual App Store Connect tasks.
 - `docs/store/store-listing-copy.md` keeps Android SMS access visible as a core feature in Play listing/review copy and avoids claiming SMS access on iOS.
+- Debt/loan data does not change the network/data-sharing posture: it is local financial-planning data and appears off-device only when the user explicitly creates and shares an encrypted backup.
 - Any future dependency or architecture change that introduces networking, analytics, remote crash reporting, advertising, remote AI, account/cloud sync, or another sensitive permission requires a fresh store privacy and permissions audit before release.

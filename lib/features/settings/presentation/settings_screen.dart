@@ -134,8 +134,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title: const Text('Delete all local financial data?'),
           content: const Text(
             'This permanently removes transactions, recurring items, goals, '
-            'categories, rules, and the installation encryption key. '
-            'There is no cloud copy.',
+            'debt and loan ledgers, categories, rules, and the installation '
+            'encryption key. There is no cloud copy.',
           ),
           actions: <Widget>[
             TextButton(
@@ -153,6 +153,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (confirmed != true) {
       return;
     }
+    await ref.read(debtRepositoryProvider).clearAll();
     await ref.read(transactionRepositoryProvider).clearAll();
     await SecureCipherService.deleteInstallationKey();
     ref.read(resetRequiredProvider.notifier).requireRestart();

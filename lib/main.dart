@@ -9,6 +9,7 @@ import 'package:smart_expense_manager/core/database/app_database.dart';
 import 'package:smart_expense_manager/core/providers/app_providers.dart';
 import 'package:smart_expense_manager/core/security/secure_cipher_service.dart';
 import 'package:smart_expense_manager/features/challenges/data/repositories/weekly_challenge_repository.dart';
+import 'package:smart_expense_manager/features/debts/services/debt_reminder_service.dart';
 import 'package:smart_expense_manager/features/settings/services/bill_reminder_service.dart';
 import 'package:smart_expense_manager/features/sms_engine/services/sms_engine_coordinator.dart';
 import 'package:smart_expense_manager/features/transactions/data/repositories/category_repository.dart';
@@ -40,6 +41,7 @@ Future<void> main() async {
     categoryRepository: categories,
   );
   final BillReminderService billReminders = BillReminderService(isar: isar);
+  final DebtReminderService debtReminders = DebtReminderService(isar: isar);
   final RecurringTransactionRepository recurring =
       RecurringTransactionRepository(
         isar,
@@ -48,6 +50,7 @@ Future<void> main() async {
       );
   unawaited(smsEngine.startAutomaticProcessing());
   unawaited(_prepareRecurringItems(recurring, billReminders));
+  unawaited(debtReminders.syncAll());
   unawaited(WeeklyChallengeRepository(isar).finalizeExpired());
 
   runApp(
@@ -56,6 +59,7 @@ Future<void> main() async {
         isarProvider.overrideWithValue(isar),
         cipherProvider.overrideWithValue(cipher),
         billReminderServiceProvider.overrideWithValue(billReminders),
+        debtReminderServiceProvider.overrideWithValue(debtReminders),
       ],
       child: const PiggyAiApp(),
     ),
