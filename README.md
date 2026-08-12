@@ -63,14 +63,18 @@ after confirmation.
 - A private Debt & Loan Manager for borrowed money, money lent to others, and
   formal loans, with outstanding balances, repayment progress, optional due
   reminders, and explicit confirmed-transaction linking.
-- A combined Plan destination for Goals & Calendar plus Debts & Loans.
+- A deterministic EMI & Repayment Planner with weekly/monthly schedules, next
+  due and overdue guidance, payoff estimates, and optional APR-based
+  principal/interest projections without auto-posting payments.
+- A combined Plan destination for Goals & Calendar, Debts & Loans, and repayment
+  planning.
 - Category spending and seven-day cash-flow charts.
 - Animated pastel cards, tactile controls, colorful summaries, and friendly
   empty states.
 - Privacy amount masking and configurable biometric/device-lock timing.
 - Password-protected encrypted local backup export and restore, including
-  recurring schedules, reminder preferences, savings goals, and debt/loan
-  ledgers.
+  recurring schedules, reminder preferences, savings goals, debt/loan ledgers,
+  and repayment plans.
 - Full local financial-data deletion with reminder cancellation and
   encryption-key removal.
 
@@ -91,6 +95,27 @@ after confirmation.
 - Optional due reminders are local, use inexact scheduling, and contain no name,
   amount, account, balance, category, note, or raw SMS content.
 - Privacy mode masks debt/loan amounts throughout Plan and detail screens.
+
+## EMI and repayment planner
+
+- A repayment plan attaches to an existing debt/loan ledger and stores only
+  cadence, installment, optional APR, dates, numeric baselines, pause state, and
+  local timestamps.
+- Weekly plans advance every seven days. Monthly plans keep their original
+  due-day anchor and clamp only for shorter months, for example 31 Jan → 28/29
+  Feb → 31 Mar.
+- PiggyAI compares recorded repayment progress with installments expected by
+  today and can show On track, Due today, Behind plan, Settled, or Payment too
+  low.
+- Optional APR is used only for a local estimate of principal/interest split and
+  payoff timing; it is not a lender statement and does not model every fee,
+  compounding rule, penalty, or floating-rate change.
+- Editing a plan replans from the current debt balance and current repayment
+  total without rewriting historical transactions or debt-ledger entries.
+- Saving, pausing, resuming, or deleting a plan never creates a transaction,
+  marks a payment paid, or changes a debt balance. Real repayments still require
+  the explicit manual-entry or confirmed-transaction-link flow.
+- Privacy mode masks repayment-plan amounts and projections.
 
 ## Backup reminder
 
@@ -232,11 +257,15 @@ after confirmation.
 - A restore validates the encrypted envelope and snapshot before replacing any
   local database collections.
 - Sensitive fields are re-encrypted using the destination installation's key.
-- Snapshot version 6 preserves semantic transaction purpose and includes
+- Snapshot version 7 preserves semantic transaction purpose and includes
   recurring schedules, reminder preferences, savings goals, debt/loan accounts,
-  and debt-ledger entries; versions 1 through 5 remain restorable.
-- Restoring a v1-v5 snapshot clears current debt/loan ledgers rather than merging
-  data that did not exist in that older snapshot format.
+  debt-ledger entries, and repayment-plan metadata; versions 1 through 6 remain
+  restorable.
+- Restoring a v1-v5 snapshot clears current debt/loan ledgers because those
+  formats predate debt storage; restoring any v1-v6 snapshot clears newer
+  repayment plans rather than merging them with older financial state.
+- The read-only restore preview shows debt-ledger and repayment-plan counts before
+  the user confirms destructive replacement.
 - Restoring or deleting data cancels obsolete scheduled reminders and rebuilds
   only the reminders represented by the resulting local data.
 - Weekly quest history is excluded from financial backup files and is reset
@@ -288,14 +317,15 @@ flutter build apk --debug
   reminders, safe-to-spend planning, weekly money quests, editable history,
   custom categories, merchant rules, local forecast, subscription suggestions,
   backup reminder, savings goals, cash-flow calendar, private debt/loan ledgers,
-  generic debt due reminders, budgets, local alerts, encrypted backup/restore,
-  insights, charts, privacy mode, and configurable app lock.
+  generic debt due reminders, EMI/repayment planning, budgets, local alerts,
+  encrypted backup/restore, insights, charts, privacy mode, and configurable app
+  lock.
 - **iOS:** onboarding, manual entry, recurring transactions, local bill
   reminders, safe-to-spend planning, weekly money quests, editable history,
   custom categories, merchant rules, local forecast, subscription suggestions,
   backup reminder, savings goals, cash-flow calendar, private debt/loan ledgers,
-  generic debt due reminders, budgets, local alerts, encrypted backup/restore,
-  insights, charts, privacy mode, and configurable app lock. Automatic SMS
-  access is intentionally unavailable.
+  generic debt due reminders, EMI/repayment planning, budgets, local alerts,
+  encrypted backup/restore, insights, charts, privacy mode, and configurable app
+  lock. Automatic SMS access is intentionally unavailable.
 
 The app must remain usable in airplane mode after installation.

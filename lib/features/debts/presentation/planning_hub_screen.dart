@@ -5,6 +5,7 @@ import 'package:smart_expense_manager/core/theme/app_theme.dart';
 import 'package:smart_expense_manager/core/utils/formatters.dart';
 import 'package:smart_expense_manager/features/debts/domain/debt_account.dart';
 import 'package:smart_expense_manager/features/debts/presentation/debt_overview_screen.dart';
+import 'package:smart_expense_manager/features/debts/presentation/repayment_planner_overview_screen.dart';
 import 'package:smart_expense_manager/features/goals/domain/savings_goal.dart';
 import 'package:smart_expense_manager/features/goals/presentation/goals_calendar_screen.dart';
 
@@ -48,7 +49,7 @@ class PlanningHubScreen extends ConsumerWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Savings goals, cash-flow calendar, debts and loans — all local.',
+                  'Savings goals, cash-flow calendar, debts, loans and repayment plans — all local.',
                 ),
               ],
             ),
@@ -81,6 +82,22 @@ class PlanningHubScreen extends ConsumerWidget {
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => const DebtOverviewScreen(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          _PlanCard(
+            color: AppPalette.sky,
+            icon: Icons.calculate_rounded,
+            title: 'EMI & repayment planner',
+            subtitle: debts.isEmpty
+                ? 'Create a debt ledger first'
+                : 'Plan installments for ${debts.length} active ledger${debts.length == 1 ? '' : 's'}',
+            detail:
+                'Estimate next dues, overdue gaps, payoff timing and optional interest without auto-posting payments.',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const RepaymentPlannerOverviewScreen(),
               ),
             ),
           ),
