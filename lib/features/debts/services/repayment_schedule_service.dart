@@ -58,6 +58,15 @@ class RepaymentScheduleService {
       cadence: plan.cadence,
       index: coveredInstallments,
     );
+    final int currentOrFutureIndex = _currentOrFutureDueIndex(
+      firstDueDate: plan.firstDueDate,
+      cadence: plan.cadence,
+      dueCount: dueCount,
+      today: today,
+    );
+    final int projectionStartIndex = coveredInstallments > currentOrFutureIndex
+        ? coveredInstallments
+        : currentOrFutureIndex;
 
     final double ratePerPeriod = plan.annualInterestRatePct <= 0
         ? 0
@@ -95,7 +104,7 @@ class RepaymentScheduleService {
       final DateTime dueDate = _dueDateAt(
         firstDueDate: plan.firstDueDate,
         cadence: plan.cadence,
-        index: coveredInstallments + periods,
+        index: projectionStartIndex + periods,
       );
       if (preview.length < previewPeriods) {
         preview.add(
@@ -137,6 +146,24 @@ class RepaymentScheduleService {
       estimatedRemainingInterest: payoffDate == null ? null : interestTotal,
       installments: List<RepaymentInstallment>.unmodifiable(preview),
     );
+  }
+
+  int _currentOrFutureDueIndex({
+    required DateTime firstDueDate,
+    required RepaymentCadence cadence,
+    required int dueCount,
+    required DateTime today,
+  }) {
+    if (dueCount == 0) {
+      return 0;
+    }
+    final int lastDueIndex = dueCount - 1;
+    final DateTime lastDue = _dueDateAt(
+      firstDueDate: firstDueDate,
+      cadence: cadence,
+      index: lastDueIndex,
+    );
+    return _sameDay(lastDue, today) ? lastDueIndex : dueCount;
   }
 
   int _dueCountThrough({
